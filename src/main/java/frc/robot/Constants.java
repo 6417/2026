@@ -78,6 +78,7 @@ public class Constants {
             configs[LOC_RL] = defaultModuleConfig2024.clone();
             configs[LOC_RR] = defaultModuleConfig2024.clone();
 
+            //Front is on the Batterys side if you use the (Test) Swerve Chassis from 2026
             configs[LOC_FL].driveMotorID = 1;
             configs[LOC_FL].angleMotorID = 11;
             configs[LOC_FL].driveMotorInverted = false;
