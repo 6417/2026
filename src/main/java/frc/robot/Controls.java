@@ -19,22 +19,25 @@ public class Controls implements Sendable {
 
     // private ExampleSubsystem ss = new ExampleSubsystem();
     public CommandXboxController driveJoystick = new CommandXboxController(Constants.Joystick.driveJoystickId);
-    public CommandXboxController operatorJoystick = new CommandXboxController(Constants.Joystick.operatorJoystickId);
-
-    Trigger ltButtonOperator = operatorJoystick.leftTrigger();
-    Trigger rtButtonOperator = operatorJoystick.rightTrigger();
-    Trigger lbButtonOperator = operatorJoystick.leftBumper();
-    Trigger rbButtonOperator = operatorJoystick.rightBumper();
-    Trigger aButtonOperator = operatorJoystick.a();
-    Trigger bButtonOperator = operatorJoystick.b();
-    Trigger xButtonOperator = operatorJoystick.x();
-    Trigger yButtonOperator = operatorJoystick.y();
-    Trigger windowsButtonOperator = operatorJoystick.back();
-    Trigger burgerButtonOperator = operatorJoystick.start();
-    Trigger pov0Operator = operatorJoystick.povUp();
-    Trigger pov2Operator = operatorJoystick.povRight();
-    Trigger pov4Operator = operatorJoystick.povDown();
-    Trigger pov6Operator = operatorJoystick.povLeft();
+    /*
+     * public CommandXboxController operatorJoystick = new
+     * CommandXboxController(Constants.Joystick.operatorJoystickId);
+     * 
+     * Trigger ltButtonOperator = operatorJoystick.leftTrigger();
+     * Trigger rtButtonOperator = operatorJoystick.rightTrigger();
+     * Trigger lbButtonOperator = operatorJoystick.leftBumper();
+     * Trigger rbButtonOperator = operatorJoystick.rightBumper();
+     * Trigger aButtonOperator = operatorJoystick.a();
+     * Trigger bButtonOperator = operatorJoystick.b();
+     * Trigger xButtonOperator = operatorJoystick.x();
+     * Trigger yButtonOperator = operatorJoystick.y();
+     * Trigger windowsButtonOperator = operatorJoystick.back();
+     * Trigger burgerButtonOperator = operatorJoystick.start();
+     * Trigger pov0Operator = operatorJoystick.povUp();
+     * Trigger pov2Operator = operatorJoystick.povRight();
+     * Trigger pov4Operator = operatorJoystick.povDown();
+     * Trigger pov6Operator = operatorJoystick.povLeft();
+     */
 
     Trigger ltButtonDrive = driveJoystick.leftTrigger();
     Trigger rtButtonDrive = driveJoystick.rightTrigger();
@@ -53,6 +56,7 @@ public class Controls implements Sendable {
         FAST,
         SLOW
     }
+
     public enum ControlMode {
         CONVENTIONAL,
         SEPARATE_ACCELERATION;
@@ -98,9 +102,9 @@ public class Controls implements Sendable {
 
     public Controls() {
         // rbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        //         Constants.OffsetsToAprilTags.offsetToAprilTagRight));
+        // Constants.OffsetsToAprilTags.offsetToAprilTagRight));
         // lbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        //         Constants.OffsetsToAprilTags.offsetToAprilTagLeft));
+        // Constants.OffsetsToAprilTags.offsetToAprilTagLeft));
 
         rtButtonDrive.whileTrue(Commands.startEnd(
                 () -> {
@@ -128,7 +132,8 @@ public class Controls implements Sendable {
                 val -> speedFactors.put(DriveSpeed.FAST, val));
         builder.addDoubleProperty("Current Speed Factor", () -> accelerationSensitivity, null);
 
-        builder.addDoubleProperty("CroralDispenserPitchOffset", ()-> dispenserOffset, (newDispOffset)-> dispenserOffset = newDispOffset);
+        builder.addDoubleProperty("CroralDispenserPitchOffset", () -> dispenserOffset,
+                (newDispOffset) -> dispenserOffset = newDispOffset);
 
         builder.addBooleanProperty("SlewRateLimiter", () -> slewRateLimited,
                 val -> slewRateLimited = val);
