@@ -76,3 +76,8 @@ Useful IP addresses while connected to your robot:
 ##### All REV devices
 - [ ] Connect your PC to the Power Distribution Board (USB-C port)
 - [ ] Open "REV Hardware Client 2"
+- [ ] Select the Power Distribution Board
+- [ ] if you can see more devices on the list, repeat the following two steps for all the devices, except CTRE Devices.
+- [ ] Find the update button.
+- [ ] Check if the newest version is selected
+- [ ] Assign a unique value
