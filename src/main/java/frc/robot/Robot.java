@@ -27,8 +27,6 @@ public class Robot extends TimedRobot {
     robotContainer = new RobotContainer();
 
     robotContainer.drive.resetModulesToAbsolute();
-
-
   }
 
   /**

@@ -1,12 +1,5 @@
 package frc.robot.swerve;
 
-import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volt;
-import static edu.wpi.first.units.Units.Volts;
-
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -17,18 +10,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.MutDistance;
-import edu.wpi.first.units.measure.MutLinearVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
-import frc.fridowpi.utils.AccelerationLimiter;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
@@ -38,21 +25,12 @@ public class SwerveDrive extends SubsystemBase {
     private SwerveDriveKinematics kinematics;
     public SwerveDrivePoseEstimator poseEstimator;
 
-    public LimelightHelpers.PoseEstimate mt2;
-
-    // I made a mistake by a factor of 10 when I considered the force, the
-    // accelration should
-    // be roughly 10 m / s^2 and not 75.
-    private AccelerationLimiter accelLimiter = new AccelerationLimiter(20, 0.267);
-
     ChassisSpeeds lastSpeeds = new ChassisSpeeds();
 
     public static final int LOC_FL = 0;
     public static final int LOC_FR = 1;
     public static final int LOC_RL = 2;
     public static final int LOC_RR = 3;
-
-    Thread odometryThread;
 
     public SwerveDrive(ModuleConfig[] configs) {
         String[] moduleNames = new String[4];
@@ -82,52 +60,15 @@ public class SwerveDrive extends SubsystemBase {
                 VecBuilder.fill(0.02, 0.02, 0.01),
                 VecBuilder.fill(0.1, 0.1, 0.01));
 
-        // posEstimatorThread = new Thread(this::updateOdometry);
-        // posEstimatorThread.start();
-
         setDefaultCommand(new DriveCommand(this));
-
-        /*
-         * odometryThread = new Thread(this::updateOdometryThread);
-         * odometryThread.start();
-         */
-    }
-
-    public synchronized void updateOdometryThread() {
-        while (true) {
-            updateOdometry();
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
     }
 
     public void setChassisSpeeds(ChassisSpeeds speeds) {
-        // speeds = ChassisSpeeds.discretize(speeds, 0.02); // remove the skew
-
-        /*
-         * long timeNow = System.currentTimeMillis();
-         * if (lastSetpointTime > 0) {
-         * speeds = accelLimiter.constrain(lastMeasuredSpeeds, speeds,
-         * ((double) (timeNow - lastSetpointTime)) / (double) 1000.0);
-         * }
-         */
-
         SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(speeds);
-
-        // SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates,
-        // Constants.SwerveDrive.maxSpeed);
 
         for (int i = 0; i < 4; i++) {
             modules[i].setDesiredState(moduleStates[i]);
         }
-
-        // lastSpeeds = speeds;
-        // lastSetpointTime = timeNow;
-        // lastMeasuredSpeeds = getChassisSpeeds();
     }
 
     public void voltageDrive(double voltage) {
@@ -165,17 +106,17 @@ public class SwerveDrive extends SubsystemBase {
                 modules[2].getState(), modules[3].getState());
     }
 
+    @Override
     public void periodic() {
         updateOdometry();
-        LimelightHelpers.SetRobotOrientation(Constants.Limelight.limelightID,
-                poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        addVisionToOdometry();
     }
 
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
 
-    public synchronized void updateOdometry() {
+    public void updateOdometry() {
         poseEstimator.update(
                 RobotContainer.gyro.getRotation2d(),
                 new SwerveModulePosition[] {
@@ -194,14 +135,17 @@ public class SwerveDrive extends SubsystemBase {
          * 0);
          */
 
-        LimelightHelpers.PoseEstimate lime1 = LimelightHelpers
-                .getBotPoseEstimate_wpiBlue_MegaTag2(Constants.Limelight.limelightID); // We use MegaTag 1 because 2 has
-                                                                                       // problems
-        addLimeLightMeasurementToPoseEstimation(lime1);
+        boolean useMegaTag2 = true;
+        LimelightHelpers.PoseEstimate lime;
 
+        if (useMegaTag2)
+            lime = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(Constants.Limelight.limelightID);
+        else 
+            lime = LimelightHelpers.getBotPoseEstimate_wpiBlue(Constants.Limelight.limelightID);
+        addLimeLightMeasurementToPoseEstimation(lime, useMegaTag2);
     }
 
-    private void addLimeLightMeasurementToPoseEstimation(LimelightHelpers.PoseEstimate lime) {
+    private void addLimeLightMeasurementToPoseEstimation(LimelightHelpers.PoseEstimate lime, boolean useMegaTag2) {
         if (lime == null)
             return;
 
@@ -228,10 +172,23 @@ public class SwerveDrive extends SubsystemBase {
         if (lime.avgTagDist > farDist || lime.avgTagDist < 0.0)
             return;
 
-        poseEstimator.setVisionMeasurementStdDevs(
+        if (!useMegaTag2)
+        {
+            poseEstimator.setVisionMeasurementStdDevs(
+                // give more trust to mt2
+                VecBuilder.fill(0.3 * (1.0 - lime.avgTagDist / farDist),
+                        0.3 * (1.0 - lime.avgTagDist / farDist),
+                        Units.degreesToRadians(10))
+            );
+        }
+        else
+        {
+            LimelightHelpers.SetRobotOrientation("limelight", poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+            poseEstimator.setVisionMeasurementStdDevs(
                 VecBuilder.fill(0.7 * (1.0 - lime.avgTagDist / farDist),
                         0.7 * (1.0 - lime.avgTagDist / farDist),
                         Units.degreesToRadians(30)));
+        }
         poseEstimator.addVisionMeasurement(
                 lime.pose,
                 lime.timestampSeconds);

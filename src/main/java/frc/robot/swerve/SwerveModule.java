@@ -70,13 +70,10 @@ public class SwerveModule implements Sendable {
     }
 
     public void setDesiredState(double voltage) {
-        
         driveMotor.setVoltage(voltage);
 
         angleMotor.setPosition(0);
     }
-
-
 
     public double getVelocityMPS() {
         return getVelocityRPS() * config.wheelCircumference;

@@ -16,28 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * either to the entire program or get exported to the shuffleboard
  */
 public class Controls implements Sendable {
-
-    // private ExampleSubsystem ss = new ExampleSubsystem();
     public CommandXboxController driveJoystick = new CommandXboxController(Constants.Joystick.driveJoystickId);
-    /*
-     * public CommandXboxController operatorJoystick = new
-     * CommandXboxController(Constants.Joystick.operatorJoystickId);
-     * 
-     * Trigger ltButtonOperator = operatorJoystick.leftTrigger();
-     * Trigger rtButtonOperator = operatorJoystick.rightTrigger();
-     * Trigger lbButtonOperator = operatorJoystick.leftBumper();
-     * Trigger rbButtonOperator = operatorJoystick.rightBumper();
-     * Trigger aButtonOperator = operatorJoystick.a();
-     * Trigger bButtonOperator = operatorJoystick.b();
-     * Trigger xButtonOperator = operatorJoystick.x();
-     * Trigger yButtonOperator = operatorJoystick.y();
-     * Trigger windowsButtonOperator = operatorJoystick.back();
-     * Trigger burgerButtonOperator = operatorJoystick.start();
-     * Trigger pov0Operator = operatorJoystick.povUp();
-     * Trigger pov2Operator = operatorJoystick.povRight();
-     * Trigger pov4Operator = operatorJoystick.povDown();
-     * Trigger pov6Operator = operatorJoystick.povLeft();
-     */
 
     Trigger ltButtonDrive = driveJoystick.leftTrigger();
     Trigger rtButtonDrive = driveJoystick.rightTrigger();
@@ -55,11 +34,6 @@ public class Controls implements Sendable {
         DEFAULT_SPEED,
         FAST,
         SLOW
-    }
-
-    public enum ControlMode {
-        CONVENTIONAL,
-        SEPARATE_ACCELERATION;
     }
 
     public enum DriveOrientation {
@@ -82,10 +56,7 @@ public class Controls implements Sendable {
 
     public double turnSensitivity = 0.08;
 
-    public double dispenserOffset = 0.0;
-
     public DriveOrientation driveOrientation = DriveOrientation.FieldOriented;
-    public ControlMode controlMode = ControlMode.CONVENTIONAL;
 
     public void setActiveSpeedFactor(DriveSpeed speedFactor) {
         activeSpeedFactor = speedFactor;
@@ -131,10 +102,6 @@ public class Controls implements Sendable {
         builder.addDoubleProperty("fastSpeedFactor", () -> speedFactors.get(DriveSpeed.FAST),
                 val -> speedFactors.put(DriveSpeed.FAST, val));
         builder.addDoubleProperty("Current Speed Factor", () -> accelerationSensitivity, null);
-
-        builder.addDoubleProperty("CroralDispenserPitchOffset", () -> dispenserOffset,
-                (newDispOffset) -> dispenserOffset = newDispOffset);
-
         builder.addBooleanProperty("SlewRateLimiter", () -> slewRateLimited,
                 val -> slewRateLimited = val);
         builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);

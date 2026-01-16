@@ -15,7 +15,6 @@ public class DriveCommand extends Command {
     }
 
     public void execute() {
-
         var joystick = RobotContainer.controls.driveJoystick;
 
         var x = -joystick.getRawAxis(1);
@@ -23,38 +22,11 @@ public class DriveCommand extends Command {
         
         var rot = -joystick.getRightX();
 
-       /*  if (RobotContainer.controls.controlMode == Controls.ControlMode.SEPARATE_ACCELERATION) {
-            xy = xy.normalized().scaled(joystick.getRawAxis(4));
-        }*/
-
         // Apply deadband4
         x = applyDeadband(x, Controls.deadBandTurn);
         y = applyDeadband(y, Controls.deadBandTurn);
         rot = applyDeadband(rot, Controls.deadBandTurn);
         var xy = new Vector2(x, y);
-
-       
-        // Apply slew rate
-        /*
-         * if (Controls.isSlewRateLimited()) {
-         * var xLimited = xLimiter.calculate(abs(xy.x)) * signum(xy.x);
-         * var yLimited = yLimiter.calculate(abs(xy.y)) * signum(xy.y);
-         * // rot = rotLimiter.calculate(abs(rot)) * signum(rot);
-         * if (Double.isNaN(xLimited) || Double.isNaN(yLimited)) {
-         * xLimiter.reset(xy.x);
-         * yLimiter.reset(xy.y);
-         * } else {
-         * xy = new Vector2(xLimited, yLimited);
-         * }
-         * }
-         */
-
-        /*// Convert to velocity
-        if(joystick.rightStick().getAsBoolean()) {
-            RobotContainer.controls.setActiveSpeedFactor(DriveSpeed.SLOW);
-        } else{
-            RobotContainer.controls.setActiveSpeedFactor(DriveSpeed.FAST);
-        }*/
 
         xy.scale(Constants.SwerveDrive.maxSpeed * RobotContainer.controls.speedFactors.get(RobotContainer.controls.getActiveSpeedFactor()));
         rot *= Constants.SwerveDrive.maxTurnSpeed;
