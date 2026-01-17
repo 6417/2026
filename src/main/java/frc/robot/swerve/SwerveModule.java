@@ -22,6 +22,8 @@ public class SwerveModule implements Sendable {
 
     private Rotation2d lastAngle;
 
+    private double desiredVelocity;
+
     public SwerveModule(ModuleConfig config) {
         this.config = config;
         absoluteEncoder = config.makeAbsoluteEncoder();
@@ -51,7 +53,7 @@ public class SwerveModule implements Sendable {
     public void setDesiredState(SwerveModuleState desiredState) {
         desiredState = CTREModuleState.optimize(desiredState, getRotation());
 
-        double desiredVelocity = (desiredState.speedMetersPerSecond / config.wheelCircumference)
+        desiredVelocity = (desiredState.speedMetersPerSecond / config.wheelCircumference)
                 * config.driveGearboxRatio
                 * config.encoderVelocityToRPSFalcon;
         driveMotor.setVelocity(desiredVelocity);
@@ -122,6 +124,7 @@ public class SwerveModule implements Sendable {
         builder.addDoubleProperty("drive vel [mps]", () -> getState().speedMetersPerSecond, null);
         builder.addDoubleProperty("abs encoder raw", () -> absoluteEncoder.getRaw(), null);
         builder.addDoubleProperty("abs encoder value", () -> absoluteEncoder.get(), null);
-        builder.addDoubleProperty("last angle [deg]", () -> lastAngle.getDegrees(), null);
+        builder.addDoubleProperty("last (Desired?) angle [deg]", () -> lastAngle.getDegrees(), null);
+        builder.addDoubleProperty("Desired Velocity", () -> desiredVelocity, null);
     }
 }

@@ -1,5 +1,7 @@
 package frc.robot.swerve;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -25,12 +27,14 @@ public class SwerveDrive extends SubsystemBase {
     private SwerveDriveKinematics kinematics;
     public SwerveDrivePoseEstimator poseEstimator;
 
-    ChassisSpeeds lastSpeeds = new ChassisSpeeds();
-
+    
     public static final int LOC_FL = 0;
     public static final int LOC_FR = 1;
     public static final int LOC_RL = 2;
     public static final int LOC_RR = 3;
+    
+    SwerveModuleState[] desiredModuleStates;
+    ChassisSpeeds lastSpeeds = new ChassisSpeeds();
 
     public SwerveDrive(ModuleConfig[] configs) {
         String[] moduleNames = new String[4];
@@ -64,10 +68,13 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     public void setChassisSpeeds(ChassisSpeeds speeds) {
-        SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(speeds);
+        // store the last commanded chassis speeds so callers can query them
+        this.lastSpeeds = speeds;
+
+        desiredModuleStates = kinematics.toSwerveModuleStates(speeds);
 
         for (int i = 0; i < 4; i++) {
-            modules[i].setDesiredState(moduleStates[i]);
+            modules[i].setDesiredState(desiredModuleStates[i]);
         }
     }
 
@@ -75,6 +82,25 @@ public class SwerveDrive extends SubsystemBase {
         for (int i = 0; i < 4; i++) {
             modules[i].setDesiredState(voltage);
         }
+    }
+
+    public SwerveModuleState[] getSwerveModuleStates() {
+        SwerveModuleState[] moduleStates = new SwerveModuleState[] {
+                modules[0].getState(),
+                modules[1].getState(),
+                modules[2].getState(),
+                modules[3].getState()
+        };
+        return moduleStates;
+    }
+
+    public SwerveModuleState[] getDesiredSwerveModuleStates() {
+        return desiredModuleStates;
+    }
+
+    public ChassisSpeeds getDesiredChassisSpeeds(){
+        // return the last commanded chassis speeds (set via setChassisSpeeds)
+        return lastSpeeds;
     }
 
     public double getcharecterizedVelocity() {
@@ -110,10 +136,20 @@ public class SwerveDrive extends SubsystemBase {
     public void periodic() {
         updateOdometry();
         addVisionToOdometry();
+        Logger.recordOutput("SwerveModuleStates", this.getSwerveModuleStates());
+        Logger.recordOutput("DesiredSwerveModuleStates", this.getDesiredSwerveModuleStates());
+        Logger.recordOutput("ChassisSpeds", this.getChassisSpeeds());
+        Logger.recordOutput("ChassisRotation", this.getRotation());
+        Logger.recordOutput("DesiredChassispeeds", this.getDesiredChassisSpeeds());
+
     }
 
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
+    }
+
+    public Rotation2d getRotation() {
+        return RobotContainer.gyro.getRotation2d();
     }
 
     public void updateOdometry() {
@@ -140,7 +176,7 @@ public class SwerveDrive extends SubsystemBase {
 
         if (useMegaTag2)
             lime = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(Constants.Limelight.limelightID);
-        else 
+        else
             lime = LimelightHelpers.getBotPoseEstimate_wpiBlue(Constants.Limelight.limelightID);
         addLimeLightMeasurementToPoseEstimation(lime, useMegaTag2);
     }
@@ -172,22 +208,19 @@ public class SwerveDrive extends SubsystemBase {
         if (lime.avgTagDist > farDist || lime.avgTagDist < 0.0)
             return;
 
-        if (!useMegaTag2)
-        {
+        if (!useMegaTag2) {
             poseEstimator.setVisionMeasurementStdDevs(
-                // give more trust to mt2
-                VecBuilder.fill(0.3 * (1.0 - lime.avgTagDist / farDist),
-                        0.3 * (1.0 - lime.avgTagDist / farDist),
-                        Units.degreesToRadians(10))
-            );
-        }
-        else
-        {
-            LimelightHelpers.SetRobotOrientation("limelight", poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+                    // give more trust to mt2
+                    VecBuilder.fill(0.3 * (1.0 - lime.avgTagDist / farDist),
+                            0.3 * (1.0 - lime.avgTagDist / farDist),
+                            Units.degreesToRadians(10)));
+        } else {
+            LimelightHelpers.SetRobotOrientation("limelight",
+                    poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
             poseEstimator.setVisionMeasurementStdDevs(
-                VecBuilder.fill(0.7 * (1.0 - lime.avgTagDist / farDist),
-                        0.7 * (1.0 - lime.avgTagDist / farDist),
-                        Units.degreesToRadians(30)));
+                    VecBuilder.fill(0.7 * (1.0 - lime.avgTagDist / farDist),
+                            0.7 * (1.0 - lime.avgTagDist / farDist),
+                            Units.degreesToRadians(30)));
         }
         poseEstimator.addVisionMeasurement(
                 lime.pose,

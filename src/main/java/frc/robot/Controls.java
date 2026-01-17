@@ -85,6 +85,8 @@ public class Controls implements Sendable {
                     activeSpeedFactor = DriveSpeed.DEFAULT_SPEED;
                 }));
 
+        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
+
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
 
