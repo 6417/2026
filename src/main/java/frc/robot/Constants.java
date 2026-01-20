@@ -52,7 +52,7 @@ public class Constants {
             defaultModuleConfig2024.driveGearboxRatio = 6.181;
             defaultModuleConfig2024.driveMotorStallCurrentLimit = 70;
             defaultModuleConfig2024.driveMotorFreeCurrentLimit = 40;
-            defaultModuleConfig2024.drivePidValues = new PidValues(1.1926E-05, 0.00, 0);
+            defaultModuleConfig2024.drivePidValues = new PidValues(1.1926E-05, 0.02, 0);
             // defaultModuleConfig2024.driveFFValues = new FeedForwardValues(0.13271 / 12,
             // 2.1395 / 12, 0.15313 / 12);
             defaultModuleConfig2024.driveFFValues = new FeedForwardValues(0.057, 0.1177, 0.05);
@@ -61,7 +61,7 @@ public class Constants {
             defaultModuleConfig2024.angleMotorStallCurrentLimit = 35;
             defaultModuleConfig2024.angleMotorFreeCurrentLimit = 20;
             defaultModuleConfig2024.angleMotorIzone = 0.1;
-            defaultModuleConfig2024.anglePidValues = new PidValues(0.4, 0.0, 0.05);
+            defaultModuleConfig2024.anglePidValues = new PidValues(0.4, 0.01, 0.05);
 
             defaultModuleConfig2024.encoderThicksToRotationFalcon = 1;
             defaultModuleConfig2024.encoderVelocityToRPSFalcon = 1;
@@ -78,14 +78,14 @@ public class Constants {
             configs[LOC_RL] = defaultModuleConfig2024.clone();
             configs[LOC_RR] = defaultModuleConfig2024.clone();
 
-            //Front is on the Batterys side if you use the (Test) Swerve Chassis from 2026
+            // Front is on the Batterys side if you use the (Test) Swerve Chassis from 2026
             configs[LOC_FL].driveMotorID = 1;
             configs[LOC_FL].angleMotorID = 11;
             configs[LOC_FL].driveMotorInverted = false;
             configs[LOC_FL].angleMotorInverted = true;
             configs[LOC_FL].moduleOffset = new Translation2d(moduleXoffset, moduleYoffset);
             configs[LOC_FL].encoderChannel = 0;
-            configs[LOC_FL].absEncoderOffset = 0.753;
+            configs[LOC_FL].absEncoderOffset = 0.508;
 
             configs[LOC_FR].driveMotorID = 2;
             configs[LOC_FR].angleMotorID = 12;
@@ -93,7 +93,7 @@ public class Constants {
             configs[LOC_FR].angleMotorInverted = true;
             configs[LOC_FR].moduleOffset = new Translation2d(moduleXoffset, -moduleYoffset);
             configs[LOC_FR].encoderChannel = 1;
-            configs[LOC_FR].absEncoderOffset = 0.195;
+            configs[LOC_FR].absEncoderOffset = 0.940;
 
             configs[LOC_RL].driveMotorID = 3;
             configs[LOC_RL].angleMotorID = 13;
@@ -101,7 +101,7 @@ public class Constants {
             configs[LOC_RL].angleMotorInverted = true;
             configs[LOC_RL].moduleOffset = new Translation2d(-moduleXoffset, moduleYoffset);
             configs[LOC_RL].encoderChannel = 2;
-            configs[LOC_RL].absEncoderOffset = 0.301;
+            configs[LOC_RL].absEncoderOffset = 0.056;
 
             configs[LOC_RR].driveMotorID = 4;
             configs[LOC_RR].angleMotorID = 14;
@@ -109,7 +109,8 @@ public class Constants {
             configs[LOC_RR].angleMotorInverted = true;
             configs[LOC_RR].moduleOffset = new Translation2d(-moduleXoffset, -moduleYoffset);
             configs[LOC_RR].encoderChannel = 3;
-            configs[LOC_RR].absEncoderOffset = 0.829;
+            configs[LOC_RR].absEncoderOffset = 0.579;
         }
+
     }
 }

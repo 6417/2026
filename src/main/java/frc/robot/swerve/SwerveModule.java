@@ -46,6 +46,7 @@ public class SwerveModule implements Sendable {
     }
 
     public void resetToAbsolute() {
+        absoluteEncoder.setPositionOffset(config.absEncoderOffset);
         double position = (1 - absoluteEncoder.get()) * config.encoderThicksToRotationNEO * config.angleGearboxRatio;
         angleMotor.setEncoderPosition(position);
     }
@@ -60,7 +61,7 @@ public class SwerveModule implements Sendable {
 
         Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (config.maxSpeed * 0.01))
                 ? lastAngle
-                : desiredState.angle; 
+                : desiredState.angle;
 
         lastAngle = angle;
 
@@ -85,7 +86,7 @@ public class SwerveModule implements Sendable {
         return driveMotor.getEncoderVelocity() / config.encoderVelocityToRPSFalcon / config.driveGearboxRatio;
     }
 
-    public double appliedVoltage(){
+    public double appliedVoltage() {
         return driveMotor.getAppliedVoltage();
     }
 

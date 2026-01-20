@@ -51,7 +51,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
                     // be added.
     robotContainer = new RobotContainer();
 
-    robotContainer.drive.resetModulesToAbsolute();
+    // robotContainer.drive.resetModulesToAbsolute();
   }
 
   /**

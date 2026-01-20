@@ -3,7 +3,8 @@ package frc.robot;
 import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Commands;
-
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -86,7 +87,12 @@ public class Controls implements Sendable {
                 }));
 
         windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
-
+        yButtonDrive.onTrue(new InstantCommand(()->RobotContainer.drive.resetModulesToAbsolute()));
+    // While X is held, continuously command the drive to move forward (field-relative +x)
+    xButtonDrive.whileTrue(Commands.run(
+        () -> RobotContainer.drive.setChassisSpeeds(
+            ChassisSpeeds.fromFieldRelativeSpeeds(1, 0, 0, Rotation2d.fromDegrees(0))),
+        RobotContainer.drive));
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
 
