@@ -47,6 +47,7 @@ public class SwerveDrive extends SubsystemBase {
         for (int i = 0; i < 4; i++) {
             configs[i].name = moduleNames[i];
             modules[i] = new SwerveModule(configs[i]);
+            System.out.println("Hello World");
             Shuffleboard.getTab("Drive").add("SwerveModule " + moduleNames[i], modules[i]);
         }
         Shuffleboard.getTab("Drive").add("SwerveDrive", this);

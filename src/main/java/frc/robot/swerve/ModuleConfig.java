@@ -98,8 +98,8 @@ public class ModuleConfig implements Cloneable {
         // angleMotor.factoryDefault();
         SparkMaxConfig config = new SparkMaxConfig();
         config.smartCurrentLimit(angleMotorStallCurrentLimit, angleMotorFreeCurrentLimit);
-        angleMotor.asSparkMax().configure(config, SparkBase.ResetMode.kResetSafeParameters,
-                SparkBase.PersistMode.kPersistParameters);
+        // angleMotor.asSparkMax().getConfigurator().apply(config, SparkBase.ResetMode.kResetSafeParameters,
+        //         SparkBase.PersistMode.kPersistParameters);
         angleMotor.setInverted(angleMotorInverted);
         config.closedLoop.iZone(angleMotorIzone);
         angleMotor.setPID(anglePidValues);

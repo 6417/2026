@@ -1,5 +1,7 @@
 package frc.robot.swerve;
 
+import com.revrobotics.AbsoluteEncoder;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -33,6 +35,8 @@ public class SwerveModule implements Sendable {
 
         lastAngle = getAbsEncoderRotation();
 
+        System.out.println("Zuletzt angefragter Winkel : "+lastAngle );
+
         resetToAbsolute();
     }
 
@@ -47,6 +51,8 @@ public class SwerveModule implements Sendable {
 
     public void resetToAbsolute() {
         absoluteEncoder.setPositionOffset(config.absEncoderOffset);
+        System.out.println( this.moduleName +"AbsoluteEncoderOffset " + config.absEncoderOffset);
+        System.out.println(this.moduleName + "AbsoluteEncoder.get "+absoluteEncoder.get());
         double position = (1 - absoluteEncoder.get()) * config.encoderThicksToRotationNEO * config.angleGearboxRatio;
         angleMotor.setEncoderPosition(position);
     }
