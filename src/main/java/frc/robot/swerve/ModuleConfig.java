@@ -30,6 +30,8 @@ public class ModuleConfig implements Cloneable {
     public PidValues drivePidValues;
     public FeedForwardValues driveFFValues;
 
+    public boolean swerveDebug;
+
     public int angleMotorID;
     public double angleGearboxRatio;
     public int angleMotorStallCurrentLimit;
@@ -76,6 +78,8 @@ public class ModuleConfig implements Cloneable {
         encoderVelocityToRPSFalcon = 0.0;
         encoderThicksToRotationNEO = 0.0;
         encoderVelocityToRPSNEO = 0.0;
+
+        swerveDebug = false;
     }
 
     public FridoFalcon500v6 makeDriveMotor() {

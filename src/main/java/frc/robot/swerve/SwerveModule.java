@@ -28,6 +28,12 @@ public class SwerveModule implements Sendable {
 
     public SwerveModule(ModuleConfig config) {
         this.config = config;
+        this.moduleName = config.name;
+
+        if (this.config.swerveDebug) {
+            System.out.println("Debug swerveModule " + this.moduleName);
+        }
+
         absoluteEncoder = config.makeAbsoluteEncoder();
         absoluteEncoder.setPositionOffset(config.absEncoderOffset);
         driveMotor = config.makeDriveMotor();

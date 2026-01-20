@@ -68,6 +68,8 @@ public class Constants {
             defaultModuleConfig2024.encoderThicksToRotationNEO = 1;
             defaultModuleConfig2024.encoderVelocityToRPSNEO = 1;
 
+            defaultModuleConfig2024.swerveDebug = true;
+
             final int LOC_FL = frc.robot.swerve.SwerveDrive.LOC_FL;
             final int LOC_FR = frc.robot.swerve.SwerveDrive.LOC_FR;
             final int LOC_RL = frc.robot.swerve.SwerveDrive.LOC_RL;
