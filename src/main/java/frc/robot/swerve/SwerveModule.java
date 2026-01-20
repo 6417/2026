@@ -57,9 +57,14 @@ public class SwerveModule implements Sendable {
 
     public void resetToAbsolute() {
         absoluteEncoder.setPositionOffset(config.absEncoderOffset);
-        System.out.println( this.moduleName +"AbsoluteEncoderOffset " + config.absEncoderOffset);
-        System.out.println(this.moduleName + "AbsoluteEncoder.get "+absoluteEncoder.get());
         double position = (1 - absoluteEncoder.get()) * config.encoderThicksToRotationNEO * config.angleGearboxRatio;
+
+        if (this.config.swerveDebug) {
+            System.out.println("--- reset to absolute ---");
+            System.out.println( this.moduleName + " / AbsoluteEncoderOffset: " + config.absEncoderOffset);
+            System.out.println(this.moduleName + " / AbsoluteEncoder.get(): " + absoluteEncoder.get());
+            System.out.println(this.moduleName + " / position: " + position);
+        }
         angleMotor.setEncoderPosition(position);
     }
 
