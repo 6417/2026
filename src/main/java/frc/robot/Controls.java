@@ -87,12 +87,8 @@ public class Controls implements Sendable {
                 }));
 
         windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
-        yButtonDrive.onTrue(new InstantCommand(()->RobotContainer.drive.resetModulesToAbsolute()));
-    // While X is held, continuously command the drive to move forward (field-relative +x)
-    xButtonDrive.whileTrue(Commands.run(
-        () -> RobotContainer.drive.setChassisSpeeds(
-            ChassisSpeeds.fromFieldRelativeSpeeds(1, 0, 0, Rotation2d.fromDegrees(0))),
-        RobotContainer.drive));
+        //yButtonDrive.onTrue(new InstantCommand(()->RobotContainer.drive.resetModulesToAbsolute()));
+    
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
 
