@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -68,6 +69,8 @@ public class SwerveSubsystem extends SubsystemBase {
                 1); // Enable if you want to resynchronize your absolute encoders and motor encoders
                     // periodically when they are not moving.
 
+        replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
+
         if (useVision) {
             setupVision();
             drive.stopOdometryThread();
@@ -82,25 +85,38 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        double v = 2;
+        SwerveModuleState[] modules = {
+            new SwerveModuleState(v, new Rotation2d()),
+            new SwerveModuleState(v, new Rotation2d()),
+            new SwerveModuleState(v, new Rotation2d()),
+            new SwerveModuleState(v, new Rotation2d())
+        };
+        drive.setModuleStates(modules, true);
+
         if (useVision) {
             // manually update odometry if using vision
             drive.updateOdometry();
             // TODO: update odometry with vision measurements
         }
-        joystickLeftX = RobotContainer.controls.driveJoystick.getLeftX();
-        joystickLeftY = RobotContainer.controls.driveJoystick.getLeftY();
-        joystickRightX = RobotContainer.controls.driveJoystick.getRightX();
-        joystickRightY = RobotContainer.controls.driveJoystick.getRightY();
-        driveCommand(
-                () -> -RobotContainer.controls.driveJoystick.getLeftY(),
-                () -> -RobotContainer.controls.driveJoystick.getLeftX(),
-                () -> -RobotContainer.controls.driveJoystick.getRightX(),
-                () -> -RobotContainer.controls.driveJoystick.getRightY()).schedule();
+        double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
+        if (Constants.SwerveSubsystem.oldTurnSystem) {
+            driveCommand(
+                    () -> -joystickAxes[1],
+                    () -> -joystickAxes[0],
+                    () -> -joystickAxes[2]).schedule();
+        } else {
+            driveCommand(
+                    () -> -joystickAxes[1],
+                    () -> -joystickAxes[0],
+                    () -> -joystickAxes[2],
+                    () -> -joystickAxes[3]).schedule();
+        }
+
     }
 
     private void setupVision() {
-
-    }
+    };
 
     public void resetOdometry(Pose2d pose) {
         drive.resetOdometry(pose);
@@ -233,8 +249,8 @@ public class SwerveSubsystem extends SubsystemBase {
      * @param kV the velocity gain of the feedforward
      * @param kA the acceleration gain of the feedforward
      */
-    public void replaceSwerveModuleFeedforward(double kS, double kV, double kA) {
-        drive.replaceSwerveModuleFeedforward(new SimpleMotorFeedforward(kS, kV, kA));
+    public void replaceSwerveModuleFeedforward(SimpleMotorFeedforward feedforward) {
+        drive.replaceSwerveModuleFeedforward(feedforward);
     }
 
     private Alliance getAlliance() {

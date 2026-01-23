@@ -2,6 +2,7 @@ package frc.robot;
 
 import java.util.Map;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -63,7 +64,7 @@ public class Controls implements Sendable {
         activeSpeedFactor = speedFactor;
         accelerationSensitivity = speedFactors.get(speedFactor);
     }
-
+    
     public DriveSpeed getActiveSpeedFactor() {
         return activeSpeedFactor;
     }
@@ -77,19 +78,36 @@ public class Controls implements Sendable {
         // Constants.OffsetsToAprilTags.offsetToAprilTagRight));
         // lbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
         // Constants.OffsetsToAprilTags.offsetToAprilTagLeft));
-
+        
         rtButtonDrive.whileTrue(Commands.startEnd(
-                () -> {
-                    activeSpeedFactor = DriveSpeed.SLOW;
+            () -> {
+                    setActiveSpeedFactor(DriveSpeed.SLOW);
                 },
                 () -> {
-                    activeSpeedFactor = DriveSpeed.DEFAULT_SPEED;
+                    setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
-
-        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
-        //yButtonDrive.onTrue(new InstantCommand(()->RobotContainer.drive.resetModulesToAbsolute()));
-    
+                
+                windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset())); 
+        burgerButtonDrive.onTrue(new InstantCommand(()->{
+            RobotContainer.drive.zeroGyro();
+        }));
         Shuffleboard.getTab("Drive").add("Controls", this);
+    }
+
+    public double[] getJoystickAxes(){
+        double[] joystickAxes = {
+            driveJoystick.getLeftX(),
+            driveJoystick.getLeftY(),
+            driveJoystick.getRightX(),
+            driveJoystick.getRightY()
+        };
+        for (int i = 0; i < joystickAxes.length; i++) {
+            if (Math.abs(joystickAxes[i]) < Controls.deadBandDrive) {
+                joystickAxes[i] = 0.0;
+            }
+            joystickAxes[i]*= getAccelerationSensitivity();
+        }
+        return joystickAxes; 
     }
 
     // Shuffleboard
@@ -97,19 +115,19 @@ public class Controls implements Sendable {
         builder.setSmartDashboardType("Motor Controller");
 
         builder.addDoubleProperty("turnSensitivity", () -> turnSensitivity,
-                val -> turnSensitivity = val);
-
+        val -> turnSensitivity = val);
+        
         builder.addDoubleProperty("defaultSpeedFactor", () -> speedFactors.get(DriveSpeed.DEFAULT_SPEED),
                 val -> speedFactors.put(DriveSpeed.DEFAULT_SPEED, val));
-        builder.addDoubleProperty("slowSpeedFactor", () -> speedFactors.get(DriveSpeed.SLOW),
+                builder.addDoubleProperty("slowSpeedFactor", () -> speedFactors.get(DriveSpeed.SLOW),
                 val -> speedFactors.put(DriveSpeed.SLOW, val));
-        builder.addDoubleProperty("fastSpeedFactor", () -> speedFactors.get(DriveSpeed.FAST),
+                builder.addDoubleProperty("fastSpeedFactor", () -> speedFactors.get(DriveSpeed.FAST),
                 val -> speedFactors.put(DriveSpeed.FAST, val));
-        builder.addDoubleProperty("Current Speed Factor", () -> accelerationSensitivity, null);
-        builder.addBooleanProperty("SlewRateLimiter", () -> slewRateLimited,
+                builder.addDoubleProperty("Current Speed Factor", () -> accelerationSensitivity, null);
+                builder.addBooleanProperty("SlewRateLimiter", () -> slewRateLimited,
                 val -> slewRateLimited = val);
-        builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
-        builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
-    }
-
-}
+                builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
+                builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
+            }
+            
+        }
