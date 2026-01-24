@@ -34,12 +34,15 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
+    private VisionSubsystem vision;
+
     private final boolean blueAlliance;
 
     private static final boolean useVision = false;
 
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
+        vision = new VisionSubsystem(true);
 
         Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1), // not very accurate -> gets
                                                                                        // corrected by limelight anyways
@@ -72,8 +75,8 @@ public class SwerveSubsystem extends SubsystemBase {
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
         if (useVision) {
-            setupVision();
             drive.stopOdometryThread();
+          
         }
         RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
     }
@@ -96,7 +99,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
         if (useVision) {
             // manually update odometry if using vision
-            drive.updateOdometry();
+            
+            updateOdometry();
+            
             // TODO: update odometry with vision measurements
         }
         
@@ -116,7 +121,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
     }
 
-    private void setupVision() {
+    private void updateOdometry() {
+        drive.updateOdometry();
+        vision.updateOdometry();
     };
 
     public void resetOdometry(Pose2d pose) {

@@ -22,6 +22,8 @@ public class Constants {
     }
 
     public static final class Limelight {
+
+        public static String driveLimelight = "limelight-drive";
     }
 
     public static final class SwerveSubsystem {
