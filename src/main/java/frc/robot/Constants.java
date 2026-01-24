@@ -37,4 +37,8 @@ public class Constants {
         public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0, 0, 0);
 
     }
+    public static final class Controls {
+        public static final double deadBandDrive = 0.08;
+        public static final double deadBandTurn = 0.08;
+    }
 }

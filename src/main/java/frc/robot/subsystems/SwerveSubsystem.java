@@ -88,14 +88,14 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double v = 2;
+        double v = -1;
         SwerveModuleState[] modules = {
             new SwerveModuleState(v, new Rotation2d()),
             new SwerveModuleState(v, new Rotation2d()),
             new SwerveModuleState(v, new Rotation2d()),
             new SwerveModuleState(v, new Rotation2d())
         };
-        drive.setModuleStates(modules, true);
+        drive.setModuleStates(modules, false);
 
         if (useVision) {
             // manually update odometry if using vision
@@ -104,19 +104,20 @@ public class SwerveSubsystem extends SubsystemBase {
             
             // TODO: update odometry with vision measurements
         }
-        double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
-        if (Constants.SwerveSubsystem.oldTurnSystem) {
-            driveCommand(
-                    () -> -joystickAxes[1],
-                    () -> -joystickAxes[0],
-                    () -> -joystickAxes[2]).schedule();
-        } else {
-            driveCommand(
-                    () -> -joystickAxes[1],
-                    () -> -joystickAxes[0],
-                    () -> -joystickAxes[2],
-                    () -> -joystickAxes[3]).schedule();
-        }
+        
+        // double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
+        // if (Constants.SwerveSubsystem.oldTurnSystem) {
+        //     driveCommand(
+        //             () -> -joystickAxes[1],
+        //             () -> -joystickAxes[0],
+        //             () -> -joystickAxes[2]).schedule();
+        // } else {
+        //     driveCommand(
+        //             () -> -joystickAxes[1],
+        //             () -> -joystickAxes[0],
+        //             () -> -joystickAxes[2],
+        //             () -> -joystickAxes[3]).schedule();
+        // }
 
     }
 
@@ -149,7 +150,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     translationY.getAsDouble() * drive.getMaximumChassisVelocity()), 0.8),
                     Math.pow(angularRotationX.getAsDouble(), 3) * drive.getMaximumChassisAngularVelocity(),
                     true,
-                    false);
+                    true);
         });
     }
 
