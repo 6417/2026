@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -88,15 +89,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // double v = 2;
-        // SwerveModuleState[] modules = {
-        //     new SwerveModuleState(v, new Rotation2d()),
-        //     new SwerveModuleState(v, new Rotation2d()),
-        //     new SwerveModuleState(v, new Rotation2d()),
-        //     new SwerveModuleState(v, new Rotation2d())
-        // };
-        // drive.setModuleStates(modules, false);
-
         if (useVision) {
             // manually update odometry if using vision
             
@@ -112,11 +104,12 @@ public class SwerveSubsystem extends SubsystemBase {
                     () -> -joystickAxes[0],
                     () -> -joystickAxes[2]).schedule();
         } else {
+            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
             driveCommand(
                     () -> -joystickAxes[1],
                     () -> -joystickAxes[0],
-                    () -> -joystickAxes[2],
-                    () -> -joystickAxes[3]).schedule();
+                    () -> i * -joystickAxes[2],
+                    () -> i * -joystickAxes[3]).schedule();
         }
 
     }
