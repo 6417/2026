@@ -32,7 +32,7 @@ public class Constants {
                                                      // (Math.PI *
                                                      // 2); // rps
         public static final boolean oldTurnSystem = false;
-        public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0, 0, 0);
+        public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.22, 2.2, 0);
 
     }
     public static final class Controls {
