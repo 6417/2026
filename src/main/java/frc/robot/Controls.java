@@ -4,6 +4,7 @@ import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.sendable.Sendable;
@@ -87,10 +88,11 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
+        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.resetOdometry(new Pose2d(0.0, 0.0, new Rotation2d(0)))));
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
             RobotContainer.drive.zeroGyro();
         }));
+
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
 

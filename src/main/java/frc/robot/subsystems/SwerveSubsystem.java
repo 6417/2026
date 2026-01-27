@@ -6,6 +6,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -39,7 +41,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private final boolean blueAlliance;
 
-    private static final boolean useVision = false;
+    private static final boolean useVision = true;
 
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
@@ -93,6 +95,7 @@ public class SwerveSubsystem extends SubsystemBase {
             // manually update odometry if using vision
             
             updateOdometry();
+            Logger.recordOutput("Swerve/Odomerty", drive.getPose());
             
             // TODO: update odometry with vision measurements
         }
