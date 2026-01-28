@@ -89,7 +89,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void autonomousInit() {
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
-    // autonomousCommand = robotContainer.getAutonomousCommand();
+    autonomousCommand = robotContainer.getAutonomousCommand();
 
     if (autonomousCommand != null) {
       autonomousCommand.schedule();

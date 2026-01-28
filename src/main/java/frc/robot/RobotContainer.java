@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,7 +30,7 @@ public class RobotContainer {
 
     }
 
-    // public Command getAutonomousCommand(){
-    //     return autoChooser.getSelected();
-    // }
+    public Command getAutonomousCommand(){
+        return new PathPlannerAuto("Example Auto");
+    }
 }
