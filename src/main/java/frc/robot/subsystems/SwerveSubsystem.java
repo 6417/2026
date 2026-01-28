@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Meter;
 
 import java.io.File;
+import java.lang.invoke.ConstantBootstraps;
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 
@@ -25,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
@@ -298,6 +300,9 @@ public class SwerveSubsystem extends SubsystemBase {
      */
     public void zeroGyro() {
         drive.zeroGyro();
+        LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); //Seed IMU when disabled
+        LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
+        LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
     }
 
     public void zeroGyroWithAlliance() {

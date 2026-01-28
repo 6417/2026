@@ -3,8 +3,13 @@ package frc.robot;
 import java.util.Arrays;
 import java.util.List;
 
+import org.dyn4j.geometry.Vector3;
+
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
@@ -24,6 +29,7 @@ public class Constants {
     public static final class Limelight {
 
         public static String driveLimelight = "limelight-drive";
+        public static Vector<N3> standardDevs = VecBuilder.fill(1, 1, 9999999);
     }
 
     public static final class SwerveSubsystem {

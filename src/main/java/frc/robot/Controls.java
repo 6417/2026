@@ -88,7 +88,7 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.resetOdometry(new Pose2d(0.0, 0.0, new Rotation2d(0)))));
+        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.resetOdometry(new Pose2d(0.435, 0.435, new Rotation2d(0)))));
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
             RobotContainer.drive.zeroGyro();
         }));

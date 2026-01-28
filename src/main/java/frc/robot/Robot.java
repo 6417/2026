@@ -49,6 +49,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
                     // be added.
+    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+    LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.driveLimelight, 0.001);
     robotContainer = new RobotContainer();
   }
 
@@ -86,6 +88,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
    */
   @Override
   public void autonomousInit() {
+    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     // autonomousCommand = robotContainer.getAutonomousCommand();
 
     if (autonomousCommand != null) {
@@ -102,6 +105,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.gyro.getYaw().getValueAsDouble(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
   }
 
   /** This function is called periodically during operator control. */
@@ -112,16 +117,19 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {
+    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 200); // Sort of disable Limelight, so there is less thermal production
   }
 
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
+    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); //Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
+    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     CommandScheduler.getInstance().cancelAll();
   }
 
