@@ -31,6 +31,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -104,25 +106,29 @@ public class SwerveSubsystem extends SubsystemBase {
         // TODO: update odometry with vision measurements
 
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
-        if (Constants.SwerveSubsystem.oldTurnSystem) {
-            driveCommand(
-                    () -> -joystickAxes[1],
-                    () -> -joystickAxes[0],
-                    () -> -joystickAxes[2]).schedule();
-        } else {
-            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
-            driveCommand(
-                    () -> -joystickAxes[1],
-                    () -> -joystickAxes[0],
-                    () -> i * -joystickAxes[2],
-                    () -> i * -joystickAxes[3]).schedule();
+        if (DriverStation.isTeleopEnabled()) {
+            if (Constants.SwerveSubsystem.oldTurnSystem) {
+                driveCommand(
+                        () -> -joystickAxes[1],
+                        () -> -joystickAxes[0],
+                        () -> -joystickAxes[2]).schedule();
+            } else {
+                int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
+                driveCommand(
+                        () -> -joystickAxes[1],
+                        () -> -joystickAxes[0],
+                        () -> i * -joystickAxes[2],
+                        () -> i * -joystickAxes[3]).schedule();
+            }
         }
 
     }
 
     private void updateOdometry() {
         drive.updateOdometry();
-        // vision.updateOdometry();
+        if (Constants.Limelight.useVision) {
+        vision.updateOdometry();
+        };
     };
 
     public void resetOdometry(Pose2d pose) {
@@ -135,7 +141,6 @@ public class SwerveSubsystem extends SubsystemBase {
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
-
             final boolean enableFeedforward = false;
             // Configure AutoBuilder last
             AutoBuilder.configure(
@@ -152,8 +157,7 @@ public class SwerveSubsystem extends SubsystemBase {
                                     drive.kinematics.toSwerveModuleStates(speedsRobotRelative),
                                     moduleFeedForwards.linearForces());
                         } else {
-                            drive.setChassisSpeeds(new ChassisSpeeds(1, 0, 0));
-                            System.out.println("Chassis should drive now.");
+                            drive.setChassisSpeeds(speedsRobotRelative);
                         }
                     },
                     // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also

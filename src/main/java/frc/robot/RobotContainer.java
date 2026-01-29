@@ -11,11 +11,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
 
-
 public class RobotContainer {
     public static final Pigeon2 gyro;
     public static final Controls controls;
     public static final SwerveSubsystem drive;
+    private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     // public static final SendableChooser<Command> autoChooser;
 
@@ -23,17 +23,17 @@ public class RobotContainer {
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         drive = new SwerveSubsystem();
         controls = new Controls();
-        
 
-
-
-        //TODO: Autonomous chooser setup -> choreo or pathplanner?
-        // SmartDashboard.putData("Auto", autoChooser);
+        autoChooser.addOption("Example Auto", "Example Auto");
+        autoChooser.addOption("None", null);
+        SmartDashboard.putData("Auto Selector", autoChooser);
 
     }
 
-    public Command getAutonomousCommand(){
-        //System.out.println("Autonomous Command 'Example Auto' Selected");
-        return drive.driveToPose(new Pose2d(1,2, new Rotation2d()));//drive.getAutonomousCommand("Example Auto");
+    public Command getAutonomousCommand() {
+        // System.out.println("Autonomous Command 'Example Auto' Selected");
+        return 
+        drive.getAutonomousCommand(autoChooser.getSelected());
+        // drive.driveToPose(new Pose2d(1,2, new Rotation2d()));
     }
 }

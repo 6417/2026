@@ -28,7 +28,7 @@ public class Constants {
 
     public static final class Limelight {
 
-        public static boolean useVision = false;
+        public static boolean useVision = true;
         public static String driveLimelight = "limelight-drive";
         public static Vector<N3> standardDevs = VecBuilder.fill(1, 1, 9999999);
     }
@@ -40,7 +40,7 @@ public class Constants {
         public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
                                                      // (Math.PI *
                                                      // 2); // rps
-        public static final boolean oldTurnSystem = false;
+        public static final boolean oldTurnSystem = true;
         public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.15, 2.2, 0);
 
     }
