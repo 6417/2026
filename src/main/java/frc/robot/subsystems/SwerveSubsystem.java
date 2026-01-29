@@ -10,10 +10,12 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -23,6 +25,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -48,8 +51,6 @@ public class SwerveSubsystem extends SubsystemBase {
     private VisionSubsystem vision;
 
     private final boolean blueAlliance;
-
-    private static final boolean useVision = true;
 
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
@@ -85,7 +86,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
-        if (useVision) {
+        if (Constants.Limelight.useVision) {
             drive.stopOdometryThread();
 
         }
@@ -93,21 +94,14 @@ public class SwerveSubsystem extends SubsystemBase {
         RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
     }
 
-    private double joystickLeftX;
-    private double joystickLeftY;
-    private double joystickRightX;
-    private double joystickRightY;
-
     @Override
     public void periodic() {
-        if (useVision) {
-            // manually update odometry if using vision
+        // manually update odometry if using vision
 
-            updateOdometry();
-            Logger.recordOutput("Swerve/Odomerty", drive.getPose());
+        updateOdometry();
+        Logger.recordOutput("Swerve/Odomerty", drive.getPose());
 
-            // TODO: update odometry with vision measurements
-        }
+        // TODO: update odometry with vision measurements
 
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
         if (Constants.SwerveSubsystem.oldTurnSystem) {
@@ -128,7 +122,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private void updateOdometry() {
         drive.updateOdometry();
-        vision.updateOdometry();
+        // vision.updateOdometry();
     };
 
     public void resetOdometry(Pose2d pose) {
@@ -142,7 +136,7 @@ public class SwerveSubsystem extends SubsystemBase {
         try {
             config = RobotConfig.fromGUISettings();
 
-            final boolean enableFeedforward = true;
+            final boolean enableFeedforward = false;
             // Configure AutoBuilder last
             AutoBuilder.configure(
                     this::getPose,
@@ -158,7 +152,8 @@ public class SwerveSubsystem extends SubsystemBase {
                                     drive.kinematics.toSwerveModuleStates(speedsRobotRelative),
                                     moduleFeedForwards.linearForces());
                         } else {
-                            drive.setChassisSpeeds(speedsRobotRelative);
+                            drive.setChassisSpeeds(new ChassisSpeeds(1, 0, 0));
+                            System.out.println("Chassis should drive now.");
                         }
                     },
                     // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
@@ -199,6 +194,10 @@ public class SwerveSubsystem extends SubsystemBase {
         PathfindingCommand.warmupCommand().schedule();
     }
 
+    public Command getAutonomousCommand(String pathName) {
+        return new PathPlannerAuto(pathName);
+    }
+
     /**
      * Command to drive the robot using translative values and heading as angular
      * velocity.
@@ -221,6 +220,20 @@ public class SwerveSubsystem extends SubsystemBase {
                     true,
                     false);
         });
+    }
+
+    public Command driveToPose(Pose2d pose) {
+        // Create the constraints to use while pathfinding
+        PathConstraints constraints = new PathConstraints(
+                drive.getMaximumChassisVelocity(), 4.0,
+                drive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+
+        // Since AutoBuilder is configured, we can use it to build pathfinding commands
+        return AutoBuilder.pathfindToPose(
+                pose,
+                constraints,
+                edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
+        );
     }
 
     /**
@@ -371,9 +384,12 @@ public class SwerveSubsystem extends SubsystemBase {
      */
     public void zeroGyro() {
         drive.zeroGyro();
-        LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed IMU when disabled
-        LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
-        LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+        if (Constants.Limelight.useVision) {
+            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed IMU when disabled
+            LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
+            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+        }
+
     }
 
     public void zeroGyroWithAlliance() {
@@ -381,6 +397,13 @@ public class SwerveSubsystem extends SubsystemBase {
             drive.zeroGyro();
         } else {
             drive.zeroGyro();
+            // if (useVision) {
+            // LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed
+            // IMU when disabled
+            // LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
+            // 0, 0, 0, 0, 0);
+            // LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+            // }
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
         }
     }

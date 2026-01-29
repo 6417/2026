@@ -28,6 +28,7 @@ public class Constants {
 
     public static final class Limelight {
 
+        public static boolean useVision = false;
         public static String driveLimelight = "limelight-drive";
         public static Vector<N3> standardDevs = VecBuilder.fill(1, 1, 9999999);
     }

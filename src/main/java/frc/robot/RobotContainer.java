@@ -4,6 +4,8 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -31,6 +33,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand(){
-        return new PathPlannerAuto("Example Auto");
+        //System.out.println("Autonomous Command 'Example Auto' Selected");
+        return drive.driveToPose(new Pose2d(1,2, new Rotation2d()));//drive.getAutonomousCommand("Example Auto");
     }
 }
