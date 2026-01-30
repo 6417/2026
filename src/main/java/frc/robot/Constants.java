@@ -15,6 +15,12 @@ import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 
 public class Constants {
+    public static final class Field {
+        public static final double FIELD_LENGTH_METERS = 16.540988;
+        public static final double FIELD_WIDTH_METERS = 8.069326;
+        public static final double FIELD_WIDTH_INCHES = 317.69;
+        public static final double FIELD_LENGTH_INCHES = 651.22;
+    }
     public static final class Joystick {
         public static final int driveJoystickId = 0;
         public static final int operatorJoystickId = 1;

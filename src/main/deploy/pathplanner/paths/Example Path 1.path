@@ -45,7 +45,7 @@
     "rotation": 24.393739386163166
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Example Auto Paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

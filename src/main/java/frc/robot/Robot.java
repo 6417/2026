@@ -89,6 +89,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void autonomousInit() {
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
+    RobotContainer.drive.setAutomatedControl();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     if (autonomousCommand != null) {
@@ -107,6 +108,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   public void teleopInit() {
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.gyro.getYaw().getValueAsDouble(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    RobotContainer.drive.setOpeatorControl();
+
   }
 
   /** This function is called periodically during operator control. */

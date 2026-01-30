@@ -11,8 +11,10 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DriveToTrench;
 
 /**
  * Holds the data concerning input, which should be available
@@ -88,10 +90,14 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.resetOdometry(new Pose2d(0.435, 0.435, new Rotation2d(0)))));
+        windowsButtonDrive.onTrue(new InstantCommand(
+                () -> RobotContainer.drive.resetOdometry(new Pose2d(0.435, 0.435, new Rotation2d(0)))));
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
             RobotContainer.drive.zeroGyro();
         }));
+        rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
+        ltButtonDrive.whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
+        .onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }

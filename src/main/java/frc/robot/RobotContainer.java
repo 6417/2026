@@ -25,7 +25,9 @@ public class RobotContainer {
         controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
+        autoChooser.addOption("Second Auto", "Second Auto");
         autoChooser.addOption("None", null);
+        autoChooser.setDefaultOption("None", null);
         SmartDashboard.putData("Auto Selector", autoChooser);
 
     }

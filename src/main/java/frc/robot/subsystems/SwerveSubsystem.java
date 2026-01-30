@@ -51,12 +51,16 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
     private VisionSubsystem vision;
+    private boolean driveIsAutomated;
 
     private final boolean blueAlliance;
+    private boolean intakeMode;
 
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
         vision = new VisionSubsystem(true);
+        driveIsAutomated = false;
+        intakeMode = false;
 
         Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1), // not very accurate -> gets
                                                                                        // corrected by limelight anyways
@@ -106,29 +110,45 @@ public class SwerveSubsystem extends SubsystemBase {
         // TODO: update odometry with vision measurements
 
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
-        if (DriverStation.isTeleopEnabled()) {
+        if (!driveIsAutomated) {
             if (Constants.SwerveSubsystem.oldTurnSystem) {
-                driveCommand(
-                        () -> -joystickAxes[1],
-                        () -> -joystickAxes[0],
-                        () -> -joystickAxes[2]).schedule();
+                if (intakeMode) {
+                    driveCommand(
+                            () -> -joystickAxes[1],
+                            () -> -joystickAxes[0],
+                            () -> joystickAxes[0] * 100,
+                            () -> joystickAxes[1] * 100).schedule();
+                } else {
+                    driveCommand(
+                            () -> -joystickAxes[1],
+                            () -> -joystickAxes[0],
+                            () -> -joystickAxes[2]).schedule();
+                }
             } else {
-                int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
-                driveCommand(
-                        () -> -joystickAxes[1],
-                        () -> -joystickAxes[0],
-                        () -> i * -joystickAxes[2],
-                        () -> i * -joystickAxes[3]).schedule();
+                if (intakeMode) {
+                    driveCommand(
+                            () -> -joystickAxes[1],
+                            () -> -joystickAxes[0],
+                            () -> -joystickAxes[0],
+                            () -> -joystickAxes[1]).schedule();
+                } else {
+                    int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
+                    driveCommand(
+                            () -> -joystickAxes[1],
+                            () -> -joystickAxes[0],
+                            () -> i * -joystickAxes[2],
+                            () -> i * -joystickAxes[3]).schedule();
+                }
             }
         }
-
     }
 
     private void updateOdometry() {
         drive.updateOdometry();
         if (Constants.Limelight.useVision) {
-        vision.updateOdometry();
-        };
+            vision.updateOdometry();
+        }
+        ;
     };
 
     public void resetOdometry(Pose2d pose) {
@@ -229,8 +249,8 @@ public class SwerveSubsystem extends SubsystemBase {
     public Command driveToPose(Pose2d pose) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                drive.getMaximumChassisVelocity(), 4.0,
-                drive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+                drive.getMaximumChassisVelocity() * 0.6, 4.0,
+                drive.getMaximumChassisAngularVelocity() * 0.6, Units.degreesToRadians(720));
 
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         return AutoBuilder.pathfindToPose(
@@ -401,13 +421,12 @@ public class SwerveSubsystem extends SubsystemBase {
             drive.zeroGyro();
         } else {
             drive.zeroGyro();
-            // if (useVision) {
-            // LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed
-            // IMU when disabled
-            // LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
-            // 0, 0, 0, 0, 0);
-            // LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
-            // }
+            if (Constants.Limelight.useVision) {
+            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed IMU when disabled
+            LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
+            0, 0, 0, 0, 0);
+            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+            }
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
         }
     }
@@ -419,6 +438,18 @@ public class SwerveSubsystem extends SubsystemBase {
      */
     public void setMotorBrake(boolean brake) {
         drive.setMotorIdleMode(brake);
+    }
+
+    public void setAutomatedControl() {
+        driveIsAutomated = true;
+    }
+
+    public void setOpeatorControl() {
+        driveIsAutomated = false;
+    }
+
+    public void setIntakeMode(boolean intakeMode) {
+        this.intakeMode = intakeMode;
     }
 
     /**
