@@ -220,7 +220,7 @@ public class SwerveSubsystem extends SubsystemBase {
             drive.drive(SwerveMath.scaleTranslation(new Translation2d(
                     translationX.getAsDouble() * drive.getMaximumChassisVelocity(),
                     translationY.getAsDouble() * drive.getMaximumChassisVelocity()), 0.8),
-                    Math.pow(angularRotationX.getAsDouble(), 3) * drive.getMaximumChassisAngularVelocity(),
+                    Math.pow(angularRotationX.getAsDouble(), 1) * drive.getMaximumChassisAngularVelocity(),
                     true,
                     false);
         });

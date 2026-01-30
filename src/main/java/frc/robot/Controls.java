@@ -46,7 +46,7 @@ public class Controls implements Sendable {
     public Map<DriveSpeed, Double> speedFactors = Map.of(
             DriveSpeed.DEFAULT_SPEED, 1.0,
             DriveSpeed.FAST, 0.9,
-            DriveSpeed.SLOW, 0.1);
+            DriveSpeed.SLOW, 0.3);
     private DriveSpeed activeSpeedFactor = DriveSpeed.DEFAULT_SPEED;
     private double accelerationSensitivity = speedFactors.get(activeSpeedFactor);
 
