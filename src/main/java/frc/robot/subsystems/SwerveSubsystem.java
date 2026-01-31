@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Meter;
 
 import java.io.File;
-import java.lang.invoke.ConstantBootstraps;
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 
@@ -23,7 +22,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -31,8 +29,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -106,8 +102,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odomerty", drive.getPose());
-
-        // TODO: update odometry with vision measurements
 
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
         if (!driveIsAutomated) {
@@ -409,26 +403,22 @@ public class SwerveSubsystem extends SubsystemBase {
     public void zeroGyro() {
         drive.zeroGyro();
         if (Constants.Limelight.useVision) {
-            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed IMU when disabled
             LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
-            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
         }
 
     }
 
     public void zeroGyroWithAlliance() {
         if (blueAlliance) {
-            drive.zeroGyro();
+            this.zeroGyro();
         } else {
-            drive.zeroGyro();
-            if (Constants.Limelight.useVision) {
-            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); // Seed IMU when disabled
-            LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
-            0, 0, 0, 0, 0);
-            LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
-            }
-            resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
+            this.zeroGyro();
         }
+        if (Constants.Limelight.useVision) {
+        LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
+        0, 0, 0, 0, 0);
+        }
+        resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
     }
 
     /**

@@ -1,12 +1,8 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.units.AngularVelocityUnit;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Units;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
@@ -14,7 +10,7 @@ import frc.robot.LimelightHelpers.PoseEstimate;
 
 class VisionSubsystem extends SubsystemBase {
     private String limelightName;
-    private boolean mt2 = false;
+    private boolean mt2 = true;
 
     public VisionSubsystem(boolean megaTag2) {
         this.limelightName = Constants.Limelight.driveLimelight;
@@ -34,11 +30,9 @@ class VisionSubsystem extends SubsystemBase {
 
     public void updateOdometry() {
         boolean doRejectUpdate = false;
-
         if(mt2 == false)
         {
             LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_FieldSpace();
-            
             if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
             {
                 if(mt1.rawFiducials[0].ambiguity > .7)

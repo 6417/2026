@@ -49,7 +49,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
                     // be added.
-    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 4);
+    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight,0);
     LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.driveLimelight, 0.001);
     robotContainer = new RobotContainer();
   }
