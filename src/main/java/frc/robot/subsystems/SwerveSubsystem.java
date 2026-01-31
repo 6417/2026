@@ -123,8 +123,8 @@ public class SwerveSubsystem extends SubsystemBase {
                     driveCommand(
                             () -> -joystickAxes[1],
                             () -> -joystickAxes[0],
-                            () -> -joystickAxes[0],
-                            () -> -joystickAxes[1]).schedule();
+                            () -> joystickAxes[0]*100,
+                            () -> joystickAxes[1]*100).schedule();
                 } else {
                     int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
                     driveCommand(
@@ -435,6 +435,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void setOpeatorControl() {
+        // Set the last angle input of the swerve controller to current angle to prevent further rotation
+        this.getSwerveController().lastAngleScalar = getHeading().getRadians();
         driveIsAutomated = false;
     }
 
