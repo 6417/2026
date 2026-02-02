@@ -29,16 +29,16 @@
     }
   ],
   "rotationTargets": [
-     {
+    {
       "waypointRelativePos": 0.3294605809128721,
-      "rotationDegrees": 1.3653859333175649
+      "rotationDegrees": 179.2251811041703
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.0,
+    "maxVelocity": 3.0,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -53,7 +53,7 @@
   "folder": "Second Auto Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -1.4095637287857243
+    "rotation": 180.0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

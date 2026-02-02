@@ -412,13 +412,13 @@ public class SwerveSubsystem extends SubsystemBase {
         if (blueAlliance) {
             this.zeroGyro();
         } else {
+            resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
             this.zeroGyro();
         }
         if (Constants.Limelight.useVision) {
         LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
         0, 0, 0, 0, 0);
         }
-        resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
     }
 
     /**
