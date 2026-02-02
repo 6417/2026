@@ -54,7 +54,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
-        vision = new VisionSubsystem(true);
+        vision = new VisionSubsystem(true, true);
         driveIsAutomated = false;
         intakeMode = false;
 
