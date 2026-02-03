@@ -23,7 +23,6 @@ public class Constants {
     }
 
     public static final class Limelight {
-
         public static String driveLimelight = "limelight-drive";
     }
 
@@ -32,12 +31,11 @@ public class Constants {
         public static final double moduleXoffset = 0.267;
         public static final double moduleYoffset = 0.267;
         public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
-                                                     // (Math.PI *
-                                                     // 2); // rps
+                                                     // (Math.PI * 2); // rps
         public static final boolean oldTurnSystem = false;
         public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.15, 2.2, 0);
-
     }
+
     public static final class Controls {
         public static final double deadBandDrive = 0.08;
         public static final double deadBandTurn = 0.08;
@@ -59,22 +57,16 @@ public class Constants {
     }
 
     public static final class Shooter {
+        // TODO: Verify these IDs/inversions on the real robot.
         public static final int topMotorId = 20;
         public static final int bottomMotorId = 21;
 
         public static final boolean topMotorInverted = false;
         public static final boolean bottomMotorInverted = true;
 
-        public static final double defaultShootPercent = 0.7;
-
-        // Spin ratio = top / bottom
-        public static final double defaultSpinRatio = 1.0;
-        public static final double minSpinRatio = 0.6;
-        public static final double maxSpinRatio = 1.4;
-
-        // Angle mapping (degrees). This is a simple linear placeholder.
-        public static final double minAngleDeg = 15.0;
-        public static final double maxAngleDeg = 60.0;
+        // Safe defaults used until the distance->speed model is tuned.
+        public static final double defaultTopPercent = 0.7;
+        public static final double defaultBottomPercent = 0.7;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }

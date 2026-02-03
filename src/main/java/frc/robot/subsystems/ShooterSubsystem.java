@@ -10,22 +10,21 @@ public class ShooterSubsystem extends SubsystemBase {
     private final FridolinsMotor topMotor;
     private final FridolinsMotor bottomMotor;
 
-    private double lastTopPercent = 0.0;
-    private double lastBottomPercent = 0.0;
+
 
     public ShooterSubsystem() {
         topMotor = new FridoSparkMax(Constants.Shooter.topMotorId);
         bottomMotor = new FridoSparkMax(Constants.Shooter.bottomMotorId);
 
-        topMotor.setInverted(Constants.Shooter.topMotorInverted);
-        bottomMotor.setInverted(Constants.Shooter.bottomMotorInverted);
+        // TODO: Verify which motor needs inversion so both wheels feed the ball forward.
 
         topMotor.setIdleMode(Constants.Shooter.idleMode);
         bottomMotor.setIdleMode(Constants.Shooter.idleMode);
     }
 
     public void stop() {
-        setPercent(0.0, 0.0);
+        topMotor.stopMotor();
+        bottomMotor.stopMotor();
     }
 
     public void setPercent(double topPercent, double bottomPercent) {
@@ -33,48 +32,34 @@ public class ShooterSubsystem extends SubsystemBase {
         double bottom = MathUtil.clamp(bottomPercent, -1.0, 1.0);
         topMotor.set(top);
         bottomMotor.set(bottom);
-        lastTopPercent = top;
-        lastBottomPercent = bottom;
     }
 
-    public void shoot(double basePercent) {
-        setSpinRatio(Constants.Shooter.defaultSpinRatio, basePercent);
+    /**
+     * Set the speeds of the shooter motors based on distance to the target.
+     *
+     * The final implementation should use measured data points and curve fitting
+     * (or interpolation) to map distance -> (top %, bottom %).
+     */
+    public void shootFromDistance(double distanceMeters) {
+        double[] setpoint = calculateSetpoint(distanceMeters);
+        setPercent(setpoint[0], setpoint[1]);
     }
 
-    public void setSpinRatio(double spinRatio, double basePercent) {
-        double ratio = MathUtil.clamp(spinRatio, Constants.Shooter.minSpinRatio, Constants.Shooter.maxSpinRatio);
-        double base = MathUtil.clamp(basePercent, -1.0, 1.0);
-        double top = base * ratio;
-        double bottom = base;
-        setPercentPreserveRatio(top, bottom);
-    }
 
-    public void setShotAngleDegrees(double angleDeg, double basePercent) {
-        double ratio = angleToSpinRatio(angleDeg);
-        setSpinRatio(ratio, basePercent);
-    }
-
-    public double getLastTopPercent() {
-        return lastTopPercent;
-    }
-
-    public double getLastBottomPercent() {
-        return lastBottomPercent;
-    }
-
-    private double angleToSpinRatio(double angleDeg) {
-        double clamped = MathUtil.clamp(angleDeg, Constants.Shooter.minAngleDeg, Constants.Shooter.maxAngleDeg);
-        double t = (clamped - Constants.Shooter.minAngleDeg)
-                / (Constants.Shooter.maxAngleDeg - Constants.Shooter.minAngleDeg);
-        return Constants.Shooter.minSpinRatio + t * (Constants.Shooter.maxSpinRatio - Constants.Shooter.minSpinRatio);
-    }
-
-    private void setPercentPreserveRatio(double topPercent, double bottomPercent) {
-        double max = Math.max(Math.abs(topPercent), Math.abs(bottomPercent));
-        if (max > 1.0) {
-            topPercent /= max;
-            bottomPercent /= max;
-        }
-        setPercent(topPercent, bottomPercent);
+    /**
+     * Calculates the shooter setpoint for a given distance.
+     *
+     * TODO:
+     * For each distance, tune top/bottom percent outputs for best trajectory.
+     * 
+     * RETURN:
+     * index 0: topspeed
+     * index 1: bottomspeed
+     *
+     * This method currently returns a safe default.
+     */
+    private double[] calculateSetpoint(double distanceMeters) {
+        double[] res = {0,0};
+        return res;
     }
 }
