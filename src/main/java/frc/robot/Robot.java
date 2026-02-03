@@ -26,7 +26,6 @@ public class Robot extends TimedRobot {
   public Robot() {
     robotContainer = new RobotContainer();
 
-    robotContainer.drive.resetModulesToAbsolute();
 
 
   }
@@ -55,7 +54,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    autonomousCommand = robotContainer.getAutonomousCommand();
     
     if (autonomousCommand != null) {
         autonomousCommand.schedule();
