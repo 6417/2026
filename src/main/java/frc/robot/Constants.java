@@ -56,17 +56,18 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
-    public static final class Shooter {
+    public static final class Feeder {
         // TODO: Verify these IDs/inversions on the real robot.
-        public static final int topMotorId = 20;
-        public static final int bottomMotorId = 21;
+        public static final int singulatorMotorId = 20;
+        public static final int feederMotorId = 21;
 
-        public static final boolean topMotorInverted = false;
-        public static final boolean bottomMotorInverted = true;
+        public static final boolean singulatorMotorInverted = false;
+        public static final boolean feederMotorInverted = false;
 
-        // Safe defaults used until the distance->speed model is tuned.
-        public static final double defaultTopPercent = 0.7;
-        public static final double defaultBottomPercent = 0.7;
+        public static final double singulatorSpeed = 0.6;
+        public static final double feederSpeed = 0.6;
+        public static final double outtakeSingulatorSpeed = -0.6;
+        public static final double outtakeFeederSpeed = -0.6;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
