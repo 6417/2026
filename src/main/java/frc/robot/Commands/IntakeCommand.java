@@ -1,41 +1,36 @@
-package frc.robot.Commands;
+package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.RobotContainer;
 
 public class IntakeCommand extends Command {
-    private final IntakeSubsystem intake;
     private final double intakePercent;
-    private final double singulatorPercent;
 
-    public IntakeCommand(IntakeSubsystem intake) {
-        this(intake, Constants.Intake.intakeSpeed, Constants.Intake.singulatorSpeed);
+    public IntakeCommand() {
+        this(Constants.Intake.intakeSpeed);
     }
 
-    public IntakeCommand(IntakeSubsystem intake, double intakePercent, double singulatorPercent) {
-        this.intake = intake;
+    public IntakeCommand(double intakePercent) {
         this.intakePercent = intakePercent;
-        this.singulatorPercent = singulatorPercent;
-        addRequirements(intake);
+        addRequirements(RobotContainer.intake);
     }
 
     @Override
     public void initialize() {
-        intake.setIntakePercent(intakePercent);
-        intake.setSingulatorPercent(singulatorPercent);
+        RobotContainer.intake.setPercent(intakePercent);
     }
 
     @Override
     public void execute() {
-        if (intake.isBallDetected()) {
-            intake.stop();
+        if (RobotContainer.intake.isBallDetected()) {
+            RobotContainer.intake.stop();
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        intake.stop();
+        RobotContainer.intake.stop();
     }
 
     @Override

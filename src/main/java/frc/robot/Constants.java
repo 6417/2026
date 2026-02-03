@@ -45,15 +45,11 @@ public class Constants {
 
     public static final class Intake {
         public static final int intakeMotorId = 10;
-        public static final int singulatorMotorId = 11;
 
         public static final boolean intakeMotorInverted = false;
-        public static final boolean singulatorMotorInverted = false;
 
         public static final double intakeSpeed = 0.6;
-        public static final double singulatorSpeed = 0.6;
         public static final double outtakeSpeed = -0.6;
-        public static final double outtakeSingulatorSpeed = -0.6;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
