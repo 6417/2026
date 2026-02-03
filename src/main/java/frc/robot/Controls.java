@@ -93,7 +93,7 @@ public class Controls implements Sendable {
         windowsButtonDrive.onTrue(new InstantCommand(
                 () -> RobotContainer.drive.resetOdometry(new Pose2d(0.435, 0.435, new Rotation2d(0)))));
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
-            RobotContainer.drive.zeroGyro();
+            RobotContainer.drive.zeroGyroWithAlliance();
         }));
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
         ltButtonDrive.whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))

@@ -105,31 +105,31 @@ public class SwerveSubsystem extends SubsystemBase {
 
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
         if (!driveIsAutomated) {
+            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
             if (Constants.SwerveSubsystem.oldTurnSystem) {
                 if (intakeMode) {
                     driveCommand(
-                            () -> -joystickAxes[1],
-                            () -> -joystickAxes[0],
-                            () -> joystickAxes[0] * 100,
-                            () -> joystickAxes[1] * 100).schedule();
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
+                            () -> i * joystickAxes[0] * 100,
+                            () -> i * joystickAxes[1] * 100).schedule();
                 } else {
                     driveCommand(
-                            () -> -joystickAxes[1],
-                            () -> -joystickAxes[0],
-                            () -> -joystickAxes[2]).schedule();
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
+                            () -> i * -joystickAxes[2]).schedule();
                 }
             } else {
                 if (intakeMode) {
                     driveCommand(
-                            () -> -joystickAxes[1],
-                            () -> -joystickAxes[0],
-                            () -> joystickAxes[0]*100,
-                            () -> joystickAxes[1]*100).schedule();
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
+                            () -> i * joystickAxes[0] * 100,
+                            () -> i * joystickAxes[1] * 100).schedule();
                 } else {
-                    int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
                     driveCommand(
-                            () -> -joystickAxes[1],
-                            () -> -joystickAxes[0],
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
                             () -> i * -joystickAxes[2],
                             () -> i * -joystickAxes[3]).schedule();
                 }
@@ -405,19 +405,21 @@ public class SwerveSubsystem extends SubsystemBase {
         if (Constants.Limelight.useVision) {
             LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
         }
-
     }
 
     public void zeroGyroWithAlliance() {
         if (blueAlliance) {
-            this.zeroGyro();
+            drive.zeroGyro();
+            if (Constants.Limelight.useVision) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
+            }
         } else {
+            drive.zeroGyro();
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
-            this.zeroGyro();
-        }
-        if (Constants.Limelight.useVision) {
-        LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
-        0, 0, 0, 0, 0);
+            if (Constants.Limelight.useVision) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
+                        0, 0, 0, 0, 0);
+            }
         }
     }
 
@@ -435,7 +437,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void setOpeatorControl() {
-        // Set the last angle input of the swerve controller to current angle to prevent further rotation
+        // Set the last angle input of the swerve controller to current angle to prevent
+        // further rotation
         this.getSwerveController().lastAngleScalar = getHeading().getRadians();
         driveIsAutomated = false;
     }
