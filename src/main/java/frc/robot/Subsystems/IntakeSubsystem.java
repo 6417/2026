@@ -12,8 +12,6 @@ public class IntakeSubsystem extends SubsystemBase {
     public IntakeSubsystem() {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
 
-        intakeMotor.setInverted(Constants.Intake.intakeMotorInverted);
-
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
     }
 
@@ -24,8 +22,5 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();;
-    }
-    public boolean isBallDetected() {
-        return false;
     }
 }

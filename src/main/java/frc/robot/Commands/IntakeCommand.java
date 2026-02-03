@@ -23,9 +23,6 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        if (RobotContainer.intake.isBallDetected()) {
-            RobotContainer.intake.stop();
-        }
     }
 
     @Override
