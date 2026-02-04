@@ -69,6 +69,14 @@ public class Constants {
         public static final double outtakeSingulatorSpeed = -0.6;
         public static final double outtakeFeederSpeed = -0.6;
 
+        // Beam break on a roboRIO DIO (Digital I/O) port.
+        // Set beamBreakInverted true if the sensor is active-high (true when beam is broken).
+        public static final int beamBreakDio = 0;
+        public static final boolean beamBreakInverted = false;
+
+        // TODO: Tune feeder velocity PID (Spark Max velocity uses RPM).
+        public static final PidValues feederVelocityPid = new PidValues(0.0, 0.0, 0.0);
+
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 }
