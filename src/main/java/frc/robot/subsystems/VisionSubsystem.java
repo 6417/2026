@@ -56,7 +56,7 @@ class VisionSubsystem extends SubsystemBase {
         }
         else
         {
-            LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getSwerveDrive().getYaw().getDegrees(), 0, 0, 0, 0, 0);
+            LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
             LimelightHelpers.PoseEstimate mt2 = getBotPoseEstimate_FieldSpace();
             if(Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity().abs(Units.DegreesPerSecond)) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
             {

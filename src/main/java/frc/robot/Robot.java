@@ -107,7 +107,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void teleopInit() {
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
-    LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.gyro.getYaw().getValueAsDouble(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     RobotContainer.drive.setOpeatorControl();
 
   }
@@ -126,7 +126,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 0); //Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); //Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */

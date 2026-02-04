@@ -77,11 +77,6 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        // rbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        // Constants.OffsetsToAprilTags.offsetToAprilTagRight));
-        // lbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        // Constants.OffsetsToAprilTags.offsetToAprilTagLeft));
-
         rtButtonDrive.whileTrue(Commands.startEnd(
                 () -> {
                     setActiveSpeedFactor(DriveSpeed.SLOW);
@@ -90,8 +85,6 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        windowsButtonDrive.onTrue(new InstantCommand(
-                () -> RobotContainer.drive.resetOdometry(new Pose2d(0.435, 0.435, new Rotation2d(0)))));
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
             RobotContainer.drive.zeroGyroWithAlliance();
         }));
