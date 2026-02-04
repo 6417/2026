@@ -126,7 +126,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); //Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 0); //Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */

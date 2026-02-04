@@ -68,7 +68,7 @@ class VisionSubsystem extends SubsystemBase {
             }
             if(!doRejectUpdate)
             {
-                RobotContainer.drive.getSwerveDrive().setVisionMeasurementStdDevs(Constants.Limelight.standardDevs);
+                RobotContainer.drive.getSwerveDrive().setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2.avgTagDist));
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
             }
         }

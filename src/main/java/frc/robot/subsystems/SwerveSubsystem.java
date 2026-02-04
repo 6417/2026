@@ -196,8 +196,10 @@ public class SwerveSubsystem extends SubsystemBase {
 
                         var alliance = DriverStation.getAlliance();
                         if (alliance.isPresent()) {
+                            System.out.println("Alliance for path mirroring: " + alliance.get().toString());
                             return alliance.get() == DriverStation.Alliance.Red;
                         }
+                        System.out.println("Alliance for path mirroring: " + alliance.get().toString());
                         return false;
                     },
                     this
@@ -410,13 +412,14 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyroWithAlliance() {
+        LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 0);
         if (blueAlliance) {
             drive.zeroGyro();
             if (Constants.Limelight.useVision) {
                 LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
             }
         } else {
-            drive.setGyro(new Rotation3d(Rotation2d.fromDegrees(180)));
+            // drive.setGyro(new Rotation3d(Rotation2d.fromDegrees(180)));
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
             if (Constants.Limelight.useVision) {
                 LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
