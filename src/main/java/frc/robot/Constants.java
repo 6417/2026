@@ -1,14 +1,11 @@
 package frc.robot;
 
-import java.util.Arrays;
-import java.util.List;
+import java.awt.geom.Point2D;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
-import frc.fridowpi.motors.utils.FeedForwardValues;
-import frc.fridowpi.motors.utils.PidValues;
+import frc.robot.utils.LinearInterpolationTable;
 
 public class Constants {
     public static final class Joystick {
@@ -64,9 +61,34 @@ public class Constants {
         public static final boolean topMotorInverted = false;
         public static final boolean bottomMotorInverted = true;
 
-        // Safe defaults used until the distance->speed model is tuned.
-        public static final double defaultTopPercent = 0.7;
-        public static final double defaultBottomPercent = 0.7;
+        // TODO: Tune shooter PID/FF (RPM-based, Spark Max velocity is RPM).
+        public static final double kP = 0.0;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
+        public static final double kS = 0.0;
+        public static final double kV = 0.0;
+        public static final double maxRpm = 0.0;
+        public static final double maxNegPower = -0.30;
+
+        // Safe defaults used until the distance->RPM model is tuned.
+        public static final double defaultTopRpm = 0.0;
+        public static final double defaultBottomRpm = 0.0;
+
+        // Distance (m) -> RPM tables.
+        // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
+        // then replace these points and/or add more for better curve fitting.
+        private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
+
+        private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
+
+        public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
+        public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
