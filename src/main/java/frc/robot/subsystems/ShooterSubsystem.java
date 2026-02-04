@@ -54,19 +54,6 @@ public class ShooterSubsystem extends SubsystemBase {
         bottomMotor.set(bottom);
     }
 
-    public void run(double rpm) {
-        /**
-         * Run the shooter using closed-loop RPM control.
-         *
-         * This sets the same RPM for both wheels and then:
-         * 1) clamps the target RPM (if a max is configured),
-         * 2) computes PID + feedforward output,
-         * 3) sends the final percent output to the motors.
-         */
-        // Convenience: same RPM on both wheels.
-        run(rpm, rpm);
-    }
-
     /**
      * Run the shooter using closed-loop RPM control.
      *
@@ -128,10 +115,6 @@ public class ShooterSubsystem extends SubsystemBase {
         double outputFf = feedforward.calculate(targetRpm);
         double output = outputPid + outputFf;
 
-        // Prevent output from going too negative (protects against harsh reverse).
-        if (output <= Constants.Shooter.maxNegPower) {
-            output = Constants.Shooter.maxNegPower;
-        }
 
         // Final safety clamp to motor input range.
         return MathUtil.clamp(output, -1.0, 1.0);

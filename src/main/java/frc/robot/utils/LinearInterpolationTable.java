@@ -50,6 +50,11 @@ public class LinearInterpolationTable {
         // slope m = (y2 - y1) / (x2 - x1)
         // y = y1 + m * (x - x1)
         // This gives a straight line between the two points.
+        //
+        // Example:
+        // point1 = (0, 0), point2 = (10, 100), input = 2.5
+        // slope m = (100 - 0) / (10 - 0) = 10
+        // y = 0 + 10 * (2.5 - 0) = 25
         final double slope = (point2.getY() - point1.getY()) / (point2.getX() - point1.getX());
         final double deltaX = input - point1.getX();
         final double deltaY = deltaX * slope;
