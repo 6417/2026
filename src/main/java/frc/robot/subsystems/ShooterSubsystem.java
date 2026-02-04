@@ -55,10 +55,26 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void run(double rpm) {
+        /**
+         * Run the shooter using closed-loop RPM control.
+         *
+         * This sets the same RPM for both wheels and then:
+         * 1) clamps the target RPM (if a max is configured),
+         * 2) computes PID + feedforward output,
+         * 3) sends the final percent output to the motors.
+         */
         // Convenience: same RPM on both wheels.
         run(rpm, rpm);
     }
 
+    /**
+     * Run the shooter using closed-loop RPM control.
+     *
+     * This sets the same RPM for both wheels and then:
+     * 1) clamps the target RPM (if a max is configured),
+     * 2) computes PID + feedforward output,
+     * 3) sends the final percent output to the motors.
+    */
     private void run(double topRpm, double bottomRpm) {
         // Clamp target RPMs if a max RPM is configured.
         targetTopRpm = clampRpm(topRpm);
@@ -87,7 +103,12 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private double clampRpm(double rpm) {
-        // If maxRpm is zero, treat it as "no limit".
+        /**
+         * Clamp target RPM to a safe range.
+         *
+         * If maxRpm is set to 0, we treat it as "no limit" and return the input.
+         * This avoids accidentally limiting the shooter when maxRpm is not configured yet.
+         */
         if (Constants.Shooter.maxRpm > 0.0) {
             rpm = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);
         }
@@ -95,6 +116,13 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private double calculateOutput(PIDController pid, double currentRpm, double targetRpm) {
+        /**
+         * Compute motor output from RPM error.
+         *
+         * PID handles error correction, feedforward provides the base output
+         * needed to maintain the target RPM. The result is clamped to a safe
+         * output range before sending to the motor.
+         */
         // PID does the error correction, FF gives a baseline voltage for the target speed.
         double outputPid = pid.calculate(currentRpm, targetRpm);
         double outputFf = feedforward.calculate(targetRpm);

@@ -13,6 +13,7 @@ public class LinearInterpolationTable {
     public final int size;
 
     public LinearInterpolationTable(Point2D... points) {
+        // Store the points as given. The table expects points to be ordered by X (input) value.
         this.points = points;
         size = this.points.length;
         for (int i = 0; i < size; i++) {
@@ -26,6 +27,8 @@ public class LinearInterpolationTable {
     }
 
     public double getOutput(double input) {
+        // Pick the segment (point[i] -> point[i+1]) that surrounds the input.
+        // If input is outside the table, we clamp to the first or last segment.
         int index = 0;
         if (input <= minInput) {
             index = 0;
@@ -38,10 +41,15 @@ public class LinearInterpolationTable {
                 }
             }
         }
+        // Interpolate between the two bounding points.
         return interpolate(input, points[index], points[index + 1]);
     }
 
     public static double interpolate(double input, Point2D point1, Point2D point2) {
+        // Linear interpolation math:
+        // slope m = (y2 - y1) / (x2 - x1)
+        // y = y1 + m * (x - x1)
+        // This gives a straight line between the two points.
         final double slope = (point2.getY() - point1.getY()) / (point2.getX() - point1.getX());
         final double deltaX = input - point1.getX();
         final double deltaY = deltaX * slope;
