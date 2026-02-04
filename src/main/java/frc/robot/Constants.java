@@ -7,6 +7,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 
@@ -16,6 +18,11 @@ public class Constants {
         public static final double FIELD_WIDTH_METERS = 8.069326;
         public static final double FIELD_WIDTH_INCHES = 317.69;
         public static final double FIELD_LENGTH_INCHES = 651.22;
+
+        public static Pose2d EDGE;
+        public static Pose2d HUB_CENTER;
+
+        public static double neutralZoneStartX;
 
         public static final Pose2d HUB_CENTER_BLUE = new Pose2d(
                 Units.inchesToMeters(23.5 + 158.6),
@@ -50,6 +57,8 @@ public class Constants {
 
         public static final double pitchMotorForwardLimit = 0;
         public static final double pitchMotorReverseLimit = 0;
+
+        public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
 
         public static final double kMaxVelocity = 0;
         public static final double kMaxAcceleration = 0;
