@@ -19,6 +19,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -49,11 +50,10 @@ public class SwerveSubsystem extends SubsystemBase {
     private VisionSubsystem vision;
     private boolean driveIsAutomated;
 
-    private final boolean blueAlliance;
+    private boolean blueAlliance;
     private boolean intakeMode;
 
     public SwerveSubsystem() {
-        blueAlliance = getAlliance() == Alliance.Blue;
         vision = new VisionSubsystem(true);
         driveIsAutomated = false;
         intakeMode = false;
@@ -100,6 +100,8 @@ public class SwerveSubsystem extends SubsystemBase {
     public void periodic() {
         // manually update odometry if using vision
 
+        blueAlliance = getAlliance() == Alliance.Blue;
+
         updateOdometry();
         Logger.recordOutput("Swerve/Odomerty", drive.getPose());
 
@@ -109,15 +111,15 @@ public class SwerveSubsystem extends SubsystemBase {
             if (Constants.SwerveSubsystem.oldTurnSystem) {
                 if (intakeMode) {
                     driveCommand(
-                            () -> i * -joystickAxes[1],
-                            () -> i * -joystickAxes[0],
-                            () -> i * joystickAxes[0] * 100,
-                            () -> i * joystickAxes[1] * 100).schedule();
+                            () -> (i * -joystickAxes[1]),
+                            () -> (i * -joystickAxes[0]),
+                            () -> (i * joystickAxes[0] * 100),
+                            () -> (i * joystickAxes[1] * 100)).schedule();
                 } else {
                     driveCommand(
-                            () -> i * -joystickAxes[1],
-                            () -> i * -joystickAxes[0],
-                            () -> i * -joystickAxes[2]).schedule();
+                            () -> (i * -joystickAxes[1]),
+                            () -> (i * -joystickAxes[0]),
+                            () -> (-joystickAxes[2])).schedule();
                 }
             } else {
                 if (intakeMode) {
@@ -414,7 +416,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 0, 0, 0, 0, 0, 0);
             }
         } else {
-            drive.zeroGyro();
+            drive.setGyro(new Rotation3d(Rotation2d.fromDegrees(180)));
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
             if (Constants.Limelight.useVision) {
                 LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, 180,
