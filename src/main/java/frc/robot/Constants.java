@@ -7,8 +7,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 
@@ -19,11 +17,6 @@ public class Constants {
         public static final double FIELD_WIDTH_INCHES = 317.69;
         public static final double FIELD_LENGTH_INCHES = 651.22;
 
-        public static Pose2d EDGE;
-        public static Pose2d HUB_CENTER;
-
-        public static double neutralZoneStartX;
-
         public static final Pose2d HUB_CENTER_BLUE = new Pose2d(
                 Units.inchesToMeters(23.5 + 158.6),
                 Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2),
@@ -33,6 +26,11 @@ public class Constants {
                 Units.inchesToMeters(Field.FIELD_LENGTH_INCHES - (23.5 + 158.6)),
                 Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2),
                 null);
+
+        // to be set in Robot.java based on alliance
+        public static Pose2d EDGE;
+        public static Pose2d HUB_CENTER;
+        public static double neutralZoneStartX;       
     }
     public static final class Joystick {
         public static final int driveJoystickId = 0;
@@ -53,7 +51,7 @@ public class Constants {
     }
 
     public static final class TurretSubsystem { //TODO: set constants
-        public static final int ID = 5;
+        public static final int ID = 999;
 
         public static final double pitchMotorForwardLimit = 0;
         public static final double pitchMotorReverseLimit = 0;
@@ -64,11 +62,13 @@ public class Constants {
         public static final double kMaxAcceleration = 0;
         public static final double kAllowedClosedLoopError = 0;
 
-        public static final PidValues pidValuesRotation = null;
+        public static final PidValues pidValuesRotation = new PidValues(0, 0, 0);
 
-        public static final int kArmGearRatio = 0;
+        public static final int kGearRatio = 0;
 
         public static final double angularOffset = 0;
+
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0, 0, 0);
     }
 
     public static final class SwerveSubsystem {

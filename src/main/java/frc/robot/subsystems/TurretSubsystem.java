@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -36,10 +35,12 @@ public class TurretSubsystem extends SubsystemBase {
 
     private double desiredPosition = 0;
 
+    private double distanceHubTurret = 0;
+
     private boolean inRange = false;
 
     public TurretSubsystem() {
-        turretMotor = new FridoSparkMax(999);/// Constants.TurretSubsystem.ID); // Todo: set ID
+        turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set ID
         turretMotor.setIdleMode(IdleMode.kBrake);
 
         motorConfig = new SparkMaxConfig();
@@ -62,10 +63,15 @@ public class TurretSubsystem extends SubsystemBase {
 
         motorConfig.closedLoop.p(pidValues.kP, ClosedLoopSlot.kSlot0).i(pidValues.kI, ClosedLoopSlot.kSlot0)
             .d(pidValues.kD, ClosedLoopSlot.kSlot0)
-            .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0)
-            .velocityFF(pidValues.kF.orElse(0.0), ClosedLoopSlot.kSlot0);
+            .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
         
-        //    motorConfig.closedLoop.feedForward.apply(); // for custom feedforward values
+
+
+        FeedForwardConfig ffConfig = new FeedForwardConfig();
+        ffConfig.kS(Constants.TurretSubsystem.kFeedForward.kS);
+        ffConfig.kV(Constants.TurretSubsystem.kFeedForward.kV);
+        ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
+        motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         
         motorConfig.smartCurrentLimit(0, 30);
 
@@ -80,8 +86,12 @@ public class TurretSubsystem extends SubsystemBase {
     public void periodic() {
     }
 
+    public double getDistanceHubTurret() {
+        return distanceHubTurret;
+    }
+
     public void resetRotationEncoder() {
-        turretMotor.setEncoderPosition(getAbsoluteRotation() * Constants.TurretSubsystem.kArmGearRatio);
+        turretMotor.setEncoderPosition(getAbsoluteRotation() * Constants.TurretSubsystem.kGearRatio);
     }
 
     public void stopRotationMotor() {
@@ -96,15 +106,15 @@ public class TurretSubsystem extends SubsystemBase {
 
     // get the current angle in degrees
     public double getCurrentAngle() {
-        return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kArmGearRatio;
+        return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
     }
 
     public boolean isAtSetpoint() {
         return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
     }
 
-    public boolean isInRange() { // can the turret reach the desired position? -> only 180 degrees turret
-        return inRange;
+    public void setDistanceHubTurret(double distance) {
+        this.distanceHubTurret = distance;
     }
 
     public void setDesiredRotation(Rotation2d pos) {

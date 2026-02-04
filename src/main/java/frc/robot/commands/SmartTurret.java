@@ -36,11 +36,14 @@ public class SmartTurret extends Command {
         Pose2d robotPose = drive.getPose();
 
         Translation2d poseToTrack = null;
+
+        boolean toHub = false;
         // first check if is in neutral zone or team zone
         if ((DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
             (DriverStation.getAlliance().get() == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
             // in team zone, track hub
             poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
+            toHub = true;
         } else {
             // in neutral zone, track edges for shooting balls in the back to team zone
             poseToTrack = Constants.Field.EDGE.getTranslation();
@@ -51,6 +54,12 @@ public class SmartTurret extends Command {
 
         // translation from robot to hub
         Translation2d turretToHub = poseToTrack.minus(turretPose);
+
+        if (toHub) {
+            // calculate distance to hub
+            double distance = turretToHub.getNorm();
+            turret.setDistanceHubTurret(distance);
+        }
 
         Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
 
