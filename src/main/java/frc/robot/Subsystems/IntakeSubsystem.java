@@ -7,12 +7,25 @@ import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private final FridolinsMotor intakeMotor;
+    private final FridoSparkMax intakeMotor;
 
     public IntakeSubsystem() {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
+    }
+
+    @Override
+    public void periodic() {
+        double currentThreshold = Constants.Intake.intakeStallCurrentAmps;
+        double rpmThreshold = Constants.Intake.intakeStallRpmThreshold;
+        if (currentThreshold > 0.0 && rpmThreshold >= 0.0) {
+            double currentAmps = intakeMotor.getOutputCurrent();
+            double rpm = Math.abs(intakeMotor.getEncoderVelocity());
+            if (currentAmps > currentThreshold && rpm < rpmThreshold) {
+                intakeMotor.stopMotor();
+            }
+        }
     }
 
     public void setPercent(double percent) {

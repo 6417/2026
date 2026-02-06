@@ -51,6 +51,9 @@ public class Constants {
         public static final double intakeSpeed = 0.6;
         public static final double outtakeSpeed = -0.6;
 
+        public static final double intakeStallCurrentAmps = 80;
+        public static final double intakeStallRpmThreshold = 200;
+
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
