@@ -17,15 +17,19 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double currentThreshold = Constants.Intake.intakeStallCurrentAmps;
-        double rpmThreshold = Constants.Intake.intakeStallRpmThreshold;
-        if (currentThreshold > 0.0 && rpmThreshold >= 0.0) {
-            double currentAmps = intakeMotor.getOutputCurrent();
-            double rpm = Math.abs(intakeMotor.getEncoderVelocity());
-            if (currentAmps > currentThreshold && rpm < rpmThreshold) {
-                intakeMotor.stopMotor();
-            }
+        double currentAmps = intakeMotor.getOutputCurrent();
+        double rpm = Math.abs(intakeMotor.getEncoderVelocity());
+        if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpm < Constants.Intake.intakeStallRpmThreshold) {
+            intakeMotor.stopMotor();
         }
+    }
+
+    public void intake() {
+        setPercent(Constants.Intake.intakeSpeed);
+    }
+
+    public void outtake() {
+        setPercent(Constants.Intake.outtakeSpeed);
     }
 
     public void setPercent(double percent) {
