@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.TurretSubsystem;
@@ -48,10 +49,7 @@ public class SmartTurret extends Command {
             // in neutral zone, track edges for shooting balls in the back to team zone
             poseToTrack = Constants.Field.EDGE.getTranslation();
         }
-
-        SmartDashboard.putNumberArray("Turret Pose", new double[] {turretPose.getX(), turretPose.getY()});
-        SmartDashboard.putNumberArray("Tracking Pose", new double[] {poseToTrack.getX(), poseToTrack.getY()});
-
+        
         // translation from robot to hub
         Translation2d turretToHub = poseToTrack.minus(turretPose);
 
@@ -62,8 +60,6 @@ public class SmartTurret extends Command {
         }
 
         Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
-
-        SmartDashboard.putNumber("Turret Target Angle in Degrees", angle.getDegrees());
 
         turret.setDesiredRotation(angle);
     }

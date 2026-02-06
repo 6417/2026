@@ -17,6 +17,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
@@ -37,9 +38,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     private double distanceHubTurret = 0;
 
-    private boolean inRange = false;
-
-    public TurretSubsystem() {
+    public TurretSubsystem() {/*
         turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set ID
         turretMotor.setIdleMode(IdleMode.kBrake);
 
@@ -77,9 +76,11 @@ public class TurretSubsystem extends SubsystemBase {
 
         turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
-        resetRotationEncoder();
+        resetRotationEncoder();*/
 
         setDefaultCommand(new SmartTurret(this, RobotContainer.drive));
+
+        Shuffleboard.getTab("Turret").add(this);
     }
 
     @Override
@@ -91,26 +92,30 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     public void resetRotationEncoder() {
-        turretMotor.setEncoderPosition(getAbsoluteRotation() * Constants.TurretSubsystem.kGearRatio);
+        //turretMotor.setEncoderPosition(getAbsoluteRotation() * Constants.TurretSubsystem.kGearRatio);
     }
 
     public void stopRotationMotor() {
-        turretMotor.stopMotor();
+        //turretMotor.stopMotor();
     }
 
     private double getAbsoluteRotation() {
+        return 0;
+        /* 
         double angle = turretMotor.asSparkMax().getAbsoluteEncoder().getPosition();
         
-        return angle - Constants.TurretSubsystem.angularOffset;
+        return angle - Constants.TurretSubsystem.angularOffset;*/
     }
 
     // get the current angle in degrees
     public double getCurrentAngle() {
-        return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
+        return 0;
+        //return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
     }
 
     public boolean isAtSetpoint() {
-        return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
+        return false;
+       // return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
     }
 
     public void setDistanceHubTurret(double distance) {
@@ -118,17 +123,23 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     public void setDesiredRotation(Rotation2d pos) {
+        desiredPosition = pos.getDegrees();
         //TODO: set rotation with motor
+    }
+
+    public void setPercent(double percent) {
+        //turretMotor.set(percent);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Abs Encoder Turret", () -> getAbsoluteRotation() * 360, null);
-        builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
+        //builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);
         builder.addDoubleProperty("absolute Rotation", () -> getAbsoluteRotation(), null);
+        builder.addDoubleProperty("distance turret desiredPos", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }
 }
