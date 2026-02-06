@@ -63,17 +63,18 @@ public class ShooterSubsystem extends SubsystemBase {
      * 3) sends the final percent output to the motors.
     */
     private void run(double topRpm, double bottomRpm) {
-        // Clamp target RPMs if a max RPM is configured.
-        targetTopRpm = clampRpm(topRpm);
-        targetBottomRpm = clampRpm(bottomRpm);
+            // Clamp target RPMs if a max RPM is configured.
+            targetTopRpm = clampRpm(topRpm);
+            targetBottomRpm = clampRpm(bottomRpm);
 
-        // Spark Max encoder velocity is RPM by default.
-        double topOutput = calculateOutput(topPid, topMotor.getEncoderVelocity(), targetTopRpm);
-        double bottomOutput = calculateOutput(bottomPid, bottomMotor.getEncoderVelocity(), targetBottomRpm);
+            // Spark Max encoder velocity is RPM by default.
+            double topOutput = calculateOutput(topPid, topMotor.getEncoderVelocity(), targetTopRpm);
+            double bottomOutput = calculateOutput(bottomPid, bottomMotor.getEncoderVelocity(), targetBottomRpm);
 
-        // PID + FF output is still a percent (-1..1) to send to the motor.
-        topMotor.set(topOutput);
-        bottomMotor.set(bottomOutput);
+            // PID + FF output is still a percent (-1..1) to send to the motor.
+            topMotor.set(topOutput);
+            bottomMotor.set(bottomOutput);
+        
     }
 
     /**
@@ -87,6 +88,10 @@ public class ShooterSubsystem extends SubsystemBase {
         double topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
         double bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
         run(topRpm, bottomRpm);
+    }
+
+    public boolean isShooterReady() {
+        return Math.abs(targetBottomRpm - bottomMotor.getEncoderVelocity()) > Constants.Shooter.motorTolerance && Math.abs(targetTopRpm - topMotor.getEncoderVelocity()) > Constants.Shooter.motorTolerance;
     }
 
     private double clampRpm(double rpm) {

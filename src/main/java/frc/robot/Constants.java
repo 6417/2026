@@ -74,6 +74,8 @@ public class Constants {
         public static final double defaultTopRpm = 0.0;
         public static final double defaultBottomRpm = 0.0;
 
+        public static final double motorTolerance = 20;
+
         // Distance (m) -> RPM tables.
         // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
         // then replace these points and/or add more for better curve fitting.
