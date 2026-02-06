@@ -58,15 +58,15 @@ public class Constants {
         public static final int topMotorId = 20;
         public static final int bottomMotorId = 21;
 
-        public static final boolean topMotorInverted = false;
-        public static final boolean bottomMotorInverted = true;
+        public static final boolean topMotorInverted = true;
+        public static final boolean bottomMotorInverted = false;
 
         // TODO: Tune shooter PID/FF (RPM-based, Spark Max velocity is RPM).
-        public static final double kP = 0.0;
+        public static final double kP = 0.00007;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
         public static final double kS = 0.0;
-        public static final double kV = 0.0;
+        public static final double kV = 0.0001575;
         public static final double maxRpm = 0.0;
         public static final double maxNegPower = -0.30;
 
