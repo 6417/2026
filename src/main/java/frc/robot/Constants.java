@@ -76,6 +76,12 @@ public class Constants {
 
         // TODO: Tune feeder velocity PID (Spark Max velocity uses RPM).
         public static final PidValues feederVelocityPid = new PidValues(0.0, 0.0, 0.0);
+        public static final FeedForwardValues feederFeedForward = new FeedForwardValues(0, 0);
+
+        // Singulator stall protection. TODO: Tune these values on the real robot.
+        // If current exceeds this (A) and RPM is below threshold, stop the singulator.
+        public static final double singulatorStallCurrentAmps = 80;
+        public static final double singulatorStallRpmThreshold = 200;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }

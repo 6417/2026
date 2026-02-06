@@ -8,7 +8,7 @@ import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 
 public class FeederSubsystem extends SubsystemBase {
-    private final FridolinsMotor singulatorMotor;
+    private final FridoSparkMax singulatorMotor;
     private final FridolinsMotor feederMotor;
     // Beam break sensor wired to a roboRIO DIO (digital input) port.
     private final DigitalInput beamBreak;
@@ -28,7 +28,21 @@ public class FeederSubsystem extends SubsystemBase {
         feederMotor.setIdleMode(Constants.Feeder.idleMode);
 
         // Velocity PID only for feeder motor.
-        feederMotor.setPID(Constants.Feeder.feederVelocityPid);
+        feederMotor.setPID(Constants.Feeder.feederVelocityPid, Constants.Feeder.feederFeedForward);
+    }
+
+
+    @Override
+    public void periodic() {
+        double currentThreshold = Constants.Feeder.singulatorStallCurrentAmps;
+        double rpmThreshold = Constants.Feeder.singulatorStallRpmThreshold;
+        if (currentThreshold > 0.0 && rpmThreshold >= 0.0) {
+            double currentAmps = singulatorMotor.getOutputCurrent();
+            double rpm = Math.abs(singulatorMotor.getEncoderVelocity());
+            if (currentAmps > currentThreshold && rpm < rpmThreshold) {
+                singulatorMotor.stopMotor();
+            }
+        }
     }
 
     public void setPercent(double singulator, double feeder) {
