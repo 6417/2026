@@ -34,14 +34,10 @@ public class FeederSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double currentThreshold = Constants.Feeder.singulatorStallCurrentAmps;
-        double rpmThreshold = Constants.Feeder.singulatorStallRpmThreshold;
-        if (currentThreshold > 0.0 && rpmThreshold >= 0.0) {
-            double currentAmps = singulatorMotor.getOutputCurrent();
-            double rpm = Math.abs(singulatorMotor.getEncoderVelocity());
-            if (currentAmps > currentThreshold && rpm < rpmThreshold) {
-                singulatorMotor.stopMotor();
-            }
+        double currentAmps = singulatorMotor.getOutputCurrent();
+        double rpm = Math.abs(singulatorMotor.getEncoderVelocity());
+        if (currentAmps > Constants.Feeder.singulatorStallCurrentAmps && rpm < Constants.Feeder.singulatorStallRpmThreshold) {
+            singulatorMotor.stopMotor();
         }
     }
 
@@ -63,11 +59,15 @@ public class FeederSubsystem extends SubsystemBase {
     }
 
     public void feed() {
-        setPercent(Constants.Feeder.singulatorSpeed, Constants.Feeder.feederSpeed);
+        setFeederVelocityRpm(Constants.Feeder.feedingRpm);
     }
 
-    public void reverse() {
-        setPercent(Constants.Feeder.outtakeSingulatorSpeed, Constants.Feeder.outtakeFeederSpeed);
+    public void emptyFeeder() {
+        setFeederPercent(Constants.Feeder.outtakeFeederSpeed);
+    }
+
+    public void reverseSingulator() {
+        setSingulatorPercent(Constants.Feeder.outtakeSingulatorSpeed);
     }
 
     public void stop() {

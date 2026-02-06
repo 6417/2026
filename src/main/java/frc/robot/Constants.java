@@ -65,7 +65,7 @@ public class Constants {
         public static final boolean feederMotorInverted = false;
 
         public static final double singulatorSpeed = 0.6;
-        public static final double feederSpeed = 0.6;
+        public static final double feedingRpm = 2000;
         public static final double outtakeSingulatorSpeed = -0.6;
         public static final double outtakeFeederSpeed = -0.6;
 
