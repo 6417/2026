@@ -3,22 +3,24 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
     private final double intakePercent;
+    private IntakeSubsystem intake;
 
-    public IntakeCommand() {
-        this(Constants.Intake.intakeSpeed);
+    public IntakeCommand(IntakeSubsystem intake) {
+        this(intake, Constants.Intake.intakeSpeed);
     }
 
-    public IntakeCommand(double intakePercent) {
+    public IntakeCommand(IntakeSubsystem intake, double intakePercent) {
         this.intakePercent = intakePercent;
-        addRequirements(RobotContainer.intake);
+        addRequirements(intake);
     }
 
     @Override
     public void initialize() {
-        RobotContainer.intake.setPercent(intakePercent);
+        intake.setPercent(intakePercent);
     }
 
     @Override
@@ -27,7 +29,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        RobotContainer.intake.stop();
+        intake.stop();
     }
 
     @Override
