@@ -16,8 +16,9 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DriveToTrench;
-import frc.robot.commands.TurretControlled;
+import frc.robot.commands.drive.DriveToShootpos;
+import frc.robot.commands.drive.DriveToTrench;
+import frc.robot.commands.turret.TurretControlled;
 
 /**
  * Holds the data concerning input, which should be available
@@ -113,6 +114,8 @@ public class Controls implements Sendable {
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
         ltButtonDrive.whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
         .onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
+
+        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 

@@ -25,7 +25,7 @@ import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
-import frc.robot.commands.SmartTurret;
+import frc.robot.commands.turret.SmartTurret;
 
 public class TurretSubsystem extends SubsystemBase {
     private FridoSparkMax turretMotor;
@@ -89,6 +89,10 @@ public class TurretSubsystem extends SubsystemBase {
 
     public double getDistanceHubTurret() {
         return distanceHubTurret;
+    }
+
+    public Rotation2d getRotationToHub() {
+        return new Rotation2d(Math.toRadians(desiredPosition));
     }
 
     public void resetRotationEncoder() {

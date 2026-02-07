@@ -27,6 +27,8 @@ public class Constants {
                 Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2),
                 null);
 
+        public static final double RADIUS_TO_HUB = 3.0; // in meters
+
         // to be set in Robot.java based on alliance
         public static Pose2d EDGE;
         public static Pose2d HUB_CENTER;
