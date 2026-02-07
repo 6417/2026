@@ -10,11 +10,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.TurretSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
     public static final Controls controls;
     public static final SwerveSubsystem drive;
+    public static final TurretSubsystem turret;
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     // public static final SendableChooser<Command> autoChooser;
@@ -23,6 +25,7 @@ public class RobotContainer {
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         drive = new SwerveSubsystem();
         controls = new Controls();
+        turret = new TurretSubsystem();
 
         autoChooser.addOption("Example Auto", "Example Auto");
         autoChooser.addOption("Second Auto", "Second Auto");

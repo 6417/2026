@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
+import java.util.List;
+
 import edu.wpi.first.units.Units;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
@@ -12,8 +14,8 @@ class VisionSubsystem extends SubsystemBase {
     private String limelightName;
     private boolean mt2 = true;
 
-    public VisionSubsystem(boolean megaTag2) {
-        this.limelightName = Constants.Limelight.driveLimelight;
+    public VisionSubsystem(boolean megaTag2, boolean driveVision) {
+        this.limelightName = driveVision ? Constants.Limelight.driveLimelight : Constants.Limelight.limelight2;
         this.mt2 = megaTag2;
     }
 
@@ -33,6 +35,7 @@ class VisionSubsystem extends SubsystemBase {
         if(mt2 == false)
         {
             LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_FieldSpace();
+         
             if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
             {
                 if(mt1.rawFiducials[0].ambiguity > .7)
