@@ -30,6 +30,8 @@ public class DriveToShootpos extends Command {
 
     @Override
     public void initialize() {
+        drive.setAutomatedControl();
+
         Pose2d nearestPos = DriverStation.getAlliance().get() == Alliance.Blue ? Constants.Field.HUB_CENTER_BLUE : Constants.Field.HUB_CENTER_RED;
         Pose2d robotPose = drive.getPose();
 
@@ -40,21 +42,14 @@ public class DriveToShootpos extends Command {
             return;
         }
 
-        Translation2d toHub = robotPose.getTranslation().minus(nearestPos.getTranslation());
+        Translation2d toHub = nearestPos.getTranslation().minus(robotPose.getTranslation());
 
         Translation2d toPos = null;
 
-        if (toHub.getNorm() != radius) {
-            toPos = new Translation2d(toHub.getNorm() - radius, toHub.getAngle());
-        }
-
-        if (toPos == null) {
-            isFinished = true;
-            return;
-        }
+        toPos = new Translation2d(toHub.getNorm() - radius, toHub.getAngle());
 
         // calculate Pose2d: nearest Spot from robot, radius(m) from Hub away
-        Pose2d sweetSpot = new Pose2d(toPos, turret.getRotationToHub());
+        Pose2d sweetSpot = new Pose2d(robotPose.getTranslation().plus(toPos), robotPose.getRotation().plus(turret.getRotationToHub()));
 
         pathCommand = drive.driveToPose(
             sweetSpot
@@ -74,11 +69,13 @@ public class DriveToShootpos extends Command {
         if (pathCommand != null) {
             pathCommand.end(interrupted);
         }
+
+        drive.setOpeatorControl();
     }
 
     @Override
     public boolean isFinished() {
-        return isFinished;
+        return isFinished || pathCommand.isFinished();
     }
     
 }
