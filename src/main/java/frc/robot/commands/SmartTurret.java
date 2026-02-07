@@ -61,7 +61,7 @@ public class SmartTurret extends Command {
 
         Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
 
-        turret.setDesiredRotation(angle);
+        turret.setDesiredRotation(angle.getDegrees());
     }
 
     @Override

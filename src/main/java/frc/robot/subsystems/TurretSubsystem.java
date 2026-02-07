@@ -122,11 +122,15 @@ public class TurretSubsystem extends SubsystemBase {
         this.distanceHubTurret = distance;
     }
 
-    public void setDesiredRotation(Rotation2d pos) {
-        desiredPosition = pos.getDegrees();
-        //TODO: set rotation with motor
+    // set desired rotation (in degrees!)
+    public void setDesiredRotation(double pos) {
+        //TODO: set convert to encoder ticks
+        desiredPosition = pos;
+
+        //turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kMAXMotionPositionControl);
     }
 
+    // set percent output for manual control.
     public void setPercent(double percent) {
         //turretMotor.set(percent);
     }
