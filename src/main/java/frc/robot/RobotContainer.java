@@ -24,8 +24,8 @@ public class RobotContainer {
     static {
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         drive = new SwerveSubsystem();
-        controls = new Controls();
         turret = new TurretSubsystem();
+        controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
         autoChooser.addOption("Second Auto", "Second Auto");
@@ -37,8 +37,7 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         // System.out.println("Autonomous Command 'Example Auto' Selected");
-        return 
-        drive.getAutonomousCommand(autoChooser.getSelected());
+        return drive.getAutonomousCommand(autoChooser.getSelected());
         // drive.driveToPose(new Pose2d(1,2, new Rotation2d()));
     }
 }
