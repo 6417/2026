@@ -48,7 +48,7 @@
   "folder": "Second Auto Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": -89.66052419394316
   },
   "useDefaultConstraints": true
 }

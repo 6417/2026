@@ -39,6 +39,7 @@ public class Controls implements Sendable {
     Trigger windowsButtonDrive = driveJoystick.back();
     Trigger burgerButtonDrive = driveJoystick.start();
     Trigger pov0Drive = driveJoystick.povUp();
+    Trigger speedKnopf = driveJoystick.leftStick();
 
     Trigger ltButtonOperator = operatorJoystick.leftTrigger();
     Trigger rtButtonOperator = operatorJoystick.rightTrigger();
@@ -100,7 +101,7 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        rtButtonDrive.whileTrue(Commands.startEnd(
+        speedKnopf.whileTrue(Commands.startEnd(
                 () -> {
                     setActiveSpeedFactor(DriveSpeed.SLOW);
                 },
@@ -112,7 +113,7 @@ public class Controls implements Sendable {
             RobotContainer.drive.zeroGyroWithAlliance();
         }));
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-        ltButtonDrive.whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
+        rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
         .onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
 
         lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
