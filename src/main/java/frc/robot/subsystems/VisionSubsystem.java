@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Units;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
@@ -21,6 +21,11 @@ class VisionSubsystem extends SubsystemBase {
         this.mt2 = megaTag2;
     }
 
+    @Override
+    public void periodic() {
+       
+    }
+
     public PoseEstimate getBotPoseEstimate_FieldSpace() {
         if (mt2) {
             return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
@@ -28,47 +33,45 @@ class VisionSubsystem extends SubsystemBase {
         return LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
     }
 
+    public boolean isLimelightConnected() {
+        return NetworkTableInstance.getDefault().getTable(limelightName).containsKey("getpipe");
+    }
+
     public void updateOdometry() {
         boolean doRejectUpdate = false;
-        if(mt2 == false)
-        {
+        if (mt2 == false) {
             LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_FieldSpace();
-            if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
-            {
-                if(mt1.rawFiducials[0].ambiguity > .7)
-                {
+            if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1) {
+                if (mt1.rawFiducials[0].ambiguity > .7) {
                     doRejectUpdate = true;
                 }
-                if(mt1.rawFiducials[0].distToCamera > 3)
-                {
+                if (mt1.rawFiducials[0].distToCamera > 3) {
                     doRejectUpdate = true;
                 }
             }
-            if(mt1.tagCount == 0)
-            {
+            if (mt1.tagCount == 0) {
                 doRejectUpdate = true;
             }
 
-            if(!doRejectUpdate)
-            {
+            if (!doRejectUpdate) {
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
             }
-        }
-        else
-        {
-            LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
+        } else {
+            LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0,
+                    0, 0);
             LimelightHelpers.PoseEstimate mt2 = getBotPoseEstimate_FieldSpace();
-            if(Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity().abs(Units.DegreesPerSecond)) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+            if (Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity()
+                    .abs(Units.DegreesPerSecond)) > 720) // if our angular velocity is greater than 720 degrees per
+                                                         // second, ignore vision updates
             {
                 doRejectUpdate = true;
             }
-            if(mt2.tagCount == 0)
-            {
+            if (mt2.tagCount == 0) {
                 doRejectUpdate = true;
             }
-            if(!doRejectUpdate)
-            {
-                RobotContainer.drive.getSwerveDrive().setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2.avgTagDist));
+            if (!doRejectUpdate) {
+                RobotContainer.drive.getSwerveDrive()
+                        .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2.avgTagDist));
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
             }
         }

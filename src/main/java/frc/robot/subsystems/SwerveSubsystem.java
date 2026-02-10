@@ -57,7 +57,8 @@ public class SwerveSubsystem extends SubsystemBase {
         vision = new VisionSubsystem(true);
         driveIsAutomated = false;
         intakeMode = false;
-
+        Constants.Limelight.useVision = vision.isLimelightConnected();
+        
         Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1), // not very accurate -> gets
                                                                                        // corrected by limelight anyways
                 Meter.of(4)),
@@ -99,8 +100,14 @@ public class SwerveSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // manually update odometry if using vision
+        if(vision.isLimelightConnected()){
+            Constants.Limelight.useVision = true;
+        } else{
+            Constants.Limelight.useVision = false;
+        }
 
         blueAlliance = getAlliance() == Alliance.Blue;
+
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odomerty", drive.getPose());
