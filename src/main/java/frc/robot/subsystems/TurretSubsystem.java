@@ -1,29 +1,14 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
-import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
-import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
 import frc.robot.commands.turret.SmartTurret;
 
@@ -128,7 +113,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     // set desired rotation (in degrees!)
     public void setDesiredRotation(double pos) {
-        //TODO: set convert to encoder ticks
+        //TODO: Convert Degrees to encoder ticks
         desiredPosition = pos;
 
         //turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kMAXMotionPositionControl);
