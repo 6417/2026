@@ -54,7 +54,8 @@ public class SwerveSubsystem extends SubsystemBase {
     private boolean intakeMode;
 
     public SwerveSubsystem() {
-        vision = new VisionSubsystem(true);
+        blueAlliance = getAlliance() == Alliance.Blue;
+        vision = new VisionSubsystem(true, true);
         driveIsAutomated = false;
         intakeMode = false;
         Constants.Limelight.useVision = vision.isLimelightConnected();

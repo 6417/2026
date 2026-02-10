@@ -11,11 +11,16 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.TurretSubsystem;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -88,6 +93,17 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
    */
   @Override
   public void autonomousInit() {
+    Constants.Field.EDGE = DriverStation.getAlliance().get() == Alliance.Blue ? 
+        new Pose2d(0, 0, null) : 
+        new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+    
+    Constants.Field.HUB_CENTER = 
+        DriverStation.getAlliance().get() == Alliance.Blue ? 
+        Constants.Field.HUB_CENTER_BLUE : 
+        Constants.Field.HUB_CENTER_RED;
+
+    Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     RobotContainer.drive.setAutomatedControl();
     autonomousCommand = robotContainer.getAutonomousCommand();
@@ -106,6 +122,19 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    if (Constants.Field.EDGE == null || Constants.Field.HUB_CENTER == null || Constants.Field.neutralZoneStartX == 0) {
+      Constants.Field.EDGE = DriverStation.getAlliance().get() == Alliance.Blue ? 
+          new Pose2d(0, 0, null) : 
+          new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+      
+      Constants.Field.HUB_CENTER = 
+          DriverStation.getAlliance().get() == Alliance.Blue ? 
+          Constants.Field.HUB_CENTER_BLUE : 
+          Constants.Field.HUB_CENTER_RED;
+
+      Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+    }
+
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     RobotContainer.drive.setOpeatorControl();

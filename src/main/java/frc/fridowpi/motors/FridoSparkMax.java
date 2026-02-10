@@ -156,21 +156,21 @@ public class FridoSparkMax implements FridolinsMotor {
     public void setVelocity(double velocity) {
         currentPidType = PidType.velocity;
         pidSetpoint = velocity;
-        motorProxy.getClosedLoopController().setReference(velocity, ControlType.kVelocity);
+        motorProxy.getClosedLoopController().setSetpoint(velocity, ControlType.kVelocity);
     }
 
     @Override
     public void setPosition(double position) {
         currentPidType = PidType.position;
         pidSetpoint = position;
-        motorProxy.getClosedLoopController().setReference(position, ControlType.kPosition);
+        motorProxy.getClosedLoopController().setSetpoint(position, ControlType.kPosition);
     }
 
     //Now added to test elevator and must be clean up later
     public void setPositionWithFeedforward(double position, double feedForward) {
         currentPidType = PidType.position;
         pidSetpoint = position;
-        motorProxy.getClosedLoopController().setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward);
+        motorProxy.getClosedLoopController().setSetpoint(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, feedForward);
     }
 
     @Override

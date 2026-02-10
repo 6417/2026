@@ -12,8 +12,8 @@ class VisionSubsystem extends SubsystemBase {
     private String limelightName;
     private boolean mt2 = true;
 
-    public VisionSubsystem(boolean megaTag2) {
-        this.limelightName = Constants.Limelight.driveLimelight;
+    public VisionSubsystem(boolean megaTag2, boolean driveVision) {
+        this.limelightName = driveVision ? Constants.Limelight.driveLimelight : Constants.Limelight.limelight2;
         this.mt2 = megaTag2;
     }
 
