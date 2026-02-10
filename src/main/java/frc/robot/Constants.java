@@ -21,17 +21,19 @@ public class Constants {
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
-        // PID slots for MAXMotion:
+        // PID slots for Motion Magic (TalonFX/Kraken):
         // slot 0 = extend (out), slot 1 = retract (in)
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
 
-        // Motion constraints for extend (slot 0).
+        // Motion Magic constraints for extend (slot 0).
+        // CTRE units: rotations per second and rotations per second^2.
         public static double allowedClosedLoopErrorOut = 0.5;
         public static double maxAccelerationOut = 30000;
         public static double maxVelocityOut = 3000;
 
-        // Motion constraints for retract (slot 1).
+        // Motion Magic constraints for retract (slot 1).
+        // CTRE units: rotations per second and rotations per second^2.
         public static double allowedClosedLoopErrorIn = 0.5;
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;

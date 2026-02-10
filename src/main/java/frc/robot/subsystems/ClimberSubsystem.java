@@ -1,16 +1,14 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.fridowpi.motors.FridoSparkMax;
+import frc.fridowpi.motors.FridoFalcon500v6;
 import frc.robot.Constants;
 
 public class ClimberSubsystem extends SubsystemBase {
@@ -20,16 +18,19 @@ public class ClimberSubsystem extends SubsystemBase {
         HIGH
     }
 
-    private final FridoSparkMax climberMotor;
+    private final FridoFalcon500v6 climberMotor;
+    private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0.0);
+    private final MotionMagicConfigs motionMagicOut = new MotionMagicConfigs();
+    private final MotionMagicConfigs motionMagicIn = new MotionMagicConfigs();
     private ClimberState targetState = ClimberState.LOW;
 
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
-        climberMotor = new FridoSparkMax(Constants.Climber.motorId);
+        climberMotor = new FridoFalcon500v6(Constants.Climber.motorId);
         climberMotor.setInverted(Constants.Climber.motorInverted);
         climberMotor.setIdleMode(Constants.Climber.idleMode);
 
-        // Configure MAXMotion and PID slots (extend/retract).
+        // Configure Motion Magic and PID slots (extend/retract).
         reconfigure();
 
         // Start with a known encoder reference.
@@ -72,21 +73,23 @@ public class ClimberSubsystem extends SubsystemBase {
 
     public double getAmperage() {
         // Used for stall detection during zeroing.
-        return climberMotor.getOutputCurrent();
+        return climberMotor.asTalonFX().getStatorCurrent().getValueAsDouble();
     }
 
     public void setPositionForward(double position) {
-        // Use slot 0 for extend (out).
-        climberMotor.asSparkMax().getClosedLoopController()
-                .setSetpoint(0, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-        climberMotor.setPosition(position);
+        // Use slot 0 for extend (out) with outward motion constraints.
+        applyMotionMagicConfig(motionMagicOut);
+        motionMagicRequest.Position = position;
+        motionMagicRequest.Slot = 0;
+        climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
     public void setPositionUnderLoad(double position) {
-        // Use slot 1 for retract (in).
-        climberMotor.asSparkMax().getClosedLoopController()
-                .setSetpoint(0, ControlType.kPosition, ClosedLoopSlot.kSlot1);
-        climberMotor.setPosition(position);
+        // Use slot 1 for retract (in) with inward motion constraints.
+        applyMotionMagicConfig(motionMagicIn);
+        motionMagicRequest.Position = position;
+        motionMagicRequest.Slot = 1;
+        climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
     private double getTargetPositionForState(ClimberState state) {
@@ -115,45 +118,36 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     private void reconfigure() {
-        // Rebuild MAXMotion configuration and apply both PID slots.
-        SparkMaxConfig motorConfig = new SparkMaxConfig();
-        MAXMotionConfig motionConfig = new MAXMotionConfig();
+        // Rebuild Motion Magic configuration and apply both PID slots.
+        TalonFXConfiguration motorConfig = new TalonFXConfiguration();
 
         // Slot 0 = extend (out) PID and feedforward.
-        motorConfig.closedLoop.p(Constants.Climber.pidValuesOut.kP, ClosedLoopSlot.kSlot0)
-                .i(Constants.Climber.pidValuesOut.kI, ClosedLoopSlot.kSlot0)
-                .d(Constants.Climber.pidValuesOut.kD, ClosedLoopSlot.kSlot0)
-                .outputRange(Constants.Climber.pidValuesOut.peakOutputReverse,
-                        Constants.Climber.pidValuesOut.peakOutputForward, ClosedLoopSlot.kSlot0)
-                .velocityFF(Constants.Climber.pidValuesOut.kF.orElse(0.0), ClosedLoopSlot.kSlot0);
-        Constants.Climber.pidValuesOut.iZone.ifPresent(
-                iZone -> motorConfig.closedLoop.iZone(iZone, ClosedLoopSlot.kSlot0));
+        Slot0Configs slot0 = motorConfig.Slot0;
+        slot0.kP = Constants.Climber.pidValuesOut.kP;
+        slot0.kI = Constants.Climber.pidValuesOut.kI;
+        slot0.kD = Constants.Climber.pidValuesOut.kD;
+        slot0.kV = Constants.Climber.pidValuesOut.kF.orElse(0.0);
 
         // Slot 1 = retract (in) PID and feedforward.
-        motorConfig.closedLoop.p(Constants.Climber.pidValuesIn.kP, ClosedLoopSlot.kSlot1)
-                .i(Constants.Climber.pidValuesIn.kI, ClosedLoopSlot.kSlot1)
-                .d(Constants.Climber.pidValuesIn.kD, ClosedLoopSlot.kSlot1)
-                .outputRange(Constants.Climber.pidValuesIn.peakOutputReverse,
-                        Constants.Climber.pidValuesIn.peakOutputForward, ClosedLoopSlot.kSlot1)
-                .velocityFF(Constants.Climber.pidValuesIn.kF.orElse(0.0), ClosedLoopSlot.kSlot1);
-        Constants.Climber.pidValuesIn.iZone.ifPresent(
-                iZone -> motorConfig.closedLoop.iZone(iZone, ClosedLoopSlot.kSlot1));
+        Slot1Configs slot1 = motorConfig.Slot1;
+        slot1.kP = Constants.Climber.pidValuesIn.kP;
+        slot1.kI = Constants.Climber.pidValuesIn.kI;
+        slot1.kD = Constants.Climber.pidValuesIn.kD;
+        slot1.kV = Constants.Climber.pidValuesIn.kF.orElse(0.0);
 
-        // MAXMotion constraints for extend (slot 0).
-        motionConfig.allowedProfileError(Constants.Climber.allowedClosedLoopErrorOut, ClosedLoopSlot.kSlot0);
-        motionConfig.maxAcceleration(Constants.Climber.maxAccelerationOut, ClosedLoopSlot.kSlot0);
-        motionConfig.cruiseVelocity(Constants.Climber.maxVelocityOut, ClosedLoopSlot.kSlot0);
-        motionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, ClosedLoopSlot.kSlot0);
+        // Motion Magic constraints for extend/retract (per-direction).
+        motionMagicOut.MotionMagicCruiseVelocity = Constants.Climber.maxVelocityOut;
+        motionMagicOut.MotionMagicAcceleration = Constants.Climber.maxAccelerationOut;
+        motionMagicIn.MotionMagicCruiseVelocity = Constants.Climber.maxVelocityIn;
+        motionMagicIn.MotionMagicAcceleration = Constants.Climber.maxAccelerationIn;
 
-        // MAXMotion constraints for retract (slot 1).
-        motionConfig.allowedProfileError(Constants.Climber.allowedClosedLoopErrorIn, ClosedLoopSlot.kSlot1);
-        motionConfig.maxAcceleration(Constants.Climber.maxAccelerationIn, ClosedLoopSlot.kSlot1);
-        motionConfig.cruiseVelocity(Constants.Climber.maxVelocityIn, ClosedLoopSlot.kSlot1);
-        motionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, ClosedLoopSlot.kSlot1);
+        // Apply base config and default Motion Magic config (extend).
+        climberMotor.asTalonFX().getConfigurator().apply(motorConfig);
+        applyMotionMagicConfig(motionMagicOut);
+    }
 
-        // Apply MAXMotion config to the controller.
-        motorConfig.closedLoop.maxMotion.apply(motionConfig);
-        climberMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
-                PersistMode.kPersistParameters);
+    private void applyMotionMagicConfig(MotionMagicConfigs config) {
+        // Update Motion Magic constraints without overwriting other configs.
+        climberMotor.asTalonFX().getConfigurator().apply(config);
     }
 }
