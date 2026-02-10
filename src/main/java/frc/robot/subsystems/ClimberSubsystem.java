@@ -44,7 +44,18 @@ public class ClimberSubsystem extends SubsystemBase {
     public void setTargetState(ClimberState state) {
         // Update target and immediately command Motion Magic to the new setpoint.
         targetState = state;
-        moveToTargetState();
+        
+        switch (state) {
+            case LOW:
+                setPositionStart();
+                break;
+            case MID:
+                setPositionUnderLoad();
+                break;
+            case HIGH:
+                setPositionTop();
+                break;
+        }
     }
 
     public ClimberState getTargetState() {
@@ -52,8 +63,24 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     public boolean atTargetState() {
+        double targetPosition;
+
+        switch (targetState) {
+            case LOW:
+                targetPosition = Constants.Climber.lowPosition;
+                break;
+            case MID:
+                targetPosition = Constants.Climber.midPosition;
+                break;
+            case HIGH:
+                targetPosition = Constants.Climber.highPosition;
+                break;
+            default:
+                targetPosition = 0.0; // Fallback, should not happen.
+        }
+
         // Position error check around the current state setpoint.
-        double error = Math.abs(climberMotor.getEncoderTicks() - getTargetPositionForState(targetState));
+        double error = Math.abs(climberMotor.getEncoderTicks() - targetPosition);
         return error <= Constants.Climber.positionTolerance;
     }
 
@@ -76,50 +103,35 @@ public class ClimberSubsystem extends SubsystemBase {
         return climberMotor.asTalonFX().getStatorCurrent().getValueAsDouble();
     }
 
-    public void setPositionForward(double position) {
+    public void setPositionTop() {
         // Use slot 0 for extend (out) with outward motion constraints.
         applyMotionMagicConfig(motionMagicOut);
-        motionMagicRequest.Position = position;
+        motionMagicRequest.Position = Constants.Climber.highPosition;
         motionMagicRequest.Slot = 0;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
-    public void setPositionUnderLoad(double position) {
+    public void setPositionUnderLoad() {
         // Use slot 1 for retract (in) with inward motion constraints.
         applyMotionMagicConfig(motionMagicIn);
-        motionMagicRequest.Position = position;
+        motionMagicRequest.Position = Constants.Climber.midPosition;
         motionMagicRequest.Slot = 1;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
-    private double getTargetPositionForState(ClimberState state) {
-        // Map state -> encoder position.
-        switch (state) {
-            case LOW:
-                return Constants.Climber.lowPosition;
-            case MID:
-                return Constants.Climber.midPosition;
-            case HIGH:
-                return Constants.Climber.highPosition;
-            default:
-                return Constants.Climber.lowPosition;
-        }
-    }
-
-    private void moveToTargetState() {
-        // Decide slot based on direction (extend vs retract).
-        double current = climberMotor.getEncoderTicks();
-        double target = getTargetPositionForState(targetState);
-        if (target >= current) {
-            setPositionForward(target);
-        } else {
-            setPositionUnderLoad(target);
-        }
+    public void setPositionStart(){
+        // Use slot 0 for retract (in) with outward motion constraints -> no additional weight
+        applyMotionMagicConfig(motionMagicOut);
+        motionMagicRequest.Position = Constants.Climber.lowPosition;
+        motionMagicRequest.Slot = 0;
+        climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
     private void reconfigure() {
         // Rebuild Motion Magic configuration and apply both PID slots.
         TalonFXConfiguration motorConfig = new TalonFXConfiguration();
+
+        // can set kG because it is an upward motion and we need to compensate gravity
 
         // Slot 0 = extend (out) PID and feedforward.
         Slot0Configs slot0 = motorConfig.Slot0;
@@ -127,6 +139,7 @@ public class ClimberSubsystem extends SubsystemBase {
         slot0.kI = Constants.Climber.pidValuesOut.kI;
         slot0.kD = Constants.Climber.pidValuesOut.kD;
         slot0.kV = Constants.Climber.pidValuesOut.kF.orElse(0.0);
+        slot0.kG = Constants.Climber.kG.orElse(0.0);
 
         // Slot 1 = retract (in) PID and feedforward.
         Slot1Configs slot1 = motorConfig.Slot1;
@@ -134,6 +147,7 @@ public class ClimberSubsystem extends SubsystemBase {
         slot1.kI = Constants.Climber.pidValuesIn.kI;
         slot1.kD = Constants.Climber.pidValuesIn.kD;
         slot1.kV = Constants.Climber.pidValuesIn.kF.orElse(0.0);
+        slot1.kG = Constants.Climber.kG.orElse(0.0);
 
         // Motion Magic constraints for extend/retract (per-direction).
         motionMagicOut.MotionMagicCruiseVelocity = Constants.Climber.maxVelocityOut;

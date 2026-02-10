@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.Climber.ClimberCommand;
-import frc.robot.commands.Climber.ClimberEncoderZero;
 import frc.robot.commands.Climber.ManualClimberControl;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
@@ -15,9 +14,6 @@ public class Controls {
         operatorController.a().onTrue(new ClimberCommand(ClimberState.LOW));
         operatorController.b().onTrue(new ClimberCommand(ClimberState.MID));
         operatorController.y().onTrue(new ClimberCommand(ClimberState.HIGH));
-
-        // Encoder zero on X (hold climber at hard stop and zero).
-        operatorController.x().onTrue(new ClimberEncoderZero());
 
         // Manual jog while right bumper is held (left Y axis).
         operatorController.rightBumper().whileTrue(

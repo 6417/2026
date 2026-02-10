@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.Optional;
+
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.utils.PidValues;
 
@@ -25,6 +27,7 @@ public class Constants {
         // slot 0 = extend (out), slot 1 = retract (in)
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
+        public static final Optional<Double> kG = Optional.of(0.0);
 
         // Motion Magic constraints for extend (slot 0).
         // CTRE units: rotations per second and rotations per second^2.
