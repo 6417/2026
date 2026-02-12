@@ -112,7 +112,8 @@ public class ShooterSubsystem extends SubsystemBase {
                     Constants.ShooterSim.hubRadiusMeters,
                     Constants.ShooterSim.hubHeightToleranceMeters,
                     Constants.ShooterSim.gravityMetersPerSec2,
-                    Constants.ShooterSim.maxFlightTimeSec);
+                    Constants.ShooterSim.maxFlightTimeSec,
+                    Constants.ShooterSim.dragCoefficientPerMeter);
 
             shooterMechanism2d = new Mechanism2d(
                     Constants.ShooterSim.mechanismSizeMeters,

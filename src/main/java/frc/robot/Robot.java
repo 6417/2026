@@ -56,17 +56,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        Constants.Field.EDGE = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                ? new Pose2d(0, 0, null)
-                : new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
-
-        Constants.Field.HUB_CENTER = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                ? Constants.Field.HUB_CENTER_BLUE
-                : Constants.Field.HUB_CENTER_RED;
-
-        Constants.Field.neutralZoneStartX = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                ? Units.inchesToMeters(158.6)
-                : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - 158.6);
+        updateAllianceFieldConstants();
 
         LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0);
         RobotContainer.drive.setAutomatedControl();
@@ -84,17 +74,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopInit() {
         if (Constants.Field.EDGE == null || Constants.Field.HUB_CENTER == null || Constants.Field.neutralZoneStartX == 0) {
-            Constants.Field.EDGE = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                    ? new Pose2d(0, 0, null)
-                    : new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
-
-            Constants.Field.HUB_CENTER = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                    ? Constants.Field.HUB_CENTER_BLUE
-                    : Constants.Field.HUB_CENTER_RED;
-
-            Constants.Field.neutralZoneStartX = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                    ? Units.inchesToMeters(158.6)
-                    : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - 158.6);
+            updateAllianceFieldConstants();
         }
 
         LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0);
@@ -135,6 +115,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void simulationInit() {
+        updateAllianceFieldConstants();
         shooterField2dVisualizer = new ShooterField2dVisualizer(
                 Constants.Shooter.hubPositionField,
                 Constants.ShooterSim.field2dMaxTraceCount,
@@ -159,7 +140,6 @@ public class Robot extends LoggedRobot {
                     pose,
                     new Translation2d(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
         }
-        RobotContainer.shooter.simulationPeriodic();
 
         if (Constants.ShooterSim.enableAutoDebugShotsInSim
                 && Timer.getFPGATimestamp() >= nextAutoDebugShotTimestampSec) {
@@ -185,5 +165,24 @@ public class Robot extends LoggedRobot {
                     RobotContainer.shooter.getLatestActiveShotSample(),
                     RobotContainer.shooter.drainCompletedShotTraces());
         }
+    }
+
+    private void updateAllianceFieldConstants() {
+        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        boolean blueAlliance = alliance == Alliance.Blue;
+
+        Constants.Field.EDGE = blueAlliance
+                ? new Pose2d(0, 0, null)
+                : new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+
+        Constants.Field.HUB_CENTER = blueAlliance
+                ? Constants.Field.HUB_CENTER_BLUE
+                : Constants.Field.HUB_CENTER_RED;
+        Constants.Shooter.hubPositionField = Constants.Field.HUB_CENTER.getTranslation();
+
+        Constants.Field.neutralZoneStartX = blueAlliance
+                ? Units.inchesToMeters(Constants.Field.HUB_CENTER_FROM_ALLIANCE_WALL_INCHES)
+                : Units.inchesToMeters(
+                        Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.HUB_CENTER_FROM_ALLIANCE_WALL_INCHES);
     }
 }

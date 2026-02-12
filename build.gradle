@@ -121,3 +121,13 @@ task(shotScenarioSweep, type: JavaExec) {
     }
 }
 
+task(shotAutoTune, type: JavaExec) {
+    mainClass = "frc.robot.sim.ShotAutoTuneRunner"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task(shotPlotDataExport, type: JavaExec) {
+    mainClass = "frc.robot.sim.ShotPlotDataExporter"
+    classpath = sourceSets.main.runtimeClasspath
+}
+

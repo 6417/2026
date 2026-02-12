@@ -89,7 +89,8 @@ public class ShotScenarioEvaluator {
                 Constants.ShooterSim.hubRadiusMeters,
                 Constants.ShooterSim.hubHeightToleranceMeters,
                 Constants.ShooterSim.gravityMetersPerSec2,
-                Constants.ShooterSim.maxFlightTimeSec);
+                Constants.ShooterSim.maxFlightTimeSec,
+                Constants.ShooterSim.dragCoefficientPerMeter);
 
         simulator.queueShot(new ShotEvent(
                 0.0,

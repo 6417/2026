@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 /**
- * Simple ballistic simulator (gravity only) for shot hit/miss validation.
+ * Simple ballistic simulator (gravity + quadratic drag) for shot hit/miss validation.
  */
 public class BallisticShotSimulator {
     private static final class ActiveShot {
@@ -47,6 +47,7 @@ public class BallisticShotSimulator {
     private final double hubHeightToleranceMeters;
     private final double gravityMetersPerSec2;
     private final double maxFlightTimeSec;
+    private final double dragCoefficientPerMeter;
 
     private final List<ActiveShot> activeShots = new ArrayList<>();
     private final List<ShotResult> completedShots = new ArrayList<>();
@@ -59,13 +60,15 @@ public class BallisticShotSimulator {
             double hubRadiusMeters,
             double hubHeightToleranceMeters,
             double gravityMetersPerSec2,
-            double maxFlightTimeSec) {
+            double maxFlightTimeSec,
+            double dragCoefficientPerMeter) {
         this.hubCenterField = hubCenterField;
         this.hubCenterHeightMeters = hubCenterHeightMeters;
         this.hubRadiusMeters = hubRadiusMeters;
         this.hubHeightToleranceMeters = hubHeightToleranceMeters;
         this.gravityMetersPerSec2 = gravityMetersPerSec2;
         this.maxFlightTimeSec = maxFlightTimeSec;
+        this.dragCoefficientPerMeter = Math.max(0.0, dragCoefficientPerMeter);
     }
 
     public void queueShot(ShotEvent shotEvent) {
@@ -79,11 +82,20 @@ public class BallisticShotSimulator {
         while (iterator.hasNext()) {
             ActiveShot shot = iterator.next();
 
-            // Integrate position/velocity with constant gravity.
+            // Integrate with gravity and quadratic aerodynamic drag:
+            // a_drag = -k * |v| * v, where k is in 1/m.
+            double speedMps = Math.sqrt((shot.vx * shot.vx) + (shot.vy * shot.vy) + (shot.vz * shot.vz));
+            double dragFactor = dragCoefficientPerMeter * speedMps;
+            double ax = -dragFactor * shot.vx;
+            double ay = -dragFactor * shot.vy;
+            double az = -dragFactor * shot.vz - gravityMetersPerSec2;
+
+            shot.vx += ax * dtSec;
+            shot.vy += ay * dtSec;
+            shot.vz += az * dtSec;
             shot.x += shot.vx * dtSec;
             shot.y += shot.vy * dtSec;
             shot.z += shot.vz * dtSec;
-            shot.vz -= gravityMetersPerSec2 * dtSec;
             shot.t += dtSec;
             ShotSample currentSample = new ShotSample(shot.t, new Translation3d(shot.x, shot.y, shot.z));
             shot.samples.add(currentSample);

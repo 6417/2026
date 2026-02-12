@@ -49,7 +49,8 @@ public class ShooterTurretSimulator {
             double hubRadiusMeters,
             double hubHeightToleranceMeters,
             double gravityMetersPerSec2,
-            double maxFlightTimeSec) {
+            double maxFlightTimeSec,
+            double dragCoefficientPerMeter) {
         DCMotor neoMotor = DCMotor.getNEO(1);
         this.topWheelSim = new FlywheelSim(
                 LinearSystemId.createFlywheelSystem(neoMotor, topWheelMoiKgM2, flywheelGearing),
@@ -67,7 +68,8 @@ public class ShooterTurretSimulator {
                 hubRadiusMeters,
                 hubHeightToleranceMeters,
                 gravityMetersPerSec2,
-                maxFlightTimeSec);
+                maxFlightTimeSec,
+                dragCoefficientPerMeter);
     }
 
     public void update(

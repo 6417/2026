@@ -17,18 +17,24 @@ import frc.robot.utils.LinearInterpolationTable;
 
 public class Constants {
     public static final class Field {
-        public static final double FIELD_LENGTH_METERS = 16.540988;
-        public static final double FIELD_WIDTH_METERS = 8.069326;
-        public static final double FIELD_WIDTH_INCHES = 317.69;
-        public static final double FIELD_LENGTH_INCHES = 651.22;
+        // 2026 Game Manual section 5.2
+        public static final double FIELD_WIDTH_INCHES = 317.7;
+        public static final double FIELD_LENGTH_INCHES = 651.2;
+        public static final double FIELD_LENGTH_METERS = Units.inchesToMeters(FIELD_LENGTH_INCHES);
+        public static final double FIELD_WIDTH_METERS = Units.inchesToMeters(FIELD_WIDTH_INCHES);
+        // 2026 Game Manual section 5.4
+        public static final double HUB_OUTER_SIZE_INCHES = 47.0;
+        public static final double HUB_CENTER_FROM_ALLIANCE_WALL_INCHES = 158.6;
 
         public static final Pose2d HUB_CENTER_BLUE = new Pose2d(
-                Units.inchesToMeters(23.5 + 158.6),
+                Units.inchesToMeters((HUB_OUTER_SIZE_INCHES * 0.5) + HUB_CENTER_FROM_ALLIANCE_WALL_INCHES),
                 Units.inchesToMeters(FIELD_WIDTH_INCHES / 2.0),
                 new Rotation2d());
 
         public static final Pose2d HUB_CENTER_RED = new Pose2d(
-                Units.inchesToMeters(FIELD_LENGTH_INCHES - (23.5 + 158.6)),
+                Units.inchesToMeters(
+                        FIELD_LENGTH_INCHES
+                                - ((HUB_OUTER_SIZE_INCHES * 0.5) + HUB_CENTER_FROM_ALLIANCE_WALL_INCHES)),
                 Units.inchesToMeters(FIELD_WIDTH_INCHES / 2.0),
                 new Rotation2d());
 
@@ -123,8 +129,14 @@ public class Constants {
         public static final double defaultTopRpm = 3000.0;
         public static final double defaultBottomRpm = 2800.0;
         public static final double motorTolerance = 20;
-        // TODO: Replace with measured conversion from average wheel RPM -> ball muzzle speed (m/s).
-        public static final double rpmToMpsFactor = 0.0035;
+        // Shooter wheel geometry and effective transfer efficiency:
+        // ideal: v_ball = (2*pi/60) * wheelRadius * avgWheelRpm
+        // real:  v_ball = eta * ideal, with eta accounting for slip/compression/losses.
+        public static final double wheelRadiusMeters = 0.025;
+        public static final double shooterSlipEfficiencyEta = 0.8492;
+        // Keep this as the single conversion constant used by the code paths.
+        public static final double rpmToMpsFactor =
+                shooterSlipEfficiencyEta * ((2.0 * Math.PI / 60.0) * wheelRadiusMeters);
 
         public static final double movingShotScaleMin = 0.85;
         public static final double movingShotScaleMax = 1.15;
@@ -137,35 +149,34 @@ public class Constants {
         public static final double minShotDistanceMeters = 1.2;
         public static final double maxShotDistanceMeters = 7.0;
 
-        // 2022 hub is centered on the field.
-        public static final Translation2d hubPositionField =
-                new Translation2d(Field.FIELD_LENGTH_METERS / 2.0, Field.FIELD_WIDTH_METERS / 2.0);
+        // Set to the active alliance hub in Robot init (defaults to blue before alliance is known).
+        public static Translation2d hubPositionField = Field.HUB_CENTER_BLUE.getTranslation();
         // Start with turret center offset and refine from CAD measurements.
         public static final Translation2d shooterOffsetRobot = TurretSubsystem.TURRET_OFFSET;
         public static final double turretZeroOnRobotRad = 0.0;
 
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 2800.0),
-                new Point2D.Double(2.5, 3200.0),
-                new Point2D.Double(3.5, 3700.0),
-                new Point2D.Double(4.5, 4200.0),
-                new Point2D.Double(5.5, 4600.0)
+                new Point2D.Double(1.5, 5362.5),
+                new Point2D.Double(2.5, 5429.4),
+                new Point2D.Double(3.5, 5519.4),
+                new Point2D.Double(4.5, 5764.7),
+                new Point2D.Double(5.5, 6300.7)
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 2600.0),
-                new Point2D.Double(2.5, 3000.0),
-                new Point2D.Double(3.5, 3400.0),
-                new Point2D.Double(4.5, 3850.0),
-                new Point2D.Double(5.5, 4200.0)
+                new Point2D.Double(1.5, 5162.5),
+                new Point2D.Double(2.5, 5229.4),
+                new Point2D.Double(3.5, 5219.4),
+                new Point2D.Double(4.5, 5414.7),
+                new Point2D.Double(5.5, 5900.7)
         };
 
         private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 0.30),
-                new Point2D.Double(2.5, 0.36),
-                new Point2D.Double(3.5, 0.43),
-                new Point2D.Double(4.5, 0.50),
-                new Point2D.Double(5.5, 0.57)
+                new Point2D.Double(1.5, 0.368),
+                new Point2D.Double(2.5, 0.407),
+                new Point2D.Double(3.5, 0.609),
+                new Point2D.Double(4.5, 0.624),
+                new Point2D.Double(5.5, 0.650)
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
@@ -186,10 +197,14 @@ public class Constants {
         public static final double launchHeightMeters = 0.70;
         public static final double launchPitchRad = Math.toRadians(35.0);
         public static final double gravityMetersPerSec2 = 9.81;
+        // Quadratic drag coefficient k in a_drag = -k * |v| * v (units: 1/m).
+        public static final double dragCoefficientPerMeter = 0.09598;
         public static final double maxFlightTimeSec = 2.0;
 
-        public static final double hubCenterHeightMeters = 2.10;
-        public static final double hubRadiusMeters = 0.30;
+        // 2026 Game Manual section 5.4: front edge of top opening is 72 in off carpet.
+        public static final double hubCenterHeightMeters = Units.inchesToMeters(72.0);
+        // 2026 Game Manual section 5.4: top opening is 41.7 in across (hex), approximated as circular radius.
+        public static final double hubRadiusMeters = Units.inchesToMeters(41.7 / 2.0);
         public static final double hubHeightToleranceMeters = 0.15;
 
         public static final double mechanismSizeMeters = 2.0;
