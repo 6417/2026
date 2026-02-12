@@ -1,0 +1,59 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.0,
+        "y": 0.6536777777777774
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.6914,
+        "y": 0.49776666666666647
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.8315,
+        "y": 1.189622222222222
+      },
+      "prevControl": {
+        "x": 6.708517810166072,
+        "y": 1.0936726348890586
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Second Auto 1 End Pos"
+    }
+  ],
+  "rotationTargets": [
+     {
+      "waypointRelativePos": 0.3294605809128721,
+      "rotationDegrees": 1.3653859333175649
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 2.0,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -89.39264699519046
+  },
+  "reversed": false,
+  "folder": "Second Auto Paths",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -1.4095637287857243
+  },
+  "useDefaultConstraints": false
+}

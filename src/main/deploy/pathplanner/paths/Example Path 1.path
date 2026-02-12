@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.104455930233212,
+        "y": 0.8199614341764072
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.725411111114367,
+        "y": 1.8522444444407007
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.111511111111111,
+        "y": 2.9046444444444446
+      },
+      "prevControl": {
+        "x": 2.131,
+        "y": 2.076366666666667
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Example Path 1 End Pose"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 24.393739386163166
+  },
+  "reversed": false,
+  "folder": "Example Auto Paths",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
