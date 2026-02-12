@@ -23,7 +23,7 @@ public class Controls {
     private final Trigger rtButtonDrive = driveJoystick.rightTrigger();
     private final Trigger rbButtonDrive = driveJoystick.rightBumper();
     private final Trigger burgerButtonDrive = driveJoystick.start();
-    private final Trigger  git branch --show-current = new Trigger(() -> driveJoystick.getHID().getRawButton(1));
+    private final Trigger aButtonDrive = new Trigger(() -> driveJoystick.getHID().getRawButton(1));
 
     private final Trigger aButtonOperator = new Trigger(() -> operatorJoystick.getHID().getRawButton(1));
     private final Trigger bButtonOperator = operatorJoystick.b();

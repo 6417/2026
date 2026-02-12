@@ -32,7 +32,6 @@ public class TurretSubsystem extends SubsystemBase {
     private static final double LOOP_PERIOD_SEC = 0.02;
     private static final double SIM_MAX_SPEED_DEG_PER_SEC = 360.0;
     private static final double MANUAL_PERCENT_TO_DEG_PER_SEC = 180.0;
-    private static final double SETPOINT_TOLERANCE_DEG = 1.0;
 
     private double desiredPosition = 0;
     private double simulatedCurrentAngleDeg = 0.0;
@@ -132,7 +131,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     public boolean isAtSetpoint() {
         double errorDeg = MathUtil.inputModulus(desiredPosition - getCurrentAngle(), -180.0, 180.0);
-        return Math.abs(errorDeg) <= SETPOINT_TOLERANCE_DEG;
+        return Math.abs(errorDeg) <= Constants.TurretSubsystem.readyToleranceDeg;
     }
 
     public void setDistanceHubTurret(double distance) {

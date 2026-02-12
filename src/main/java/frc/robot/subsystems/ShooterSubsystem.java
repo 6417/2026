@@ -29,6 +29,14 @@ import frc.robot.sim.ShotSample;
 import frc.robot.sim.ShotResult;
 
 public class ShooterSubsystem extends SubsystemBase {
+    public enum ShotBlockReason {
+        NONE,
+        DISTANCE_OUT_OF_RANGE,
+        ROBOT_TURNING_TOO_FAST,
+        SHOOTER_NOT_READY,
+        TURRET_NOT_READY
+    }
+
     /**
      * Full moving-shot command calculated from robot state.
      *
@@ -69,6 +77,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private int simShotsFired = 0;
     private double lastSimFireTimestampSec = -1.0;
     private double lastSimFireMuzzleSpeedMps = 0.0;
+    private double lastTargetDistanceMeters = Double.NaN;
+    private ShotBlockReason lastShotBlockReason = ShotBlockReason.NONE;
 
     public ShooterSubsystem() {
         topMotor = new FridoSparkMax(Constants.Shooter.topMotorId);
@@ -257,14 +267,88 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public ShotCommand shootWhileMoving(Pose2d robotPoseField, Translation2d robotVelocityFieldMps) {
         ShotCommand command = calculateShotCommand(robotPoseField, robotVelocityFieldMps);
+        applyShotCommand(command);
+        return command;
+    }
+
+    /**
+     * Apply a precomputed shot command to turret target + shooter wheels.
+     */
+    public void applyShotCommand(ShotCommand command) {
         setTurretTargetAngleRad(command.turretYawRad());
         run(command.topRpm(), command.bottomRpm());
+    }
+
+    /**
+     * Compute and apply the shot command from current robot pose/velocity.
+     */
+    public ShotCommand applyShotCommandFromRobotState(Pose2d robotPoseField, Translation2d robotVelocityFieldMps) {
+        lastTargetDistanceMeters = computeDistanceToHubMeters(robotPoseField);
+        ShotCommand command;
+        if (Constants.Shooter.enableMovingShotCompensation) {
+            command = calculateShotCommand(robotPoseField, robotVelocityFieldMps);
+        } else {
+            command = calculateShotCommand(robotPoseField, new Translation2d());
+        }
+        applyShotCommand(command);
         return command;
     }
 
     public boolean isShooterReady() {
         return Math.abs(targetBottomRpm - getCurrentBottomRpm()) <= Constants.Shooter.motorTolerance
                 && Math.abs(targetTopRpm - getCurrentTopRpm()) <= Constants.Shooter.motorTolerance;
+    }
+
+    public double getLastTargetDistanceMeters() {
+        return lastTargetDistanceMeters;
+    }
+
+    public ShotBlockReason getLastShotBlockReason() {
+        return lastShotBlockReason;
+    }
+
+    public boolean isDistanceInRange() {
+        if (Double.isNaN(lastTargetDistanceMeters)) {
+            return false;
+        }
+        return lastTargetDistanceMeters >= Constants.Shooter.minShotDistanceMeters
+                && lastTargetDistanceMeters <= Constants.Shooter.maxShotDistanceMeters;
+    }
+
+    public boolean isShotReady(boolean turretReady, double robotOmegaRadPerSec) {
+        if (!Constants.Shooter.enableFireGate) {
+            lastShotBlockReason = ShotBlockReason.NONE;
+            return true;
+        }
+        if (!isDistanceInRange()) {
+            lastShotBlockReason = ShotBlockReason.DISTANCE_OUT_OF_RANGE;
+            return false;
+        }
+        if (Math.abs(robotOmegaRadPerSec) > Constants.Shooter.maxRobotOmegaRadPerSecForShot) {
+            lastShotBlockReason = ShotBlockReason.ROBOT_TURNING_TOO_FAST;
+            return false;
+        }
+        if (!isShooterReady()) {
+            lastShotBlockReason = ShotBlockReason.SHOOTER_NOT_READY;
+            return false;
+        }
+        if (!turretReady) {
+            lastShotBlockReason = ShotBlockReason.TURRET_NOT_READY;
+            return false;
+        }
+        lastShotBlockReason = ShotBlockReason.NONE;
+        return true;
+    }
+
+    /**
+     * Fire only when all shot gates are satisfied.
+     */
+    public boolean tryFire(boolean turretReady, double robotOmegaRadPerSec) {
+        if (!isShotReady(turretReady, robotOmegaRadPerSec)) {
+            return false;
+        }
+        simulateFire();
+        return true;
     }
 
     private double clampRpm(double rpm) {
@@ -334,6 +418,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setSimRobotState(Pose2d robotPoseField, Translation2d robotVelocityFieldMps) {
         simRobotPoseField = robotPoseField;
         simRobotVelocityFieldMps = robotVelocityFieldMps;
+        lastTargetDistanceMeters = computeDistanceToHubMeters(robotPoseField);
     }
 
     public void simulateFire() {
@@ -404,6 +489,12 @@ public class ShooterSubsystem extends SubsystemBase {
         return averageWheelRpm * Constants.Shooter.rpmToMpsFactor;
     }
 
+    private double computeDistanceToHubMeters(Pose2d robotPoseField) {
+        Translation2d shooterPositionField = robotPoseField.getTranslation().plus(
+                Constants.Shooter.shooterOffsetRobot.rotateBy(robotPoseField.getRotation()));
+        return Constants.Shooter.hubPositionField.minus(shooterPositionField).getNorm();
+    }
+
     @Override
     public void simulationPeriodic() {
         if (!simulationEnabled) {
@@ -431,6 +522,10 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter/TurretYawFieldDeg", getCurrentTurretYawField().getDegrees());
         SmartDashboard.putNumber("Shooter/SimHitRate", shooterTurretSimulator.getHitRate());
         SmartDashboard.putNumber("Shooter/PendingShotTraces", pendingCompletedShotTraces.size());
+        SmartDashboard.putNumber("Shooter/TargetDistanceM", lastTargetDistanceMeters);
+        SmartDashboard.putBoolean("Shooter/DistanceInRange", isDistanceInRange());
+        SmartDashboard.putString("Shooter/ShotBlockReason", lastShotBlockReason.name());
+        SmartDashboard.putBoolean("Shooter/ShooterReady", isShooterReady());
         SmartDashboard.putNumber("Shooter/SimShotsFired", simShotsFired);
         SmartDashboard.putNumber("Shooter/LastSimFireTimestampSec", lastSimFireTimestampSec);
         SmartDashboard.putNumber("Shooter/LastSimFireMuzzleSpeedMps", lastSimFireMuzzleSpeedMps);

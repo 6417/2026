@@ -100,6 +100,7 @@ public class Constants {
 
         public static final int kGearRatio = 1;
         public static final double angularOffset = 0;
+        public static final double readyToleranceDeg = 1.0;
 
         public static final FeedForwardValues kFeedForward = new FeedForwardValues(0, 0, 0);
     }
@@ -128,6 +129,13 @@ public class Constants {
         public static final double movingShotScaleMin = 0.85;
         public static final double movingShotScaleMax = 1.15;
         public static final double minFlightTimeSec = 0.10;
+        public static final boolean aimAtHubOnly = true;
+        public static final boolean enableMovingShotCompensation = true;
+
+        public static final boolean enableFireGate = true;
+        public static final double maxRobotOmegaRadPerSecForShot = Math.toRadians(120.0);
+        public static final double minShotDistanceMeters = 1.2;
+        public static final double maxShotDistanceMeters = 7.0;
 
         // 2022 hub is centered on the field.
         public static final Translation2d hubPositionField =
@@ -195,6 +203,9 @@ public class Constants {
         public static final double manualTestBottomRpm = 3400.0;
         public static final double manualTestSpinupSec = 0.60;
         public static final double manualTestMuzzleSpeedMps = 12.0;
+        public static final boolean enableAutoDebugShotsInSim = true;
+        public static final double autoDebugShotIntervalSec = 10.0;
+        public static final boolean autoDebugShotsRequireReady = true;
 
         public static final int field2dMaxTraceCount = 12;
         public static final int field2dMaxPointsPerTrace = 120;

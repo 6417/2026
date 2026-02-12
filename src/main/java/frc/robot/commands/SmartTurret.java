@@ -3,9 +3,9 @@ package frc.robot.commands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -30,34 +30,23 @@ public class SmartTurret extends Command {
     
     @Override
     public void execute() {
-        Translation2d turretPose = drive.getPose().getTranslation().plus(Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(drive.getPose().getRotation()));
         Pose2d robotPose = drive.getPose();
+        Translation2d turretPose = robotPose.getTranslation().plus(
+                Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(robotPose.getRotation()));
+        Translation2d hubPosition = Constants.Shooter.hubPositionField;
+        Translation2d turretToHub = hubPosition.minus(turretPose);
+        turret.setDistanceHubTurret(turretToHub.getNorm());
 
-        Translation2d poseToTrack = null;
-
-        boolean toHub = false;
-        // first check if is in neutral zone or team zone
-        if ((DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
-            (DriverStation.getAlliance().get() == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
-            // in team zone, track hub
-            poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
-            toHub = true;
+        if (Constants.Shooter.aimAtHubOnly) {
+            ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
+            var shotCommand = RobotContainer.shooter.calculateShotCommand(
+                    robotPose,
+                    new Translation2d(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
+            turret.setDesiredRotation(Math.toDegrees(shotCommand.turretYawRad()));
         } else {
-            // in neutral zone, track edges for shooting balls in the back to team zone
-            poseToTrack = Constants.Field.EDGE.getTranslation();
+            Rotation2d angle = turretToHub.getAngle().minus(robotPose.getRotation());
+            turret.setDesiredRotation(angle.getDegrees());
         }
-        
-        // translation from robot to hub
-        Translation2d turretToHub = poseToTrack.minus(turretPose);
-
-        if (toHub) {
-            // calculate distance to hub
-            double distance = turretToHub.getNorm();
-            turret.setDistanceHubTurret(distance);
-        }
-
-        Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
-        turret.setDesiredRotation(angle.getDegrees());
     }
 
     @Override

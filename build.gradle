@@ -113,3 +113,11 @@ task(replayWatch, type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task(shotScenarioSweep, type: JavaExec) {
+    mainClass = "frc.robot.sim.ShotScenarioSweepRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty("shotArgs")) {
+        args project.property("shotArgs").toString().split(",")
+    }
+}
+

@@ -13,6 +13,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.sim.ShooterField2dVisualizer;
@@ -21,6 +22,7 @@ public class Robot extends LoggedRobot {
     private final RobotContainer robotContainer;
     private Command autonomousCommand;
     private ShooterField2dVisualizer shooterField2dVisualizer;
+    private double nextAutoDebugShotTimestampSec = Double.POSITIVE_INFINITY;
 
     public Robot() {
         Logger.recordMetadata("ProjectName", "MergedShooterTurretProject");
@@ -137,6 +139,11 @@ public class Robot extends LoggedRobot {
                 Constants.Shooter.hubPositionField,
                 Constants.ShooterSim.field2dMaxTraceCount,
                 Constants.ShooterSim.field2dMaxPointsPerTrace);
+        if (Constants.ShooterSim.enableAutoDebugShotsInSim) {
+            nextAutoDebugShotTimestampSec = Timer.getFPGATimestamp() + Constants.ShooterSim.autoDebugShotIntervalSec;
+        } else {
+            nextAutoDebugShotTimestampSec = Double.POSITIVE_INFINITY;
+        }
     }
 
     @Override
@@ -146,7 +153,29 @@ public class Robot extends LoggedRobot {
         RobotContainer.shooter.setSimRobotState(
                 pose,
                 new Translation2d(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
+
+        if (Constants.ShooterSim.enableAutoDebugShotsInSim) {
+            RobotContainer.shooter.applyShotCommandFromRobotState(
+                    pose,
+                    new Translation2d(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
+        }
         RobotContainer.shooter.simulationPeriodic();
+
+        if (Constants.ShooterSim.enableAutoDebugShotsInSim
+                && Timer.getFPGATimestamp() >= nextAutoDebugShotTimestampSec) {
+            boolean fired;
+            if (Constants.ShooterSim.autoDebugShotsRequireReady) {
+                fired = RobotContainer.shooter.tryFire(
+                        RobotContainer.turret.isAtSetpoint(),
+                        fieldVelocity.omegaRadiansPerSecond);
+            } else {
+                RobotContainer.shooter.simulateFireDebug(Constants.ShooterSim.manualTestMuzzleSpeedMps);
+                fired = true;
+            }
+            if (fired) {
+                nextAutoDebugShotTimestampSec += Constants.ShooterSim.autoDebugShotIntervalSec;
+            }
+        }
 
         if (shooterField2dVisualizer != null) {
             shooterField2dVisualizer.update(
