@@ -133,13 +133,15 @@ public class Constants {
         // ideal: v_ball = (2*pi/60) * wheelRadius * avgWheelRpm
         // real:  v_ball = eta * ideal, with eta accounting for slip/compression/losses.
         public static final double wheelRadiusMeters = 0.025;
-        public static final double shooterSlipEfficiencyEta = 0.8492;
+        // Auto-tuned in sim for moving-shot compensation.
+        public static final double shooterSlipEfficiencyEta = 0.9012;
         // Keep this as the single conversion constant used by the code paths.
         public static final double rpmToMpsFactor =
                 shooterSlipEfficiencyEta * ((2.0 * Math.PI / 60.0) * wheelRadiusMeters);
 
-        public static final double movingShotScaleMin = 0.85;
-        public static final double movingShotScaleMax = 1.15;
+        // Wider compensation range so moving shots do not saturate as often.
+        public static final double movingShotScaleMin = 0.588;
+        public static final double movingShotScaleMax = 1.234;
         public static final double minFlightTimeSec = 0.10;
         public static final boolean aimAtHubOnly = true;
         public static final boolean enableMovingShotCompensation = true;
@@ -156,32 +158,48 @@ public class Constants {
         public static final double turretZeroOnRobotRad = 0.0;
 
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 5362.5),
-                new Point2D.Double(2.5, 5429.4),
-                new Point2D.Double(3.5, 5519.4),
-                new Point2D.Double(4.5, 5764.7),
-                new Point2D.Double(5.5, 6300.7)
+                new Point2D.Double(1.5, 6496.8),
+                new Point2D.Double(2.5, 6758.2),
+                new Point2D.Double(3.5, 6961.2),
+                new Point2D.Double(4.5, 7303.9),
+                new Point2D.Double(5.5, 7416.4)
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 5162.5),
-                new Point2D.Double(2.5, 5229.4),
-                new Point2D.Double(3.5, 5219.4),
-                new Point2D.Double(4.5, 5414.7),
-                new Point2D.Double(5.5, 5900.7)
+                new Point2D.Double(1.5, 5967.2),
+                new Point2D.Double(2.5, 6070.6),
+                new Point2D.Double(3.5, 6123.9),
+                new Point2D.Double(4.5, 6296.1),
+                new Point2D.Double(5.5, 6233.6)
         };
 
         private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
-                new Point2D.Double(1.5, 0.368),
-                new Point2D.Double(2.5, 0.407),
-                new Point2D.Double(3.5, 0.609),
-                new Point2D.Double(4.5, 0.624),
-                new Point2D.Double(5.5, 0.650)
+                new Point2D.Double(1.5, 0.140),
+                new Point2D.Double(2.5, 0.312),
+                new Point2D.Double(3.5, 0.478),
+                new Point2D.Double(4.5, 0.602),
+                new Point2D.Double(5.5, 0.626)
+        };
+
+        // Optional distance-dependent bias for moving-shot scale.
+        // 1.0 means no extra bias. Values >1 increase commanded scale; <1 decrease.
+        private static final Point2D[] kDistanceScaleBiasPoints = new Point2D.Double[] {
+                new Point2D.Double(1.5, 1.225),
+                new Point2D.Double(2.5, 0.975),
+                new Point2D.Double(3.5, 1.000),
+                new Point2D.Double(4.5, 0.978),
+                new Point2D.Double(5.5, 1.000)
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
         public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
         public static final LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(kFlightTimePoints);
+        public static final LinearInterpolationTable distanceScaleBiasTable =
+                new LinearInterpolationTable(kDistanceScaleBiasPoints);
+
+        public static double getDistanceScaleBias(double distanceMeters) {
+            return distanceScaleBiasTable.getOutput(distanceMeters);
+        }
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
@@ -198,7 +216,7 @@ public class Constants {
         public static final double launchPitchRad = Math.toRadians(35.0);
         public static final double gravityMetersPerSec2 = 9.81;
         // Quadratic drag coefficient k in a_drag = -k * |v| * v (units: 1/m).
-        public static final double dragCoefficientPerMeter = 0.09598;
+        public static final double dragCoefficientPerMeter = 0.03535;
         public static final double maxFlightTimeSec = 2.0;
 
         // 2026 Game Manual section 5.4: front edge of top opening is 72 in off carpet.

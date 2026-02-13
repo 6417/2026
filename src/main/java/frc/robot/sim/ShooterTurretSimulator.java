@@ -78,6 +78,7 @@ public class ShooterTurretSimulator {
             double topPercentOutput,
             double bottomPercentOutput,
             double turretTargetAngleRad) {
+        // Wheel dynamics are simulated from commanded percent outputs.
         topWheelSim.setInputVoltage(MathUtil.clamp(topPercentOutput, -1.0, 1.0) * batteryVolts);
         bottomWheelSim.setInputVoltage(MathUtil.clamp(bottomPercentOutput, -1.0, 1.0) * batteryVolts);
         topWheelSim.update(dtSec);
@@ -85,6 +86,8 @@ public class ShooterTurretSimulator {
         topWheelRpm = topWheelSim.getAngularVelocityRPM();
         bottomWheelRpm = bottomWheelSim.getAngularVelocityRPM();
 
+        // Turret angle is a first-order controller with saturated angular velocity.
+        // This keeps aiming response realistic for software tests.
         double angleError = MathUtil.angleModulus(turretTargetAngleRad - turretAngleRad);
         double turretVelocityCmd = MathUtil.clamp(
                 turretKp * angleError,
@@ -127,6 +130,8 @@ public class ShooterTurretSimulator {
             Translation2d robotVelocityFieldMps,
             Translation2d shooterOffsetRobot,
             double muzzleSpeedMps) {
+        // Convert scalar muzzle speed + current turret yaw into a field-relative
+        // launch velocity, then add robot translational velocity.
         double horizontalSpeedMps = muzzleSpeedMps * Math.cos(launchPitchRad);
         double verticalSpeedMps = muzzleSpeedMps * Math.sin(launchPitchRad);
 

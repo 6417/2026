@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 public class ShotScenarioSweepRunner {
     public static void main(String[] args) {
         ShotScenarioEvaluator evaluator = new ShotScenarioEvaluator();
+        // With five args we run one explicit scenario, otherwise a compact default suite.
         List<ShotScenarioEvaluator.Scenario> scenarios = args.length == 5
                 ? List.of(parseScenario(args))
                 : defaultScenarios();

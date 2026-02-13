@@ -72,6 +72,7 @@ public class BallisticShotSimulator {
     }
 
     public void queueShot(ShotEvent shotEvent) {
+        // Each queued shot stores an independent state vector and trace buffer.
         activeShots.add(new ActiveShot(shotEvent));
     }
 
@@ -117,6 +118,8 @@ public class BallisticShotSimulator {
             boolean expired = shot.t >= maxFlightTimeSec || shot.z < 0.0;
 
             if (hit || expired) {
+                // We report miss metrics at closest approach, not only at expiry.
+                // This makes tuning plots more informative for near-miss cases.
                 ShotResult shotResult = new ShotResult(
                         hit,
                         shot.minDistanceMeters,
@@ -132,6 +135,7 @@ public class BallisticShotSimulator {
     }
 
     public List<ShotResult> drainCompletedShots() {
+        // Drain pattern ensures callers process each result once.
         List<ShotResult> result = new ArrayList<>(completedShots);
         completedShots.clear();
         return result;

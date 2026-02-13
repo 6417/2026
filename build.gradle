@@ -126,6 +126,14 @@ task(shotAutoTune, type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task(movingShotAutoTune, type: JavaExec) {
+    mainClass = "frc.robot.sim.MovingShotAutoTuneRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty("movingTuneArgs")) {
+        args project.property("movingTuneArgs").toString().split(",")
+    }
+}
+
 task(shotPlotDataExport, type: JavaExec) {
     mainClass = "frc.robot.sim.ShotPlotDataExporter"
     classpath = sourceSets.main.runtimeClasspath

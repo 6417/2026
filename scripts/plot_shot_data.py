@@ -35,6 +35,51 @@ def read_trajectories(path: Path):
     return data
 
 
+def read_direction_sweep(path: Path):
+    data = {}
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            speed = round(float(row["speed_mps"]), 6)
+            entry = data.setdefault(
+                speed,
+                {
+                    "direction_deg": [],
+                    "turret_yaw_deg": [],
+                    "top_rpm": [],
+                    "bottom_rpm": [],
+                    "closest_error_m": [],
+                    "raw_scale": [],
+                    "applied_scale": [],
+                },
+            )
+            entry["direction_deg"].append(float(row["direction_deg"]))
+            entry["turret_yaw_deg"].append(float(row["turret_yaw_deg"]))
+            entry["top_rpm"].append(float(row["top_rpm"]))
+            entry["bottom_rpm"].append(float(row["bottom_rpm"]))
+            entry["closest_error_m"].append(float(row["closest_error_m"]))
+            entry["raw_scale"].append(float(row.get("raw_scale", "1.0") or 1.0))
+            entry["applied_scale"].append(float(row.get("applied_scale", "1.0") or 1.0))
+    return data
+
+
+def read_robustness_grid(path: Path):
+    rows = []
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "distance_m": float(row["distance_m"]),
+                    "speed_mps": float(row["speed_mps"]),
+                    "closest_error_m": float(row["closest_error_m"]),
+                    "hit": (row["hit"].lower() == "true"),
+                    "scale_clamped": (row["scale_clamped"].lower() == "true"),
+                }
+            )
+    return rows
+
+
 def sign(x):
     if x > 0:
         return 1.0
@@ -309,27 +354,208 @@ def write_trajectories_svg(path: Path, trajectories):
     path.write_text("\n".join(svg), encoding="utf-8")
 
 
+def write_grouped_lines_svg(path: Path, grouped_data, x_key, y_key, title, x_label, y_label, y_pad_ratio=0.08):
+    width, height, pad = 1200, 520, 60
+    x_values = []
+    for group in grouped_data.values():
+        x_values.extend(group[x_key])
+    if not x_values:
+        x_values = [0.0, 1.0]
+    x_min = min(x_values)
+    x_max = max(x_values)
+    if abs(x_max - x_min) < 1e-9:
+        x_max = x_min + 1.0
+
+    y_values = []
+    for speed in grouped_data:
+        y_values.extend(grouped_data[speed][y_key])
+    if not y_values:
+        y_values = [0.0]
+    y_min = min(y_values)
+    y_max = max(y_values)
+    if abs(y_max - y_min) < 1e-9:
+        y_max = y_min + 1.0
+    y_pad = (y_max - y_min) * y_pad_ratio
+    y_min -= y_pad
+    y_max += y_pad
+
+    colors = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+    ]
+
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">']
+    draw_axes(svg, width, height, pad, x_min, x_max, y_min, y_max, x_label, y_label)
+    svg.append(f'<text x="{width / 2:.2f}" y="24" font-size="16" text-anchor="middle" fill="#111">{title}</text>')
+
+    sorted_speeds = sorted(grouped_data.keys())
+    for i, speed in enumerate(sorted_speeds):
+        d = grouped_data[speed]
+        pairs = sorted(zip(d[x_key], d[y_key]), key=lambda t: t[0])
+        points = []
+        for x, y in pairs:
+            px, py = scale_point(x, y, x_min, x_max, y_min, y_max, width, height, pad)
+            points.append(f"{px:.2f},{py:.2f}")
+        svg.append(
+            f'<polyline fill="none" stroke="{colors[i % len(colors)]}" stroke-width="2" points="{" ".join(points)}"/>'
+        )
+
+    legend_h = 24 + 18 * len(sorted_speeds)
+    svg.append(f'<rect x="76" y="26" width="220" height="{legend_h}" fill="white" stroke="#aaa" stroke-width="1"/>')
+    for i, speed in enumerate(sorted_speeds):
+        y = 42 + i * 18
+        color = colors[i % len(colors)]
+        svg.append(f'<line x1="90" y1="{y}" x2="130" y2="{y}" stroke="{color}" stroke-width="2"/>')
+        svg.append(f'<text x="138" y="{y + 4}" font-size="13" fill="#111">speed={speed:.1f} m/s</text>')
+
+    svg.append("</svg>")
+    path.write_text("\n".join(svg), encoding="utf-8")
+
+
+def write_robustness_summary_svgs(hit_path: Path, err_path: Path, clamp_path: Path, rows):
+    grouped = {}
+    for r in rows:
+        key = (round(r["distance_m"], 3), round(r["speed_mps"], 3))
+        grouped.setdefault(key, []).append(r)
+
+    by_distance = {}
+    for (distance, speed), vals in grouped.items():
+        hit_rate = sum(1 for v in vals if v["hit"]) / len(vals)
+        mean_err = sum(v["closest_error_m"] for v in vals) / len(vals)
+        clamp_rate = sum(1 for v in vals if v["scale_clamped"]) / len(vals)
+        bucket = by_distance.setdefault(
+            distance,
+            {"speed_mps": [], "hit_rate_pct": [], "mean_error_m": [], "clamp_rate_pct": []},
+        )
+        bucket["speed_mps"].append(speed)
+        bucket["hit_rate_pct"].append(hit_rate * 100.0)
+        bucket["mean_error_m"].append(mean_err)
+        bucket["clamp_rate_pct"].append(clamp_rate * 100.0)
+
+    write_grouped_lines_svg(
+        hit_path,
+        by_distance,
+        "speed_mps",
+        "hit_rate_pct",
+        "Robustness: hit rate vs speed",
+        "Robot speed [m/s]",
+        "Hit rate [%]",
+        y_pad_ratio=0.04,
+    )
+    write_grouped_lines_svg(
+        err_path,
+        by_distance,
+        "speed_mps",
+        "mean_error_m",
+        "Robustness: mean closest error vs speed",
+        "Robot speed [m/s]",
+        "Mean closest error [m]",
+        y_pad_ratio=0.10,
+    )
+    write_grouped_lines_svg(
+        clamp_path,
+        by_distance,
+        "speed_mps",
+        "clamp_rate_pct",
+        "Robustness: scale clamp rate vs speed",
+        "Robot speed [m/s]",
+        "Clamp rate [%]",
+        y_pad_ratio=0.04,
+    )
+
+
 def main():
     output_dir = Path("build/shot_plots")
     rpm_distance_csv = output_dir / "rpm_distance.csv"
     trajectories_csv = output_dir / "trajectories.csv"
-    if not rpm_distance_csv.exists() or not trajectories_csv.exists():
+    direction_sweep_csv = output_dir / "direction_sweep.csv"
+    robustness_grid_csv = output_dir / "robustness_grid.csv"
+    if (
+        not rpm_distance_csv.exists()
+        or not trajectories_csv.exists()
+        or not direction_sweep_csv.exists()
+        or not robustness_grid_csv.exists()
+    ):
         raise FileNotFoundError("CSV files missing. Run `gradlew shotPlotDataExport` first.")
 
     rpm, dist, time_at_hub, max_height, hub_height = read_rpm_distance(rpm_distance_csv)
     trajectories = read_trajectories(trajectories_csv)
+    direction_sweep = read_direction_sweep(direction_sweep_csv)
+    robustness_rows = read_robustness_grid(robustness_grid_csv)
 
     rpm_plot = output_dir / "rpm_distance_plot.svg"
     rpm_zoom_plot = output_dir / "rpm_distance_transition_zoom.svg"
     traj_plot = output_dir / "trajectories_plot.svg"
+    turret_plot = output_dir / "turret_angle_vs_direction.svg"
+    motor_plot = output_dir / "motor_rpm_vs_direction.svg"
+    error_plot = output_dir / "closest_error_vs_direction.svg"
+    scale_plot = output_dir / "scale_vs_direction.svg"
+    robust_hit_plot = output_dir / "robust_hit_rate_vs_speed.svg"
+    robust_err_plot = output_dir / "robust_mean_error_vs_speed.svg"
+    robust_clamp_plot = output_dir / "robust_clamp_rate_vs_speed.svg"
     write_rpm_distance_svg(rpm_plot, rpm, dist, time_at_hub, max_height, hub_height)
     write_rpm_distance_svg(rpm_zoom_plot, rpm, dist, time_at_hub, max_height, hub_height, zoom=True)
     write_trajectories_svg(traj_plot, trajectories)
+    write_grouped_lines_svg(
+        turret_plot,
+        direction_sweep,
+        "direction_deg",
+        "turret_yaw_deg",
+        "Turret yaw vs robot velocity direction",
+        "Robot velocity direction [deg]",
+        "Turret yaw [deg]",
+    )
+    # Direction-dependent wheel-speed compensation overview.
+    write_grouped_lines_svg(
+        motor_plot,
+        direction_sweep,
+        "direction_deg",
+        "top_rpm",
+        "Top motor RPM vs robot velocity direction",
+        "Robot velocity direction [deg]",
+        "Top wheel RPM",
+    )
+    write_grouped_lines_svg(
+        error_plot,
+        direction_sweep,
+        "direction_deg",
+        "closest_error_m",
+        "Closest shot error vs robot velocity direction",
+        "Robot velocity direction [deg]",
+        "Closest error [m]",
+    )
+    write_grouped_lines_svg(
+        scale_plot,
+        direction_sweep,
+        "direction_deg",
+        "applied_scale",
+        "Applied moving-shot scale vs robot velocity direction",
+        "Robot velocity direction [deg]",
+        "Applied scale [-]",
+        y_pad_ratio=0.05,
+    )
+    write_robustness_summary_svgs(
+        robust_hit_plot,
+        robust_err_plot,
+        robust_clamp_plot,
+        robustness_rows,
+    )
 
     print("Saved plots:")
     print(f" - {rpm_plot.resolve()}")
     print(f" - {rpm_zoom_plot.resolve()}")
     print(f" - {traj_plot.resolve()}")
+    print(f" - {turret_plot.resolve()}")
+    print(f" - {motor_plot.resolve()}")
+    print(f" - {error_plot.resolve()}")
+    print(f" - {scale_plot.resolve()}")
+    print(f" - {robust_hit_plot.resolve()}")
+    print(f" - {robust_err_plot.resolve()}")
+    print(f" - {robust_clamp_plot.resolve()}")
 
 
 if __name__ == "__main__":

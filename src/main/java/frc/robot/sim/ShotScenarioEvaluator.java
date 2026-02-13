@@ -14,6 +14,9 @@ import frc.robot.Constants;
  *
  * <p>This lets us provide robot pose + velocity and measure predicted shot quality
  * against the hub using the same constants/tables as runtime logic.
+ *
+ * <p>Important: keep this math aligned with ShooterSubsystem#calculateShotCommand.
+ * Any mismatch here makes offline tuning disagree with live robot behavior.
  */
 public class ShotScenarioEvaluator {
 
@@ -63,13 +66,14 @@ public class ShotScenarioEvaluator {
         double requiredMuzzleSpeedMps = requiredMuzzleVelocityField.getNorm();
         double nominalMuzzleSpeedMps = ((baseTopRpm + baseBottomRpm) * 0.5) * Constants.Shooter.rpmToMpsFactor;
 
-        double scale = 1.0;
+        double rawScale = 1.0;
         if (nominalMuzzleSpeedMps > 1e-6) {
-            scale = MathUtil.clamp(
-                    requiredMuzzleSpeedMps / nominalMuzzleSpeedMps,
-                    Constants.Shooter.movingShotScaleMin,
-                    Constants.Shooter.movingShotScaleMax);
+            rawScale = requiredMuzzleSpeedMps / nominalMuzzleSpeedMps;
         }
+        // Distance bias is a smooth correction term used to reduce clamp saturation
+        // without forcing abrupt RPM table changes.
+        rawScale *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
+        double scale = MathUtil.clamp(rawScale, Constants.Shooter.movingShotScaleMin, Constants.Shooter.movingShotScaleMax);
 
         double correctedTopRpm = clampRpm(baseTopRpm * scale);
         double correctedBottomRpm = clampRpm(baseBottomRpm * scale);

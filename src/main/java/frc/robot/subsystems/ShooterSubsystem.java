@@ -28,6 +28,15 @@ import frc.robot.sim.ShooterTurretSimulator;
 import frc.robot.sim.ShotSample;
 import frc.robot.sim.ShotResult;
 
+/**
+ * Shooter subsystem responsible for:
+ * - wheel speed control (PID + feedforward),
+ * - moving-shot command calculation (turret yaw + RPM targets),
+ * - simulation hooks (shot firing, trajectory/result telemetry).
+ *
+ * <p>The moving-shot math is intentionally mirrored in simulation/export code
+ * so that tuning constants behave consistently between offline analysis and runtime.
+ */
 public class ShooterSubsystem extends SubsystemBase {
     public enum ShotBlockReason {
         NONE,
@@ -251,11 +260,13 @@ public class ShooterSubsystem extends SubsystemBase {
         double requiredMuzzleSpeedMps = requiredMuzzleVelocityField.getNorm();
         double nominalMuzzleSpeedMps = ballSpeedFromRpm((baseTopRpm + baseBottomRpm) / 2.0);
 
-        double scale = 1.0;
+        double rawScale = 1.0;
         if (nominalMuzzleSpeedMps > 1e-6) {
-            scale = requiredMuzzleSpeedMps / nominalMuzzleSpeedMps;
-            scale = MathUtil.clamp(scale, Constants.Shooter.movingShotScaleMin, Constants.Shooter.movingShotScaleMax);
+            rawScale = requiredMuzzleSpeedMps / nominalMuzzleSpeedMps;
         }
+        // Distance bias gives a smooth way to reduce clamp saturation without breaking table shape.
+        rawScale *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
+        double scale = MathUtil.clamp(rawScale, Constants.Shooter.movingShotScaleMin, Constants.Shooter.movingShotScaleMax);
 
         double correctedTopRpm = clampRpm(baseTopRpm * scale);
         double correctedBottomRpm = clampRpm(baseBottomRpm * scale);
@@ -276,6 +287,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * Apply a precomputed shot command to turret target + shooter wheels.
      */
     public void applyShotCommand(ShotCommand command) {
+        // We always apply turret setpoint and wheel setpoints together to keep
+        // the command semantically atomic ("this is one planned shot state").
         setTurretTargetAngleRad(command.turretYawRad());
         run(command.topRpm(), command.bottomRpm());
     }
@@ -345,6 +358,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * Fire only when all shot gates are satisfied.
      */
     public boolean tryFire(boolean turretReady, double robotOmegaRadPerSec) {
+        // Fire gate intentionally centralizes all shot safety/readiness checks.
+        // If this returns true, the simulator receives exactly one launch event.
         if (!isShotReady(turretReady, robotOmegaRadPerSec)) {
             return false;
         }
@@ -426,6 +441,8 @@ public class ShooterSubsystem extends SubsystemBase {
         if (!simulationEnabled) {
             return;
         }
+        // Muzzle speed approximation uses average wheel RPM and conversion factor.
+        // This is the same model used in the moving-shot planner.
         lastSimFireTimestampSec = Timer.getFPGATimestamp();
         lastSimFireMuzzleSpeedMps = Math.max(
                 0.0,
@@ -502,6 +519,7 @@ public class ShooterSubsystem extends SubsystemBase {
             return;
         }
 
+        // Update mechanism dynamics from current percent commands and turret target.
         shooterTurretSimulator.update(
                 0.020,
                 RobotController.getBatteryVoltage(),
@@ -514,6 +532,8 @@ public class ShooterSubsystem extends SubsystemBase {
         pendingCompletedShotTraces.addAll(shooterTurretSimulator.drainCompletedShotTraces());
         turretLigament.setAngle(Math.toDegrees(shooterTurretSimulator.getTurretAngleRad()));
 
+        // Dashboard block is intentionally verbose so tuning/debug sessions can
+        // inspect every stage: target -> mechanism state -> shot outcome.
         SmartDashboard.putNumber("Shooter/TargetTopRpm", targetTopRpm);
         SmartDashboard.putNumber("Shooter/TargetBottomRpm", targetBottomRpm);
         SmartDashboard.putNumber("Shooter/CurrentTopRpm", shooterTurretSimulator.getTopWheelRpm());

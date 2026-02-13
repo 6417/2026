@@ -44,6 +44,7 @@ public class ShooterField2dVisualizer {
             Rotation2d turretYawField,
             Optional<ShotSample> latestActiveShotSample,
             List<CompletedShotTrace> completedShotTraces) {
+        // Field2d update order: robot pose -> live vectors/ball -> finished traces.
         field.setRobotPose(robotPose);
         updateTurretVector(muzzlePositionField, turretYawField);
         updateActiveBall(latestActiveShotSample);
@@ -90,6 +91,7 @@ public class ShooterField2dVisualizer {
         }
 
         nextTraceIndex = (nextTraceIndex + 1) % maxTraceCount;
+        // Circular trace buffer prevents unlimited field object growth.
         totalRenderedTraces++;
     }
 

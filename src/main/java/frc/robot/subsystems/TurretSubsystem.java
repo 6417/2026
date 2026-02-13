@@ -22,6 +22,15 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.commands.SmartTurret;
 
+/**
+ * Turret subsystem.
+ *
+ * <p>Current branch state is hybrid:
+ * - real motor configuration code exists but is intentionally commented out
+ *   until hardware bring-up is finalized,
+ * - simulation/no-hardware mode keeps an internal angle state so aiming logic
+ *   and shooter integration can still be tested end-to-end.
+ */
 public class TurretSubsystem extends SubsystemBase {
     private FridoSparkMax turretMotor;
 
@@ -86,7 +95,8 @@ public class TurretSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (turretMotor == null) {
-            // Keep a simple internal turret state so SmartTurret + sim can use a realistic angle.
+            // Slew the simulated turret toward desired setpoint with a bounded angular speed.
+            // This avoids ideal/infinite turret motion in software-only tests.
             double errorDeg = MathUtil.inputModulus(desiredPosition - simulatedCurrentAngleDeg, -180.0, 180.0);
             double maxStepDeg = SIM_MAX_SPEED_DEG_PER_SEC * LOOP_PERIOD_SEC;
             simulatedCurrentAngleDeg = MathUtil.inputModulus(
@@ -156,7 +166,8 @@ public class TurretSubsystem extends SubsystemBase {
             return;
         }
 
-        // In sim/no-hardware mode, manual control updates the target angle directly.
+        // In sim/no-hardware mode, manual percent command integrates into desired angle.
+        // This mirrors joystick-like manual nudge behavior.
         desiredPosition = MathUtil.inputModulus(
                 desiredPosition + clampedPercent * MANUAL_PERCENT_TO_DEG_PER_SEC * LOOP_PERIOD_SEC,
                 -180.0,

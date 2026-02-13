@@ -23,6 +23,9 @@ import frc.robot.utils.LinearInterpolationTable;
  * - dragCoefficientPerMeter.
  *
  * <p>It prints recommended constants that can be copied into Constants.java.
+ *
+ * <p>Note: this is the legacy tuner. For clamp-aware moving-shot tuning,
+ * use MovingShotAutoTuneRunner.
  */
 public class ShotAutoTuneRunner {
     private static final double[] DISTANCE_POINTS_M = {1.5, 2.5, 3.5, 4.5, 5.5};
