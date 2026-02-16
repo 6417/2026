@@ -1,4 +1,4 @@
-# Simulator-Branch Uebersicht (`simulator`)
+﻿# Simulator-Branch Uebersicht (`simulator`)
 
 ## Ziel
 Dieser Branch verbindet Runtime-Logik (Shooter/Turret), Ballistik-Simulation und Offline-Tuning so,
@@ -99,7 +99,6 @@ Sättigung markiert, damit klar ist: war das Problem Mathematik oder Motorgrenze
   - neue Tasks:
     - `shotFocusAutoTune`
     - `shotFocusReport`
-  - Legacy-Tasks `shotScenarioSweep` und `shotAutoTune` wurden entfernt.
 
 - `src/main/java/frc/robot/Constants.java`
   - neue/angepasste Tuning-Werte fuer Solver-Drag-Gain und Distance-Bias.
@@ -154,7 +153,7 @@ Ablauf:
 3. Solver loesen:
    - finde gueltige Flugzeit,
    - berechne noetigen Muendungsvektor,
-   - gib `yawFieldRad`, `requiredMuzzleSpeedMps`, `status` zurueck.
+   - gib `yawFieldRad`, `requiredMuzzleSpeedMps`, `status` zurück.
 4. In Roboterkoordinaten umrechnen:
    - `turretYawRobotRad = yawField - robotHeading - turretZeroOffset`.
 5. Aus Muendungsgeschwindigkeit -> `requiredAvgRpm`.
@@ -220,7 +219,7 @@ py -3 scripts\plot_shot_data.py
 ---
 
 ## Hinweis zu Clamp/Sättigung
-Frueher war "clamp rate" ein zentrales Problem wegen globaler Scale-Grenzen.
+Früher war "clamp rate" ein zentrales Problem wegen globaler Scale-Grenzen.
 Jetzt gilt:
 - mathematisch loest der Solver direkt die benoetigte Schusskinematik,
 - begrenzt wird primaer nur noch durch reale Motorgrenzen (`maxRpm`),
@@ -235,6 +234,24 @@ Es gibt jetzt einen controller-gesteuerten Feld-Kalibrierer für Shooter/Turret:
 - `src/main/java/frc/robot/calibration/ShooterRealityCalibrator.java`
 - Session- und Sample-Modelle in `src/main/java/frc/robot/calibration/`
 - Persistenz als JSON via `src/main/java/frc/robot/calibration/CalibrationIO.java`
+
+Erklärung:
+Der Reality Calibrator ist der praktische Übergang zwischen Simulation und echter Hardware.
+Während die Simulation euch stabile Vergleichswerte gibt, erfasst der Calibrator systematisch
+reale Schüsse und lernt daraus Korrekturen für Turret-Offset und distanzabhängigen Bias.
+
+Wichtig ist die Trennung in zwei Schritte:
+1. Beim Abfeuern wird ein technisches Sample erfasst (Pose, Velocity, Distanz, berechnete RPM/Yaw, Solver-Status).
+2. Danach wird das Ergebnis vom Operator gelabelt (Hit, Miss links/rechts, Miss short/long).
+
+Genau diese gelabelten Daten nutzt `CalibrationFitter`, um eine neue Suggestion zu berechnen.
+Seitliche Fehler korrigieren den Turret-Nulloffset, Längsfehler korrigieren die Bias-Kurve.
+Die Anpassung ist dabei begrenzt und lokal gewichtet, damit einzelne Ausreißer nicht das ganze
+Modell verziehen.
+
+Die berechnete Suggestion wird nicht automatisch aktiv. Erst mit Commit wird sie in den Shooter
+übernommen und als Runtime-JSON gespeichert. So bleibt der Ablauf kontrollierbar:
+messen -> labeln -> fitten -> prüfen -> übernehmen.
 
 Kurzablauf:
 1. Calibration Mode aktivieren (Operator: `Back + Start`).

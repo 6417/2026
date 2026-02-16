@@ -8,7 +8,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Mutable state for one calibration run.
+ * Verwaltet den Laufzeit-Zustand einer Kalibrier-Session.
+ *
+ * <p>Die Session trennt sauber zwischen
+ * - erfassten, aber noch nicht gelabelten Samples ({@code pendingSamples}) und
+ * - final gelabelten Samples ({@code labeledSamples}).
  */
 public class CalibrationSession {
     private final String sessionId = UUID.randomUUID().toString();
@@ -24,6 +28,7 @@ public class CalibrationSession {
         this.preset = preset;
     }
 
+    /** @return Eindeutige Session-ID für Logging und Nachvollziehbarkeit. */
     public String getSessionId() {
         return sessionId;
     }
@@ -48,6 +53,7 @@ public class CalibrationSession {
         return labeledSamples.size();
     }
 
+    /** @return Optional mit aktuellem Step des Presets, sonst leer wenn Session fertig ist. */
     public Optional<CalibrationPreset.Step> getActiveStep() {
         if (activeStepIndex < 0 || activeStepIndex >= preset.steps().size()) {
             return Optional.empty();
@@ -55,10 +61,17 @@ public class CalibrationSession {
         return Optional.of(preset.steps().get(activeStepIndex));
     }
 
+    /** @return true, wenn alle Preset-Steps abgearbeitet sind. */
     public boolean isComplete() {
         return activeStepIndex >= preset.steps().size();
     }
 
+    /**
+     * Registriert einen abgefeuerten Schuss als "pending".
+     *
+     * <p>Das Step-Fortschrittsmodell basiert auf der Anzahl abgefeuerter Schüsse
+     * pro Step (nicht auf Labeln), damit der Ablauf für den Operator konsistent bleibt.
+     */
     public void registerFiredShot(CalibrationSample pendingSample) {
         if (isComplete()) {
             return;
@@ -73,6 +86,11 @@ public class CalibrationSession {
         }
     }
 
+    /**
+     * Labelt den ältesten Pending-Schuss.
+     *
+     * @return Gelabeltes Sample oder leer, wenn aktuell nichts offen ist.
+     */
     public Optional<CalibrationSample> recordOutcome(ShotOutcome outcome) {
         CalibrationSample pending = pendingSamples.pollFirst();
         if (pending == null) {
@@ -83,6 +101,7 @@ public class CalibrationSession {
         return Optional.of(labeled);
     }
 
+    /** @return Unveränderliche Kopie aller gelabelten Samples für den Fit. */
     public List<CalibrationSample> getLabeledSamples() {
         return List.copyOf(labeledSamples);
     }

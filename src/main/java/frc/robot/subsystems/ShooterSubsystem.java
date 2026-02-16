@@ -433,6 +433,7 @@ public class ShooterSubsystem extends SubsystemBase {
         return Optional.ofNullable(lastShotContext);
     }
 
+    /** @return aktuell wirksames Turret-Nulloffset (Override falls vorhanden, sonst Konstantenwert). */
     public double getActiveTurretZeroOffsetRad() {
         if (Double.isFinite(turretZeroOffsetOverrideRad)) {
             return turretZeroOffsetOverrideRad;
@@ -440,6 +441,7 @@ public class ShooterSubsystem extends SubsystemBase {
         return Constants.Shooter.turretZeroOnRobotRad;
     }
 
+    /** @return aktuell wirksamer Distanz-Bias-Faktor für die angefragte Distanz. */
     public double getActiveDistanceScaleBias(double distanceMeters) {
         if (distanceBiasOverrideTable != null) {
             return distanceBiasOverrideTable.getOutput(distanceMeters);
@@ -447,6 +449,11 @@ public class ShooterSubsystem extends SubsystemBase {
         return Constants.Shooter.getDistanceScaleBias(distanceMeters);
     }
 
+    /**
+     * Aktiviert Runtime-Kalibrierwerte für Turret-Offset und Distanz-Bias.
+     *
+     * <p>Ungültige Konfigurationen werden still verworfen, damit der Laufzeitbetrieb robust bleibt.
+     */
     public void applyCalibrationOverrides(ShooterCalibrationConfig calibrationConfig) {
         if (calibrationConfig == null
                 || calibrationConfig.biasDistancesM == null
@@ -466,6 +473,7 @@ public class ShooterSubsystem extends SubsystemBase {
         distanceBiasOverrideValues = Arrays.copyOf(calibrationConfig.biasValues, calibrationConfig.biasValues.length);
     }
 
+    /** Entfernt alle Runtime-Overrides und fällt auf die in {@link Constants} definierten Werte zurück. */
     public void clearCalibrationOverrides() {
         turretZeroOffsetOverrideRad = Double.NaN;
         distanceBiasOverrideTable = null;

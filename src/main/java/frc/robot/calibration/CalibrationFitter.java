@@ -6,7 +6,11 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.util.Units;
 
 /**
- * Deterministic parameter update from labeled field shots.
+ * Deterministischer Fitter für Turret-Offset und Distanz-Bias aus gelabelten Feldschüssen.
+ *
+ * <p>Der Fitter ist absichtlich simpel und robust:
+ * - seitliche Fehler (links/rechts) korrigieren Turret-Nulloffset,
+ * - longitudinale Fehler (short/long) korrigieren Distanz-Bias-Knoten lokal gewichtet.
  */
 public final class CalibrationFitter {
     public record Params(
@@ -31,6 +35,15 @@ public final class CalibrationFitter {
     private CalibrationFitter() {
     }
 
+    /**
+     * Führt einen vollständigen Fit über die gelabelten Samples aus.
+     *
+     * @param samples alle aktuell verfügbaren Kalibrier-Samples
+     * @param currentTurretZeroOffsetRad derzeit aktiver Turret-Nulloffset
+     * @param baseBiasValues aktuelle Baseline-Werte der Bias-Knoten
+     * @param params Fit-Konfiguration inklusive Grenzen und Lernraten
+     * @return berechneter Offset/Bias sowie Zähler zur Diagnose
+     */
     public static FitResult fit(
             List<CalibrationSample> samples,
             double currentTurretZeroOffsetRad,
@@ -114,6 +127,11 @@ public final class CalibrationFitter {
         return new FitResult(turretOffset, fittedBias, directionalSamples, shortLongSamples);
     }
 
+    /**
+     * Trianguläre Gewichtung um einen Knotenpunkt.
+     *
+     * <p>Samples nahe am Knoten beeinflussen ihn stark, weit entfernte schwach bis gar nicht.
+     */
     private static double triangularWeight(double sampleDistanceMeters, double knotDistanceMeters, double windowMeters) {
         if (windowMeters <= 0.0) {
             return 0.0;

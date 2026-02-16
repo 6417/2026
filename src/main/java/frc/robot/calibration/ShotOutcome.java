@@ -1,7 +1,10 @@
 package frc.robot.calibration;
 
 /**
- * Operator label for a fired calibration shot.
+ * Operator-Label für ein erfasstes Kalibrier-Sample.
+ *
+ * <p>HIT/MISS_UNKNOWN sind grobe Labels, die Richtungslabels dienen zusätzlich
+ * der gezielten Korrektur von Turret-Offset bzw. Distanz-Bias.
  */
 public enum ShotOutcome {
     HIT,

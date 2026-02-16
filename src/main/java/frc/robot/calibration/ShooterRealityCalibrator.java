@@ -16,7 +16,11 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 
 /**
- * Controller-driven field calibration flow for shooter distance bias and turret zero offset.
+ * Führt einen operator-gesteuerten Kalibrierablauf auf dem Feld aus.
+ *
+ * <p>Der Calibrator sammelt reale Schussbeobachtungen (Hit/Miss + Richtung),
+ * passt daraus Distanz-Bias und Turret-Nulloffset an und kann das Ergebnis als
+ * Runtime-Override (JSON) persistent speichern.
  */
 public class ShooterRealityCalibrator {
     private final ShooterSubsystem shooter;
@@ -51,30 +55,36 @@ public class ShooterRealityCalibrator {
         publishTelemetry();
     }
 
+    /** Aktualisiert Dashboard-Telemetrie, damit der Operator jederzeit den Session-Status sieht. */
     public void periodic() {
         publishTelemetry();
     }
 
+    /** @return true, wenn der Kalibriermodus aktiv ist und Label-/Fit-Aktionen erlaubt sind. */
     public boolean isModeEnabled() {
         return modeEnabled;
     }
 
+    /** Schaltet den Kalibriermodus um und aktualisiert den Status-Text. */
     public void toggleMode() {
         modeEnabled = !modeEnabled;
         statusText = modeEnabled ? "Calibration mode enabled" : "Calibration mode disabled";
         publishTelemetry();
     }
 
+    /** Erzwingt einen bestimmten Kalibriermodus (an/aus). */
     public void setModeEnabled(boolean enabled) {
         modeEnabled = enabled;
         statusText = modeEnabled ? "Calibration mode enabled" : "Calibration mode disabled";
         publishTelemetry();
     }
 
+    /** @return Name des aktuell gewählten Presets. */
     public String getSelectedPresetName() {
         return presets.get(presetIndex).name();
     }
 
+    /** Springt zyklisch zum nächsten Kalibrier-Preset. */
     public void cyclePreset() {
         if (presets.isEmpty()) {
             return;
@@ -84,6 +94,7 @@ public class ShooterRealityCalibrator {
         publishTelemetry();
     }
 
+    /** Startet eine neue Session mit dem aktuell gewählten Preset. */
     public void startSelectedPreset() {
         session = new CalibrationSession(presets.get(presetIndex));
         pendingSuggestion = null;
@@ -91,6 +102,7 @@ public class ShooterRealityCalibrator {
         publishTelemetry();
     }
 
+    /** Bricht die laufende Session inklusive nicht bestätigter Suggestion ab. */
     public void cancelSession() {
         session = null;
         pendingSuggestion = null;
@@ -99,7 +111,12 @@ public class ShooterRealityCalibrator {
     }
 
     /**
-     * Captures one shot sample using current robot state and shooter command output.
+     * Erfasst einen Schuss-Snapshot auf Basis des aktuellen Robot- und Shooter-Zustands.
+     *
+     * <p>Der Shot wird nur aufgenommen, wenn der Fire-Gate im Shooter die Freigabe gibt.
+     * Danach muss der Operator den Ausgang (Hit/Miss) separat labeln.
+     *
+     * @return true, wenn ein Sample erfolgreich erfasst und in die Pending-Queue gelegt wurde.
      */
     public boolean runNextShot() {
         if (!modeEnabled) {
@@ -166,30 +183,44 @@ public class ShooterRealityCalibrator {
         return true;
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als Treffer. */
     public boolean markHit() {
         return recordOutcome(ShotOutcome.HIT, "Marked HIT");
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als Miss ohne Richtungsinformation. */
     public boolean markMissUnknown() {
         return recordOutcome(ShotOutcome.MISS_UNKNOWN, "Marked MISS");
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als links vorbei. */
     public boolean markMissLeft() {
         return recordOutcome(ShotOutcome.MISS_LEFT, "Marked MISS_LEFT");
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als rechts vorbei. */
     public boolean markMissRight() {
         return recordOutcome(ShotOutcome.MISS_RIGHT, "Marked MISS_RIGHT");
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als zu kurz. */
     public boolean markMissShort() {
         return recordOutcome(ShotOutcome.MISS_SHORT, "Marked MISS_SHORT");
     }
 
+    /** Labelt den ältesten ungekennzeichneten Schuss als zu lang. */
     public boolean markMissLong() {
         return recordOutcome(ShotOutcome.MISS_LONG, "Marked MISS_LONG");
     }
 
+    /**
+     * Führt den deterministischen Fit über alle gelabelten Samples der Session aus.
+     *
+     * <p>Ergebnis ist eine neue Kalibrier-Suggestion (Bias-Knoten + Turret-Offset),
+     * die noch nicht angewendet ist und erst per {@link #commitSuggestion()} aktiv wird.
+     *
+     * @return Optional mit neuer Suggestion; leer, wenn Session/Samples nicht ausreichen.
+     */
     public Optional<ShooterCalibrationConfig> computeSuggestion() {
         if (session == null) {
             statusText = "No active session";
@@ -241,6 +272,11 @@ public class ShooterRealityCalibrator {
         return Optional.of(suggestion);
     }
 
+    /**
+     * Übernimmt die letzte berechnete Suggestion in den Shooter und speichert sie als Runtime-JSON.
+     *
+     * @return true bei erfolgreicher Übernahme (Speichern kann trotzdem fehlschlagen und wird per Status gemeldet).
+     */
     public boolean commitSuggestion() {
         if (pendingSuggestion == null) {
             statusText = "No suggestion to commit";
@@ -262,6 +298,11 @@ public class ShooterRealityCalibrator {
         return true;
     }
 
+    /**
+     * Schreibt ein Outcome auf das älteste Pending-Sample.
+     *
+     * <p>Die Reihenfolge bleibt deterministisch: first-fired, first-labeled.
+     */
     private boolean recordOutcome(ShotOutcome outcome, String successMessage) {
         if (session == null) {
             statusText = "No active session";
@@ -280,6 +321,12 @@ public class ShooterRealityCalibrator {
         return true;
     }
 
+    /**
+     * Spiegelt den vollständigen Kalibrierstatus auf das Dashboard.
+     *
+     * <p>Damit sind Preset-Fortschritt, offene Labels, Suggestion-Status und
+     * Persistenzstatus während der Feldarbeit direkt sichtbar.
+     */
     private void publishTelemetry() {
         SmartDashboard.putBoolean("Calib/ModeActive", modeEnabled);
         SmartDashboard.putString("Calib/Status", statusText);

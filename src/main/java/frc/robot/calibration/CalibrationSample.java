@@ -5,7 +5,10 @@ import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.utils.ShotKinematicSolver;
 
 /**
- * One calibration shot sample captured at fire time and later labeled by operator.
+ * Repräsentiert einen Feldschuss für die Kalibrierung.
+ *
+ * <p>Das Sample wird beim Fire erfasst (Zustand + Kommandowerte) und erst danach
+ * durch den Operator mit einem {@link ShotOutcome} gelabelt.
  */
 public record CalibrationSample(
         double timestampSec,
@@ -23,6 +26,7 @@ public record CalibrationSample(
         boolean rpmSaturated,
         ShotOutcome outcome) {
 
+    /** Erzeugt eine Kopie desselben Samples mit neuem Label. */
     public CalibrationSample withOutcome(ShotOutcome newOutcome) {
         return new CalibrationSample(
                 timestampSec,

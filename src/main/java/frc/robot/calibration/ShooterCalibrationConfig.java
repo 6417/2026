@@ -3,7 +3,11 @@ package frc.robot.calibration;
 import java.util.Arrays;
 
 /**
- * Persisted runtime override for shooter calibration values.
+ * Persistierbares Datenmodell für Shooter-Calibration-Overrides.
+ *
+ * <p>Diese Werte übersteuern zur Laufzeit die statischen Konstanten:
+ * - Turret-Nulloffset
+ * - Distanzabhängige Bias-Kurve (Knoten + Werte)
  */
 public class ShooterCalibrationConfig {
     public int version = 1;
@@ -17,6 +21,7 @@ public class ShooterCalibrationConfig {
     public ShooterCalibrationConfig() {
     }
 
+    /** @return tiefe Kopie, um Seiteneffekte beim Speichern/Anwenden zu vermeiden. */
     public ShooterCalibrationConfig copy() {
         ShooterCalibrationConfig clone = new ShooterCalibrationConfig();
         clone.version = version;

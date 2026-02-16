@@ -5,12 +5,17 @@ import java.util.List;
 import edu.wpi.first.math.geometry.Translation2d;
 
 /**
- * Operator-driven test sequence used for repeatable field calibration sessions.
+ * Beschreibt eine wiederholbare Operator-Sequenz für Feldkalibrierung.
+ *
+ * <p>Ein Preset besteht aus mehreren Steps mit Zielentfernung, Zielgeschwindigkeit
+ * und Anzahl geforderter Schüsse pro Step.
  */
 public record CalibrationPreset(String name, String description, List<Step> steps) {
+    /** Einzelner Schritt innerhalb eines Presets. */
     public record Step(String label, double targetDistanceMeters, Translation2d targetRobotVelocityFieldMps, int shotsRequired) {
     }
 
+    /** @return Vordefinierte Presets als praxisnahe Startpunkte. */
     public static List<CalibrationPreset> defaultPresets() {
         return List.of(
                 new CalibrationPreset(

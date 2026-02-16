@@ -14,7 +14,11 @@ import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.Constants;
 
 /**
- * JSON persistence helper for shooter calibration overrides.
+ * JSON-Persistenz für Shooter-Kalibrierdaten.
+ *
+ * <p>Ladepriorität:
+ * 1) Runtime-Datei (z. B. nach Feldkalibrierung geschrieben),
+ * 2) Deploy-Datei als Fallback (mit dem Build ausgelieferter Stand).
  */
 public final class CalibrationIO {
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -23,18 +27,25 @@ public final class CalibrationIO {
     private CalibrationIO() {
     }
 
+    /** @return Pfad zur beschreibbaren Runtime-Kalibrierdatei. */
     public static Path runtimeConfigPath() {
         return Paths.get(
                 Constants.Calibration.runtimeCalibrationFolder,
                 Constants.Calibration.shooterCalibrationFileName);
     }
 
+    /** @return Pfad zur optionalen Deploy-Default-Kalibrierdatei. */
     public static Path deployConfigPath() {
         return Filesystem.getDeployDirectory().toPath()
                 .resolve(Constants.Calibration.runtimeCalibrationFolder)
                 .resolve(Constants.Calibration.shooterCalibrationFileName);
     }
 
+    /**
+     * Lädt zuerst Runtime, dann Deploy.
+     *
+     * @return erstes gültiges Kalibrierobjekt in Prioritätsreihenfolge
+     */
     public static Optional<ShooterCalibrationConfig> loadBestAvailable() {
         Optional<ShooterCalibrationConfig> runtime = loadFromPath(runtimeConfigPath());
         if (runtime.isPresent()) {
@@ -43,6 +54,12 @@ public final class CalibrationIO {
         return loadFromPath(deployConfigPath());
     }
 
+    /**
+     * Liest und validiert eine Kalibrierdatei.
+     *
+     * @param path Quelldatei
+     * @return Optional mit validierter Konfiguration
+     */
     public static Optional<ShooterCalibrationConfig> loadFromPath(Path path) {
         if (!Files.exists(path)) {
             return Optional.empty();
@@ -55,6 +72,11 @@ public final class CalibrationIO {
         }
     }
 
+    /**
+     * Schreibt eine validierte Konfiguration in die Runtime-Datei.
+     *
+     * <p>Vor dem Schreiben wird ein Zeitstempel ({@code generatedAtIsoUtc}) gesetzt.
+     */
     public static boolean writeRuntimeConfig(ShooterCalibrationConfig config) {
         if (!validate(config)) {
             return false;
@@ -74,6 +96,11 @@ public final class CalibrationIO {
         }
     }
 
+    /**
+     * Prüft grundlegende Schema-/Wertekonsistenz.
+     *
+     * <p>Insbesondere müssen Bias-Knoten strikt aufsteigend und vollständig endlich sein.
+     */
     public static boolean validate(ShooterCalibrationConfig config) {
         if (config == null) {
             return false;
