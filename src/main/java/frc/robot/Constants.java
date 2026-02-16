@@ -75,6 +75,33 @@ public class Constants {
         public static final double deadBandTurn = 0.08;
     }
 
+    public static final class Calibration {
+        // Minimum labeled shots required before fit is allowed.
+        public static final int minSamplesForFit = 12;
+        // Directional misses required before turret offset is adjusted.
+        public static final int minDirectionalSamplesForTurretFit = 4;
+
+        // Distances at which shooter distance-bias is re-fit.
+        public static final double[] biasFitDistancesMeters = {2.5, 3.5, 4.5, 5.5};
+        // Triangular weighting window around each knot.
+        public static final double biasWeightWindowMeters = 1.0;
+        // How aggressively miss-short/long modifies bias values.
+        public static final double biasLearningRate = 0.12;
+        public static final double maxBiasRelativeStep = 0.15;
+        public static final double minBiasValue = 0.80;
+        public static final double maxBiasValue = 1.35;
+
+        // Directional miss -> turret offset update.
+        public static final double turretDegPerDirectionalMiss = 2.0;
+        public static final double maxTurretOffsetDeg = 4.0;
+
+        public static final double stepDistanceToleranceMeters = 0.35;
+
+        // Runtime config file in operating directory.
+        public static final String runtimeCalibrationFolder = "calibration";
+        public static final String shooterCalibrationFileName = "shooter_calibration.json";
+    }
+
     public static final class Intake {
         public static final int intakeMotorId = 10;
         public static final int singulatorMotorId = 11;

@@ -4,6 +4,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.calibration.ShooterRealityCalibrator;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
@@ -14,6 +15,7 @@ public class RobotContainer {
     public static final SwerveSubsystem drive;
     public static final TurretSubsystem turret;
     public static final ShooterSubsystem shooter;
+    public static final ShooterRealityCalibrator realityCalibrator;
 
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
@@ -22,6 +24,7 @@ public class RobotContainer {
         drive = new SwerveSubsystem();
         turret = new TurretSubsystem();
         shooter = new ShooterSubsystem();
+        realityCalibrator = new ShooterRealityCalibrator(shooter, turret, drive);
         controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");

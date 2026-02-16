@@ -62,7 +62,7 @@ Sättigung markiert, damit klar ist: war das Problem Mathematik oder Motorgrenze
 
 ### Neu
 - `src/main/java/frc/robot/utils/ShotKinematicSolver.java`
-  - analytische Berechnung von `yaw`, `flightTime` und benötigter Muendungsgeschwindigkeit,
+  - analytische Berechnung von `yaw`, `flightTime` und benötigter Mündungsgeschwindigkeit,
   - Statusausgabe (`SOLVED`, `NO_VALID_FLIGHT_TIME`, ...), damit Fehlerursachen sichtbar sind.
 
 - `src/main/java/frc/robot/sim/ShotFocusAutoTuneRunner.java`
@@ -219,7 +219,7 @@ py -3 scripts\plot_shot_data.py
 
 ---
 
-## Hinweis zu Clamp/Saettigung
+## Hinweis zu Clamp/Sättigung
 Frueher war "clamp rate" ein zentrales Problem wegen globaler Scale-Grenzen.
 Jetzt gilt:
 - mathematisch loest der Solver direkt die benoetigte Schusskinematik,
@@ -227,3 +227,24 @@ Jetzt gilt:
 - die relevante Kennzahl ist daher `rpm_saturation_rate_pct`.
 
 Bei den aktuellen Werten ist diese Rate niedrig. Damit ist Clamp aktuell kein Hauptblocker.
+
+---
+
+## Reality Calibrator
+Es gibt jetzt einen controller-gesteuerten Feld-Kalibrierer für Shooter/Turret:
+- `src/main/java/frc/robot/calibration/ShooterRealityCalibrator.java`
+- Session- und Sample-Modelle in `src/main/java/frc/robot/calibration/`
+- Persistenz als JSON via `src/main/java/frc/robot/calibration/CalibrationIO.java`
+
+Kurzablauf:
+1. Calibration Mode aktivieren (Operator: `Back + Start`).
+2. Mit `A` Schüsse erfassen.
+3. Mit `X` = Hit, `B` = Miss markieren.
+4. Optional Miss-Richtung:
+   - D-Pad links/rechts fuer seitlichen Fehler,
+   - D-Pad hoch/runter fuer long/short.
+5. Mit `RB` Fit berechnen, mit `LB` uebernehmen/speichern.
+
+Persistenz:
+- Laufzeitdatei: `calibration/shooter_calibration.json`
+- Wird beim Start geladen (falls vorhanden) und als Override auf den Shooter angewendet.

@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,10 +26,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
+import frc.robot.calibration.ShooterCalibrationConfig;
 import frc.robot.sim.CompletedShotTrace;
 import frc.robot.sim.ShooterTurretSimulator;
 import frc.robot.sim.ShotSample;
 import frc.robot.sim.ShotResult;
+import frc.robot.utils.LinearInterpolationTable;
 import frc.robot.utils.ShotKinematicSolver;
 
 /**
@@ -70,6 +74,21 @@ public class ShooterSubsystem extends SubsystemBase {
         }
     }
 
+    /**
+     * Snapshot of the most recently commanded shot from robot state.
+     */
+    public record ShotContext(
+            double timestampSec,
+            Pose2d robotPoseField,
+            Translation2d robotVelocityFieldMps,
+            double distanceToHubMeters,
+            double turretYawRad,
+            double topRpm,
+            double bottomRpm,
+            ShotKinematicSolver.SolveStatus solveStatus,
+            boolean rpmSaturated) {
+    }
+
     // Top and bottom shooter motors.
     private final FridolinsMotor topMotor;
     private final FridolinsMotor bottomMotor;
@@ -89,6 +108,13 @@ public class ShooterSubsystem extends SubsystemBase {
     private ShotKinematicSolver.SolveStatus lastSolveStatus = ShotKinematicSolver.SolveStatus.INVALID_INPUT;
     private boolean lastCommandRpmSaturated = false;
     private double lastRequiredMuzzleSpeedMps = 0.0;
+    private ShotContext lastShotContext = null;
+
+    // Runtime calibration overrides (optional).
+    private double turretZeroOffsetOverrideRad = Double.NaN;
+    private LinearInterpolationTable distanceBiasOverrideTable = null;
+    private double[] distanceBiasOverrideDistancesM = new double[0];
+    private double[] distanceBiasOverrideValues = new double[0];
 
     private Pose2d simRobotPoseField = new Pose2d();
     private Translation2d simRobotVelocityFieldMps = new Translation2d();
@@ -230,7 +256,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 robotVelocityFieldMps,
                 Constants.Shooter.hubPositionField,
                 Constants.Shooter.shooterOffsetRobot,
-                Constants.Shooter.turretZeroOnRobotRad);
+                getActiveTurretZeroOffsetRad());
     }
 
     /**
@@ -306,7 +332,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         // Analytic required muzzle speed -> average wheel RPM.
         double requiredAvgRpm = solveResult.requiredMuzzleSpeedMps() / Constants.Shooter.rpmToMpsFactor;
-        requiredAvgRpm *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
+        requiredAvgRpm *= getActiveDistanceScaleBias(distanceMeters);
         if (!Double.isFinite(requiredAvgRpm)) {
             return new ShotCommand(
                     0.0,
@@ -369,6 +395,16 @@ public class ShooterSubsystem extends SubsystemBase {
             command = calculateShotCommand(robotPoseField, new Translation2d());
         }
         applyShotCommand(command);
+        lastShotContext = new ShotContext(
+                Timer.getFPGATimestamp(),
+                robotPoseField,
+                robotVelocityFieldMps,
+                lastTargetDistanceMeters,
+                command.turretYawRad(),
+                command.topRpm(),
+                command.bottomRpm(),
+                command.solveStatus(),
+                command.rpmSaturated());
         return command;
     }
 
@@ -391,6 +427,50 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public boolean wasLastCommandRpmSaturated() {
         return lastCommandRpmSaturated;
+    }
+
+    public Optional<ShotContext> getLastShotContext() {
+        return Optional.ofNullable(lastShotContext);
+    }
+
+    public double getActiveTurretZeroOffsetRad() {
+        if (Double.isFinite(turretZeroOffsetOverrideRad)) {
+            return turretZeroOffsetOverrideRad;
+        }
+        return Constants.Shooter.turretZeroOnRobotRad;
+    }
+
+    public double getActiveDistanceScaleBias(double distanceMeters) {
+        if (distanceBiasOverrideTable != null) {
+            return distanceBiasOverrideTable.getOutput(distanceMeters);
+        }
+        return Constants.Shooter.getDistanceScaleBias(distanceMeters);
+    }
+
+    public void applyCalibrationOverrides(ShooterCalibrationConfig calibrationConfig) {
+        if (calibrationConfig == null
+                || calibrationConfig.biasDistancesM == null
+                || calibrationConfig.biasValues == null
+                || calibrationConfig.biasDistancesM.length != calibrationConfig.biasValues.length
+                || calibrationConfig.biasDistancesM.length < 2) {
+            return;
+        }
+
+        Point2D[] points = new Point2D[calibrationConfig.biasDistancesM.length];
+        for (int i = 0; i < points.length; i++) {
+            points[i] = new Point2D.Double(calibrationConfig.biasDistancesM[i], calibrationConfig.biasValues[i]);
+        }
+        turretZeroOffsetOverrideRad = calibrationConfig.turretZeroOffsetRad;
+        distanceBiasOverrideTable = new LinearInterpolationTable(points);
+        distanceBiasOverrideDistancesM = Arrays.copyOf(calibrationConfig.biasDistancesM, calibrationConfig.biasDistancesM.length);
+        distanceBiasOverrideValues = Arrays.copyOf(calibrationConfig.biasValues, calibrationConfig.biasValues.length);
+    }
+
+    public void clearCalibrationOverrides() {
+        turretZeroOffsetOverrideRad = Double.NaN;
+        distanceBiasOverrideTable = null;
+        distanceBiasOverrideDistancesM = new double[0];
+        distanceBiasOverrideValues = new double[0];
     }
 
     public boolean isDistanceInRange() {
@@ -642,6 +722,8 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Shooter/RpmSaturated", lastCommandRpmSaturated);
         SmartDashboard.putNumber("Shooter/RequiredMuzzleSpeedMps", lastRequiredMuzzleSpeedMps);
         SmartDashboard.putString("Shooter/ShotBlockReason", lastShotBlockReason.name());
+        SmartDashboard.putNumber("Shooter/ActiveTurretZeroDeg", Math.toDegrees(getActiveTurretZeroOffsetRad()));
+        SmartDashboard.putBoolean("Shooter/UsingBiasOverride", distanceBiasOverrideTable != null);
         SmartDashboard.putBoolean("Shooter/ShooterReady", isShooterReady());
         SmartDashboard.putNumber("Shooter/SimShotsFired", simShotsFired);
         SmartDashboard.putNumber("Shooter/LastSimFireTimestampSec", lastSimFireTimestampSec);

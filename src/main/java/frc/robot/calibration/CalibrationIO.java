@@ -1,0 +1,108 @@
+package frc.robot.calibration;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.Optional;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.wpi.first.wpilibj.Filesystem;
+import frc.robot.Constants;
+
+/**
+ * JSON persistence helper for shooter calibration overrides.
+ */
+public final class CalibrationIO {
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    private CalibrationIO() {
+    }
+
+    public static Path runtimeConfigPath() {
+        return Paths.get(
+                Constants.Calibration.runtimeCalibrationFolder,
+                Constants.Calibration.shooterCalibrationFileName);
+    }
+
+    public static Path deployConfigPath() {
+        return Filesystem.getDeployDirectory().toPath()
+                .resolve(Constants.Calibration.runtimeCalibrationFolder)
+                .resolve(Constants.Calibration.shooterCalibrationFileName);
+    }
+
+    public static Optional<ShooterCalibrationConfig> loadBestAvailable() {
+        Optional<ShooterCalibrationConfig> runtime = loadFromPath(runtimeConfigPath());
+        if (runtime.isPresent()) {
+            return runtime;
+        }
+        return loadFromPath(deployConfigPath());
+    }
+
+    public static Optional<ShooterCalibrationConfig> loadFromPath(Path path) {
+        if (!Files.exists(path)) {
+            return Optional.empty();
+        }
+        try {
+            ShooterCalibrationConfig config = MAPPER.readValue(path.toFile(), ShooterCalibrationConfig.class);
+            return validate(config) ? Optional.of(config) : Optional.empty();
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static boolean writeRuntimeConfig(ShooterCalibrationConfig config) {
+        if (!validate(config)) {
+            return false;
+        }
+        try {
+            Path outputPath = runtimeConfigPath();
+            Path parent = outputPath.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            ShooterCalibrationConfig toWrite = config.copy();
+            toWrite.generatedAtIsoUtc = Instant.now().toString();
+            MAPPER.writerWithDefaultPrettyPrinter().writeValue(outputPath.toFile(), toWrite);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public static boolean validate(ShooterCalibrationConfig config) {
+        if (config == null) {
+            return false;
+        }
+        if (!Double.isFinite(config.turretZeroOffsetRad)) {
+            return false;
+        }
+        if (config.biasDistancesM == null || config.biasValues == null) {
+            return false;
+        }
+        if (config.biasDistancesM.length != config.biasValues.length) {
+            return false;
+        }
+        if (config.biasDistancesM.length < 2) {
+            return false;
+        }
+        double prev = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < config.biasDistancesM.length; i++) {
+            double x = config.biasDistancesM[i];
+            double y = config.biasValues[i];
+            if (!Double.isFinite(x) || !Double.isFinite(y)) {
+                return false;
+            }
+            if (x <= prev) {
+                return false;
+            }
+            prev = x;
+        }
+        return true;
+    }
+}
+
