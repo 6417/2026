@@ -5,22 +5,31 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
+import frc.robot.commands.intake.IntakeCommand;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final FridoSparkMax intakeMotor;
 
+    public boolean isIntakeOn;
+
+    public boolean run = true;
+
     public IntakeSubsystem() {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
+        isIntakeOn = false;
+        run = true;
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
+
+        setDefaultCommand(new IntakeCommand(this));
     }
 
     @Override
     public void periodic() {
         double currentAmps = intakeMotor.getOutputCurrent();
-        double rpm = Math.abs(intakeMotor.getEncoderVelocity());
-        if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpm < Constants.Intake.intakeStallRpmThreshold) {
-            intakeMotor.stopMotor();
+        double rpms = intakeMotor.getEncoderVelocity();
+        if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpms < Constants.Intake.intakeStallRpmThreshold) {
+            run = false;
         }
     }
 
