@@ -10,6 +10,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -27,6 +28,7 @@ import frc.robot.sim.CompletedShotTrace;
 import frc.robot.sim.ShooterTurretSimulator;
 import frc.robot.sim.ShotSample;
 import frc.robot.sim.ShotResult;
+import frc.robot.utils.ShotKinematicSolver;
 
 /**
  * Shooter subsystem responsible for:
@@ -42,6 +44,8 @@ public class ShooterSubsystem extends SubsystemBase {
         NONE,
         DISTANCE_OUT_OF_RANGE,
         ROBOT_TURNING_TOO_FAST,
+        SHOT_SOLUTION_INVALID,
+        RPM_SATURATED,
         SHOOTER_NOT_READY,
         TURRET_NOT_READY
     }
@@ -53,7 +57,17 @@ public class ShooterSubsystem extends SubsystemBase {
      * topRpm/bottomRpm: wheel RPM targets to achieve the required ball speed and spin.
      * flightTimeSec: estimated flight time used for lead compensation.
      */
-    public record ShotCommand(double turretYawRad, double topRpm, double bottomRpm, double flightTimeSec) {
+    public record ShotCommand(
+            double turretYawRad,
+            double topRpm,
+            double bottomRpm,
+            double flightTimeSec,
+            ShotKinematicSolver.SolveStatus solveStatus,
+            double requiredMuzzleSpeedMps,
+            boolean rpmSaturated) {
+        public boolean isValidSolution() {
+            return solveStatus == ShotKinematicSolver.SolveStatus.SOLVED;
+        }
     }
 
     // Top and bottom shooter motors.
@@ -72,6 +86,9 @@ public class ShooterSubsystem extends SubsystemBase {
     private double topPercentCommand = 0.0;
     private double bottomPercentCommand = 0.0;
     private double turretTargetAngleRad = 0.0;
+    private ShotKinematicSolver.SolveStatus lastSolveStatus = ShotKinematicSolver.SolveStatus.INVALID_INPUT;
+    private boolean lastCommandRpmSaturated = false;
+    private double lastRequiredMuzzleSpeedMps = 0.0;
 
     private Pose2d simRobotPoseField = new Pose2d();
     private Translation2d simRobotVelocityFieldMps = new Translation2d();
@@ -235,43 +252,87 @@ public class ShooterSubsystem extends SubsystemBase {
 
         // If target vector is too small, keep default settings to avoid unstable math.
         if (distanceMeters < 1e-6) {
-            return new ShotCommand(0.0, Constants.Shooter.defaultTopRpm, Constants.Shooter.defaultBottomRpm,
-                    Constants.Shooter.minFlightTimeSec);
+            return new ShotCommand(
+                    0.0,
+                    Constants.Shooter.defaultTopRpm,
+                    Constants.Shooter.defaultBottomRpm,
+                    Constants.Shooter.minFlightTimeSec,
+                    ShotKinematicSolver.SolveStatus.TARGET_TOO_CLOSE,
+                    0.0,
+                    false);
         }
 
-        // Stationary baseline from measured tables.
+        // Stationary baseline tables are still used to preserve wheel split (spin)
+        // and optional distance bias while the required average speed is solved analytically.
         double baseTopRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
         double baseBottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
-        double flightTimeSec = Math.max(Constants.Shooter.minFlightTimeSec,
-                Constants.Shooter.flightTimeTable.getOutput(distanceMeters));
+        double splitRpm = baseTopRpm - baseBottomRpm;
 
-        // Required ball velocity in field frame to reach hub in estimated flight time.
-        Translation2d requiredBallVelocityField = shooterToHubField.div(flightTimeSec);
+        ShotKinematicSolver.SolveResult solveResult = ShotKinematicSolver.solve(
+                new ShotKinematicSolver.SolveRequest(
+                        new Translation3d(
+                                shooterPositionField.getX(),
+                                shooterPositionField.getY(),
+                                Constants.ShooterSim.launchHeightMeters),
+                        new Translation3d(
+                                hubPositionField.getX(),
+                                hubPositionField.getY(),
+                                Constants.ShooterSim.hubCenterHeightMeters),
+                        robotVelocityFieldMps,
+                        Constants.ShooterSim.launchPitchRad,
+                        Constants.ShooterSim.gravityMetersPerSec2,
+                        Constants.Shooter.solverMinFlightTimeSec,
+                        Constants.Shooter.solverMaxFlightTimeSec,
+                        Constants.Shooter.solverMaxIterations,
+                        Constants.Shooter.solverFlightTimeToleranceSec,
+                        Constants.Shooter.solverVerticalErrorToleranceMeters,
+                        Constants.ShooterSim.dragCoefficientPerMeter,
+                        Constants.Shooter.solverDragSpeedCompensationGain));
 
-        // Relative muzzle velocity that shooter must create in robot frame context.
-        Translation2d requiredMuzzleVelocityField = requiredBallVelocityField.minus(robotVelocityFieldMps);
+        if (!solveResult.solved()) {
+            return new ShotCommand(
+                    0.0,
+                    Constants.Shooter.defaultTopRpm,
+                    Constants.Shooter.defaultBottomRpm,
+                    Constants.Shooter.minFlightTimeSec,
+                    solveResult.status(),
+                    0.0,
+                    false);
+        }
 
         // Turret heading setpoint in robot frame.
-        double turretYawFieldRad = requiredMuzzleVelocityField.getAngle().getRadians();
         double turretYawRobotRad = MathUtil.angleModulus(
-                turretYawFieldRad - robotPoseField.getRotation().getRadians() - turretZeroOnRobotRad);
+                solveResult.yawFieldRad() - robotPoseField.getRotation().getRadians() - turretZeroOnRobotRad);
 
-        // Scale baseline RPM up/down so average wheel speed matches required muzzle speed magnitude.
-        double requiredMuzzleSpeedMps = requiredMuzzleVelocityField.getNorm();
-        double nominalMuzzleSpeedMps = ballSpeedFromRpm((baseTopRpm + baseBottomRpm) / 2.0);
-
-        double rawScale = 1.0;
-        if (nominalMuzzleSpeedMps > 1e-6) {
-            rawScale = requiredMuzzleSpeedMps / nominalMuzzleSpeedMps;
+        // Analytic required muzzle speed -> average wheel RPM.
+        double requiredAvgRpm = solveResult.requiredMuzzleSpeedMps() / Constants.Shooter.rpmToMpsFactor;
+        requiredAvgRpm *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
+        if (!Double.isFinite(requiredAvgRpm)) {
+            return new ShotCommand(
+                    0.0,
+                    Constants.Shooter.defaultTopRpm,
+                    Constants.Shooter.defaultBottomRpm,
+                    Constants.Shooter.minFlightTimeSec,
+                    ShotKinematicSolver.SolveStatus.INVALID_INPUT,
+                    0.0,
+                    false);
         }
-        // Distance bias gives a smooth way to reduce clamp saturation without breaking table shape.
-        rawScale *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
-        double scale = MathUtil.clamp(rawScale, Constants.Shooter.movingShotScaleMin, Constants.Shooter.movingShotScaleMax);
 
-        double correctedTopRpm = clampRpm(baseTopRpm * scale);
-        double correctedBottomRpm = clampRpm(baseBottomRpm * scale);
+        double requestedTopRpm = requiredAvgRpm + (splitRpm * 0.5);
+        double requestedBottomRpm = requiredAvgRpm - (splitRpm * 0.5);
 
-        return new ShotCommand(turretYawRobotRad, correctedTopRpm, correctedBottomRpm, flightTimeSec);
+        RpmLimitResult topLimit = clampRpmWithStatus(requestedTopRpm);
+        RpmLimitResult bottomLimit = clampRpmWithStatus(requestedBottomRpm);
+        boolean rpmSaturated = topLimit.saturated() || bottomLimit.saturated();
+
+        return new ShotCommand(
+                turretYawRobotRad,
+                topLimit.rpm(),
+                bottomLimit.rpm(),
+                solveResult.flightTimeSec(),
+                solveResult.status(),
+                solveResult.requiredMuzzleSpeedMps(),
+                rpmSaturated);
     }
 
     /**
@@ -289,6 +350,9 @@ public class ShooterSubsystem extends SubsystemBase {
     public void applyShotCommand(ShotCommand command) {
         // We always apply turret setpoint and wheel setpoints together to keep
         // the command semantically atomic ("this is one planned shot state").
+        lastSolveStatus = command.solveStatus();
+        lastCommandRpmSaturated = command.rpmSaturated();
+        lastRequiredMuzzleSpeedMps = command.requiredMuzzleSpeedMps();
         setTurretTargetAngleRad(command.turretYawRad());
         run(command.topRpm(), command.bottomRpm());
     }
@@ -321,6 +385,14 @@ public class ShooterSubsystem extends SubsystemBase {
         return lastShotBlockReason;
     }
 
+    public ShotKinematicSolver.SolveStatus getLastSolveStatus() {
+        return lastSolveStatus;
+    }
+
+    public boolean wasLastCommandRpmSaturated() {
+        return lastCommandRpmSaturated;
+    }
+
     public boolean isDistanceInRange() {
         if (Double.isNaN(lastTargetDistanceMeters)) {
             return false;
@@ -340,6 +412,15 @@ public class ShooterSubsystem extends SubsystemBase {
         }
         if (Math.abs(robotOmegaRadPerSec) > Constants.Shooter.maxRobotOmegaRadPerSecForShot) {
             lastShotBlockReason = ShotBlockReason.ROBOT_TURNING_TOO_FAST;
+            return false;
+        }
+        if (Constants.Shooter.blockWhenShotSolutionInvalid
+                && lastSolveStatus != ShotKinematicSolver.SolveStatus.SOLVED) {
+            lastShotBlockReason = ShotBlockReason.SHOT_SOLUTION_INVALID;
+            return false;
+        }
+        if (Constants.Shooter.blockWhenRpmSaturated && lastCommandRpmSaturated) {
+            lastShotBlockReason = ShotBlockReason.RPM_SATURATED;
             return false;
         }
         if (!isShooterReady()) {
@@ -380,6 +461,15 @@ public class ShooterSubsystem extends SubsystemBase {
         return rpm;
     }
 
+    private RpmLimitResult clampRpmWithStatus(double rpm) {
+        if (Constants.Shooter.maxRpm > 0.0) {
+            double clamped = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);
+            boolean saturated = Math.abs(clamped - rpm) > 1e-6;
+            return new RpmLimitResult(clamped, saturated);
+        }
+        return new RpmLimitResult(rpm, false);
+    }
+
     private double calculateOutput(PIDController pid, double currentRpm, double targetRpm) {
         /**
          * Compute motor output from RPM error.
@@ -396,6 +486,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
         // Final safety clamp to motor input range.
         return MathUtil.clamp(output, -1.0, 1.0);
+    }
+
+    private record RpmLimitResult(double rpm, boolean saturated) {
     }
 
     public void setTurretTargetAngleRad(double targetAngleRad) {
@@ -545,6 +638,9 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter/PendingShotTraces", pendingCompletedShotTraces.size());
         SmartDashboard.putNumber("Shooter/TargetDistanceM", lastTargetDistanceMeters);
         SmartDashboard.putBoolean("Shooter/DistanceInRange", isDistanceInRange());
+        SmartDashboard.putString("Shooter/SolveStatus", lastSolveStatus.name());
+        SmartDashboard.putBoolean("Shooter/RpmSaturated", lastCommandRpmSaturated);
+        SmartDashboard.putNumber("Shooter/RequiredMuzzleSpeedMps", lastRequiredMuzzleSpeedMps);
         SmartDashboard.putString("Shooter/ShotBlockReason", lastShotBlockReason.name());
         SmartDashboard.putBoolean("Shooter/ShooterReady", isShooterReady());
         SmartDashboard.putNumber("Shooter/SimShotsFired", simShotsFired);

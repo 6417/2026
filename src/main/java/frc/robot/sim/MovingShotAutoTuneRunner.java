@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.Constants;
 import frc.robot.utils.LinearInterpolationTable;
+import frc.robot.utils.ShotKinematicSolver;
 
 /**
  * Auto-tuner focused on reducing moving-shot clamp saturation while keeping hit quality.
@@ -43,23 +44,17 @@ public class MovingShotAutoTuneRunner {
     private static final class Params {
         final double[] avgRpm = new double[DISTANCE_POINTS_M.length];
         final double[] splitRpm = new double[DISTANCE_POINTS_M.length];
-        final double[] flightTimeSec = new double[DISTANCE_POINTS_M.length];
         final double[] distanceScaleBias = new double[DISTANCE_POINTS_M.length];
         double rpmToMpsFactor;
         double dragCoeffPerMeter;
-        double movingScaleMin;
-        double movingScaleMax;
 
         Params copy() {
             Params c = new Params();
             System.arraycopy(avgRpm, 0, c.avgRpm, 0, avgRpm.length);
             System.arraycopy(splitRpm, 0, c.splitRpm, 0, splitRpm.length);
-            System.arraycopy(flightTimeSec, 0, c.flightTimeSec, 0, flightTimeSec.length);
             System.arraycopy(distanceScaleBias, 0, c.distanceScaleBias, 0, distanceScaleBias.length);
             c.rpmToMpsFactor = rpmToMpsFactor;
             c.dragCoeffPerMeter = dragCoeffPerMeter;
-            c.movingScaleMin = movingScaleMin;
-            c.movingScaleMax = movingScaleMax;
             return c;
         }
     }
@@ -67,13 +62,20 @@ public class MovingShotAutoTuneRunner {
     private record EvalResult(ShotResult shotResult, boolean clamped) {
     }
 
-    private record CellStats(int count, int hitCount, int clampedCount, double sumError) {
+    private record CellStats(int count, int hitCount, int clampedCount, double sumError, int finiteErrorCount) {
         CellStats add(boolean hit, boolean clamped, double err) {
+            double sum = sumError;
+            int finite = finiteErrorCount;
+            if (Double.isFinite(err)) {
+                sum += err;
+                finite++;
+            }
             return new CellStats(
                     count + 1,
                     hitCount + (hit ? 1 : 0),
                     clampedCount + (clamped ? 1 : 0),
-                    sumError + err);
+                    sum,
+                    finite);
         }
 
         double hitRate() {
@@ -85,33 +87,45 @@ public class MovingShotAutoTuneRunner {
         }
 
         double meanErr() {
-            return count > 0 ? (sumError / count) : Double.POSITIVE_INFINITY;
+            return finiteErrorCount > 0 ? (sumError / finiteErrorCount) : Double.POSITIVE_INFINITY;
         }
     }
 
     private static final class Score {
         final double objective;
         final double hitRate;
+        final double focusHitRate;
         final double meanClosest;
+        final double focusMeanClosest;
         final double meanHorizontal;
         final double meanVertical;
         final double clampRate;
+        final double focusClampRate;
+        final double focusInvalidRate;
         final double cellPenalty;
 
         Score(
                 double objective,
                 double hitRate,
+                double focusHitRate,
                 double meanClosest,
+                double focusMeanClosest,
                 double meanHorizontal,
                 double meanVertical,
                 double clampRate,
+                double focusClampRate,
+                double focusInvalidRate,
                 double cellPenalty) {
             this.objective = objective;
             this.hitRate = hitRate;
+            this.focusHitRate = focusHitRate;
             this.meanClosest = meanClosest;
+            this.focusMeanClosest = focusMeanClosest;
             this.meanHorizontal = meanHorizontal;
             this.meanVertical = meanVertical;
             this.clampRate = clampRate;
+            this.focusClampRate = focusClampRate;
+            this.focusInvalidRate = focusInvalidRate;
             this.cellPenalty = cellPenalty;
         }
     }
@@ -131,15 +145,13 @@ public class MovingShotAutoTuneRunner {
         Random rng = new Random(seed);
         double avgStep = 220.0;
         double splitStep = 65.0;
-        double flightStep = 0.040;
         double biasStep = 0.060;
         double rpmStep = 0.00020;
         double dragStep = 0.0060;
-        double scaleStep = 0.025;
 
         for (int iter = 0; iter < iterations; iter++) {
             Params candidate = current.copy();
-            mutate(candidate, rng, avgStep, splitStep, flightStep, biasStep, rpmStep, dragStep, scaleStep);
+            mutate(candidate, rng, avgStep, splitStep, biasStep, rpmStep, dragStep);
             projectAndClamp(candidate);
 
             Score candidateScore = evaluate(candidate, scenarios);
@@ -164,22 +176,22 @@ public class MovingShotAutoTuneRunner {
             if ((iter + 1) % 600 == 0) {
                 avgStep *= 0.90;
                 splitStep *= 0.90;
-                flightStep *= 0.92;
                 biasStep *= 0.90;
                 rpmStep *= 0.90;
                 dragStep *= 0.90;
-                scaleStep *= 0.92;
                 System.out.printf(
-                        "iter=%d | hitRate=%.3f | meanClosest=%.3f | clampRate=%.3f | penalty=%.2f | rpmToMps=%.6f | drag=%.4f | scale=[%.3f, %.3f]%n",
+                        "iter=%d | hitRate=%.3f | focusHit=%.3f | meanClosest=%.3f | focusErr=%.3f | saturation=%.3f | focusSaturation=%.3f | focusInvalid=%.3f | penalty=%.2f | rpmToMps=%.6f | drag=%.4f%n",
                         iter + 1,
                         bestScore.hitRate,
+                        bestScore.focusHitRate,
                         bestScore.meanClosest,
+                        bestScore.focusMeanClosest,
                         bestScore.clampRate,
+                        bestScore.focusClampRate,
+                        bestScore.focusInvalidRate,
                         bestScore.cellPenalty,
                         best.rpmToMpsFactor,
-                        best.dragCoeffPerMeter,
-                        best.movingScaleMin,
-                        best.movingScaleMax);
+                        best.dragCoeffPerMeter);
             }
         }
 
@@ -225,20 +237,12 @@ public class MovingShotAutoTuneRunner {
         p.splitRpm[3] = 876.0;
         p.splitRpm[4] = 796.0;
 
-        p.flightTimeSec[0] = 0.180;
-        p.flightTimeSec[1] = 0.440;
-        p.flightTimeSec[2] = 0.499;
-        p.flightTimeSec[3] = 0.618;
-        p.flightTimeSec[4] = 0.628;
-
         for (int i = 0; i < p.distanceScaleBias.length; i++) {
             p.distanceScaleBias[i] = 1.0;
         }
 
         p.rpmToMpsFactor = Constants.Shooter.rpmToMpsFactor;
         p.dragCoeffPerMeter = Constants.ShooterSim.dragCoefficientPerMeter;
-        p.movingScaleMin = Constants.Shooter.movingShotScaleMin;
-        p.movingScaleMax = Constants.Shooter.movingShotScaleMax;
 
         projectAndClamp(p);
         return p;
@@ -249,12 +253,10 @@ public class MovingShotAutoTuneRunner {
             Random rng,
             double avgStep,
             double splitStep,
-            double flightStep,
             double biasStep,
             double rpmStep,
-            double dragStep,
-            double scaleStep) {
-        int variableCount = (4 * DISTANCE_POINTS_M.length) + 4;
+            double dragStep) {
+        int variableCount = (3 * DISTANCE_POINTS_M.length) + 2;
         int which = rng.nextInt(variableCount);
         double sign = rng.nextBoolean() ? 1.0 : -1.0;
         if (which < DISTANCE_POINTS_M.length) {
@@ -264,18 +266,11 @@ public class MovingShotAutoTuneRunner {
             p.splitRpm[i] += sign * splitStep * (0.35 + 0.65 * rng.nextDouble());
         } else if (which < 3 * DISTANCE_POINTS_M.length) {
             int i = which - (2 * DISTANCE_POINTS_M.length);
-            p.flightTimeSec[i] += sign * flightStep * (0.35 + 0.65 * rng.nextDouble());
-        } else if (which < 4 * DISTANCE_POINTS_M.length) {
-            int i = which - (3 * DISTANCE_POINTS_M.length);
             p.distanceScaleBias[i] += sign * biasStep * (0.35 + 0.65 * rng.nextDouble());
-        } else if (which == 4 * DISTANCE_POINTS_M.length) {
+        } else if (which == 3 * DISTANCE_POINTS_M.length) {
             p.rpmToMpsFactor += sign * rpmStep * (0.35 + 0.65 * rng.nextDouble());
-        } else if (which == (4 * DISTANCE_POINTS_M.length) + 1) {
-            p.dragCoeffPerMeter += sign * dragStep * (0.35 + 0.65 * rng.nextDouble());
-        } else if (which == (4 * DISTANCE_POINTS_M.length) + 2) {
-            p.movingScaleMin += sign * scaleStep * (0.35 + 0.65 * rng.nextDouble());
         } else {
-            p.movingScaleMax += sign * scaleStep * (0.35 + 0.65 * rng.nextDouble());
+            p.dragCoeffPerMeter += sign * dragStep * (0.35 + 0.65 * rng.nextDouble());
         }
     }
 
@@ -283,12 +278,10 @@ public class MovingShotAutoTuneRunner {
         for (int i = 0; i < p.avgRpm.length; i++) {
             p.avgRpm[i] = MathUtil.clamp(p.avgRpm[i], 1800.0, 7600.0);
             p.splitRpm[i] = MathUtil.clamp(p.splitRpm[i], 80.0, 1200.0);
-            p.flightTimeSec[i] = MathUtil.clamp(p.flightTimeSec[i], 0.14, 1.10);
             p.distanceScaleBias[i] = MathUtil.clamp(p.distanceScaleBias[i], 0.75, 1.70);
         }
         for (int i = 1; i < p.avgRpm.length; i++) {
             p.avgRpm[i] = Math.max(p.avgRpm[i], p.avgRpm[i - 1] + 25.0);
-            p.flightTimeSec[i] = Math.max(p.flightTimeSec[i], p.flightTimeSec[i - 1] + 0.008);
 
             double maxBiasStep = 0.25;
             p.distanceScaleBias[i] = MathUtil.clamp(
@@ -299,87 +292,138 @@ public class MovingShotAutoTuneRunner {
 
         p.rpmToMpsFactor = MathUtil.clamp(p.rpmToMpsFactor, 0.0020, 0.0072);
         p.dragCoeffPerMeter = MathUtil.clamp(p.dragCoeffPerMeter, 0.000, 0.12);
-
-        p.movingScaleMin = MathUtil.clamp(p.movingScaleMin, 0.35, 1.05);
-        p.movingScaleMax = MathUtil.clamp(p.movingScaleMax, 0.95, 2.10);
-        if (p.movingScaleMax < p.movingScaleMin + 0.10) {
-            p.movingScaleMax = p.movingScaleMin + 0.10;
-        }
     }
 
     private static Score evaluate(Params p, List<TunedScenario> scenarios) {
         Point2D[] topPoints = new Point2D[DISTANCE_POINTS_M.length];
         Point2D[] bottomPoints = new Point2D[DISTANCE_POINTS_M.length];
-        Point2D[] flightPoints = new Point2D[DISTANCE_POINTS_M.length];
         Point2D[] biasPoints = new Point2D[DISTANCE_POINTS_M.length];
         for (int i = 0; i < DISTANCE_POINTS_M.length; i++) {
             double top = p.avgRpm[i] + (p.splitRpm[i] * 0.5);
             double bottom = p.avgRpm[i] - (p.splitRpm[i] * 0.5);
             topPoints[i] = new Point2D.Double(DISTANCE_POINTS_M[i], top);
             bottomPoints[i] = new Point2D.Double(DISTANCE_POINTS_M[i], bottom);
-            flightPoints[i] = new Point2D.Double(DISTANCE_POINTS_M[i], p.flightTimeSec[i]);
             biasPoints[i] = new Point2D.Double(DISTANCE_POINTS_M[i], p.distanceScaleBias[i]);
         }
         LinearInterpolationTable topRpmTable = new LinearInterpolationTable(topPoints);
         LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(bottomPoints);
-        LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(flightPoints);
         LinearInterpolationTable distanceBiasTable = new LinearInterpolationTable(biasPoints);
 
         int hits = 0;
         int clamped = 0;
+        int invalid = 0;
         double sumClosest = 0.0;
         double sumHorizontal = 0.0;
         double sumVertical = 0.0;
+        int finiteCount = 0;
+
+        int focusCount = 0;
+        int focusHits = 0;
+        int focusClamped = 0;
+        int focusInvalid = 0;
+        double focusSumClosest = 0.0;
 
         Map<String, CellStats> cellStats = new HashMap<>();
 
         for (TunedScenario scenario : scenarios) {
-            EvalResult result = evaluateScenario(scenario, topRpmTable, bottomRpmTable, flightTimeTable, distanceBiasTable, p);
+            EvalResult result = evaluateScenario(scenario, topRpmTable, bottomRpmTable, distanceBiasTable, p);
             if (result.shotResult().hit()) {
                 hits++;
             }
             if (result.clamped()) {
                 clamped++;
             }
-            sumClosest += result.shotResult().closestDistanceMeters();
-            sumHorizontal += result.shotResult().horizontalErrorMeters();
-            sumVertical += result.shotResult().verticalErrorMeters();
+            if (!Double.isFinite(result.shotResult().closestDistanceMeters())) {
+                invalid++;
+            } else {
+                sumClosest += result.shotResult().closestDistanceMeters();
+                sumHorizontal += result.shotResult().horizontalErrorMeters();
+                sumVertical += result.shotResult().verticalErrorMeters();
+                finiteCount++;
+            }
+
+            if (scenario.distanceMeters() >= 2.0 && scenario.distanceMeters() <= 5.0) {
+                focusCount++;
+                if (result.shotResult().hit()) {
+                    focusHits++;
+                }
+                if (result.clamped()) {
+                    focusClamped++;
+                }
+                if (!Double.isFinite(result.shotResult().closestDistanceMeters())) {
+                    focusInvalid++;
+                } else {
+                    focusSumClosest += result.shotResult().closestDistanceMeters();
+                }
+            }
 
             String key = String.format(Locale.US, "%.2f|%.1f", scenario.distanceMeters(), scenario.speedMps());
-            CellStats s = cellStats.getOrDefault(key, new CellStats(0, 0, 0, 0.0));
+            CellStats s = cellStats.getOrDefault(key, new CellStats(0, 0, 0, 0.0, 0));
             cellStats.put(key, s.add(result.shotResult().hit(), result.clamped(), result.shotResult().closestDistanceMeters()));
         }
 
         int n = scenarios.size();
         double hitRate = (double) hits / (double) n;
         double clampRate = (double) clamped / (double) n;
-        double meanClosest = sumClosest / n;
-        double meanHorizontal = sumHorizontal / n;
-        double meanVertical = sumVertical / n;
+        double meanClosest = finiteCount > 0 ? (sumClosest / finiteCount) : Double.POSITIVE_INFINITY;
+        double meanHorizontal = finiteCount > 0 ? (sumHorizontal / finiteCount) : Double.POSITIVE_INFINITY;
+        double meanVertical = finiteCount > 0 ? (sumVertical / finiteCount) : Double.POSITIVE_INFINITY;
+        double invalidRate = (double) invalid / (double) n;
+
+        double focusHitRate = focusCount > 0 ? (double) focusHits / (double) focusCount : 0.0;
+        double focusClampRate = focusCount > 0 ? (double) focusClamped / (double) focusCount : 0.0;
+        double focusInvalidRate = focusCount > 0 ? (double) focusInvalid / (double) focusCount : 0.0;
+        int focusFinite = Math.max(1, focusCount - focusInvalid);
+        double focusMeanClosest = focusSumClosest / focusFinite;
 
         double cellPenalty = 0.0;
         List<Double> cellErrors = new ArrayList<>();
         for (Map.Entry<String, CellStats> e : cellStats.entrySet()) {
             String[] parts = e.getKey().split("\\|");
+            double distance = Double.parseDouble(parts[0]);
             double speed = Double.parseDouble(parts[1]);
             CellStats s = e.getValue();
             double cHit = s.hitRate();
             double cClamp = s.clampRate();
             double cErr = s.meanErr();
-            cellErrors.add(cErr);
+            if (Double.isFinite(cErr)) {
+                cellErrors.add(cErr);
+            }
 
-            if (speed <= 2.0 && cHit < 0.90) {
-                cellPenalty += (0.90 - cHit) * 1200.0;
-            }
-            if (speed > 2.0 && cHit < 0.75) {
-                cellPenalty += (0.75 - cHit) * 800.0;
-            }
-            if (cClamp > 0.70) {
-                cellPenalty += (cClamp - 0.70) * 650.0;
+            boolean inFocus = distance >= 2.0 && distance <= 5.0;
+            if (inFocus) {
+                if (cHit < 0.90) {
+                    cellPenalty += (0.90 - cHit) * 1600.0;
+                }
+                if (cClamp > 0.20) {
+                    cellPenalty += (cClamp - 0.20) * 1200.0;
+                }
+                if (Double.isFinite(cErr) && cErr > 0.45) {
+                    cellPenalty += (cErr - 0.45) * 700.0;
+                }
+            } else {
+                if (speed <= 2.0 && cHit < 0.85) {
+                    cellPenalty += (0.85 - cHit) * 550.0;
+                }
+                if (speed > 2.0 && cHit < 0.70) {
+                    cellPenalty += (0.70 - cHit) * 450.0;
+                }
             }
         }
-        if (clampRate > 0.40) {
-            cellPenalty += (clampRate - 0.40) * 2200.0;
+        if (focusClampRate > 0.05) {
+            cellPenalty += (focusClampRate - 0.05) * 4200.0;
+        }
+        if (focusInvalidRate > 0.02) {
+            cellPenalty += (focusInvalidRate - 0.02) * 7000.0;
+        }
+        if (focusHitRate < 0.90) {
+            cellPenalty += (0.90 - focusHitRate) * 14000.0;
+        }
+        if (clampRate > 0.30) {
+            cellPenalty += (clampRate - 0.30) * 1600.0;
+        }
+        if (invalidRate > 0.05) {
+            cellPenalty += (invalidRate - 0.05) * 2600.0;
         }
 
         double errMean = 0.0;
@@ -401,15 +445,30 @@ public class MovingShotAutoTuneRunner {
         // Objective weights intentionally emphasize "keep scoring" first, then
         // reduce clamp dependence and error variance.
         double objective = (hitRate * 2200.0)
+                + (focusHitRate * 7600.0)
                 - (meanClosest * 170.0)
+                - (focusMeanClosest * 620.0)
                 - (meanHorizontal * 90.0)
                 - (meanVertical * 120.0)
                 - (clampRate * 620.0)
+                - (focusClampRate * 1850.0)
+                - (focusInvalidRate * 3600.0)
                 - (errStd * 220.0)
                 - smoothPenalty
                 - cellPenalty;
 
-        return new Score(objective, hitRate, meanClosest, meanHorizontal, meanVertical, clampRate, cellPenalty);
+        return new Score(
+                objective,
+                hitRate,
+                focusHitRate,
+                meanClosest,
+                focusMeanClosest,
+                meanHorizontal,
+                meanVertical,
+                clampRate,
+                focusClampRate,
+                focusInvalidRate,
+                cellPenalty);
     }
 
     private static double tableSmoothnessPenalty(Params p) {
@@ -417,11 +476,9 @@ public class MovingShotAutoTuneRunner {
         for (int i = 1; i < p.avgRpm.length - 1; i++) {
             double secAvg = p.avgRpm[i + 1] - (2.0 * p.avgRpm[i]) + p.avgRpm[i - 1];
             double secSplit = p.splitRpm[i + 1] - (2.0 * p.splitRpm[i]) + p.splitRpm[i - 1];
-            double secTime = p.flightTimeSec[i + 1] - (2.0 * p.flightTimeSec[i]) + p.flightTimeSec[i - 1];
             double secBias = p.distanceScaleBias[i + 1] - (2.0 * p.distanceScaleBias[i]) + p.distanceScaleBias[i - 1];
             penalty += Math.abs(secAvg) * 0.10;
             penalty += Math.abs(secSplit) * 0.18;
-            penalty += Math.abs(secTime) * 420.0;
             penalty += Math.abs(secBias) * 260.0;
         }
         return penalty;
@@ -431,7 +488,6 @@ public class MovingShotAutoTuneRunner {
             TunedScenario scenario,
             LinearInterpolationTable topRpmTable,
             LinearInterpolationTable bottomRpmTable,
-            LinearInterpolationTable flightTimeTable,
             LinearInterpolationTable distanceBiasTable,
             Params p) {
         Translation2d shooterPositionField = scenario.robotPoseField().getTranslation().plus(
@@ -447,33 +503,59 @@ public class MovingShotAutoTuneRunner {
 
         double baseTopRpm = topRpmTable.getOutput(distanceMeters);
         double baseBottomRpm = bottomRpmTable.getOutput(distanceMeters);
-        double baseAvgRpm = (baseTopRpm + baseBottomRpm) * 0.5;
-        double flightTimeEstimateSec = Math.max(Constants.Shooter.minFlightTimeSec, flightTimeTable.getOutput(distanceMeters));
+        double splitRpm = baseTopRpm - baseBottomRpm;
 
-        Translation2d requiredBallVelocityField = shooterToHubField.div(flightTimeEstimateSec);
-        Translation2d requiredMuzzleVelocityField = requiredBallVelocityField.minus(scenario.robotVelocityFieldMps());
-
-        double yawFieldRad = requiredMuzzleVelocityField.getAngle().getRadians();
-        double requiredMuzzleSpeedMps = requiredMuzzleVelocityField.getNorm();
-        double nominalMuzzleSpeedMps = baseAvgRpm * p.rpmToMpsFactor;
-
-        double rawScale = 1.0;
-        if (nominalMuzzleSpeedMps > 1e-6) {
-            rawScale = requiredMuzzleSpeedMps / nominalMuzzleSpeedMps;
+        ShotKinematicSolver.SolveResult solveResult = ShotKinematicSolver.solve(
+                new ShotKinematicSolver.SolveRequest(
+                        new Translation3d(
+                                shooterPositionField.getX(),
+                                shooterPositionField.getY(),
+                                Constants.ShooterSim.launchHeightMeters),
+                        new Translation3d(
+                                Constants.Shooter.hubPositionField.getX(),
+                                Constants.Shooter.hubPositionField.getY(),
+                                Constants.ShooterSim.hubCenterHeightMeters),
+                        scenario.robotVelocityFieldMps(),
+                        Constants.ShooterSim.launchPitchRad,
+                        Constants.ShooterSim.gravityMetersPerSec2,
+                        Constants.Shooter.solverMinFlightTimeSec,
+                        Constants.Shooter.solverMaxFlightTimeSec,
+                        Constants.Shooter.solverMaxIterations,
+                        Constants.Shooter.solverFlightTimeToleranceSec,
+                        Constants.Shooter.solverVerticalErrorToleranceMeters,
+                        p.dragCoeffPerMeter,
+                        Constants.Shooter.solverDragSpeedCompensationGain));
+        if (!solveResult.solved()) {
+            return new EvalResult(
+                    new ShotResult(
+                            false,
+                            Double.POSITIVE_INFINITY,
+                            Double.POSITIVE_INFINITY,
+                            Double.POSITIVE_INFINITY,
+                            0.0,
+                            Constants.ShooterSim.maxFlightTimeSec),
+                    true);
         }
-        rawScale *= distanceBiasTable.getOutput(distanceMeters);
 
-        double scale = MathUtil.clamp(rawScale, p.movingScaleMin, p.movingScaleMax);
-        boolean clamped = Math.abs(scale - rawScale) > 1e-6;
+        double requiredAvgRpm = (solveResult.requiredMuzzleSpeedMps() / p.rpmToMpsFactor)
+                * distanceBiasTable.getOutput(distanceMeters);
+        double requestedTopRpm = requiredAvgRpm + (splitRpm * 0.5);
+        double requestedBottomRpm = requiredAvgRpm - (splitRpm * 0.5);
 
-        double correctedTopRpm = baseTopRpm * scale;
-        double correctedBottomRpm = baseBottomRpm * scale;
+        // "Clamped" in this tuner now means motor-speed saturation against the tuner's
+        // feasible evaluation window (same window used in projectAndClamp()).
+        boolean clamped = requestedTopRpm > 7600.0
+                || requestedBottomRpm > 7600.0
+                || requestedTopRpm < 1800.0
+                || requestedBottomRpm < 1800.0;
+        double correctedTopRpm = MathUtil.clamp(requestedTopRpm, 1800.0, 7600.0);
+        double correctedBottomRpm = MathUtil.clamp(requestedBottomRpm, 1800.0, 7600.0);
         double actualMuzzleSpeedMps = Math.max(0.0, ((correctedTopRpm + correctedBottomRpm) * 0.5) * p.rpmToMpsFactor);
 
         double horizontalSpeedMps = actualMuzzleSpeedMps * Math.cos(Constants.ShooterSim.launchPitchRad);
         double verticalSpeedMps = actualMuzzleSpeedMps * Math.sin(Constants.ShooterSim.launchPitchRad);
 
-        Translation2d muzzleVelocityField = new Translation2d(horizontalSpeedMps, new Rotation2d(yawFieldRad));
+        Translation2d muzzleVelocityField = new Translation2d(horizontalSpeedMps, solveResult.muzzleVelocityFieldMps().getAngle());
         Translation2d initialVelocityField = scenario.robotVelocityFieldMps().plus(muzzleVelocityField);
 
         BallisticShotSimulator simulator = new BallisticShotSimulator(
@@ -559,17 +641,19 @@ public class MovingShotAutoTuneRunner {
 
         System.out.printf("Best score over %d scenarios:%n", scenarioCount);
         System.out.printf(
-                "hitRate=%.3f | meanClosest=%.3f m | meanHorizontal=%.3f m | meanVertical=%.3f m | clampRate=%.3f | cellPenalty=%.2f%n",
+                "hitRate=%.3f | focusHit=%.3f | meanClosest=%.3f m | focusMeanClosest=%.3f m | meanHorizontal=%.3f m | meanVertical=%.3f m | saturationRate=%.3f | focusSaturation=%.3f | focusInvalid=%.3f | cellPenalty=%.2f%n",
                 score.hitRate,
+                score.focusHitRate,
                 score.meanClosest,
+                score.focusMeanClosest,
                 score.meanHorizontal,
                 score.meanVertical,
                 score.clampRate,
+                score.focusClampRate,
+                score.focusInvalidRate,
                 score.cellPenalty);
         System.out.printf("Recommended rpmToMpsFactor = %.7f%n", p.rpmToMpsFactor);
         System.out.printf("Recommended dragCoefficientPerMeter = %.5f%n", p.dragCoeffPerMeter);
-        System.out.printf("Recommended movingShotScaleMin = %.3f%n", p.movingScaleMin);
-        System.out.printf("Recommended movingShotScaleMax = %.3f%n", p.movingScaleMax);
 
         System.out.println("Recommended top RPM points:");
         for (int i = 0; i < DISTANCE_POINTS_M.length; i++) {
@@ -578,10 +662,6 @@ public class MovingShotAutoTuneRunner {
         System.out.println("Recommended bottom RPM points:");
         for (int i = 0; i < DISTANCE_POINTS_M.length; i++) {
             System.out.printf("  (%.1f, %.1f)%n", DISTANCE_POINTS_M[i], bottom[i]);
-        }
-        System.out.println("Recommended flight-time points:");
-        for (int i = 0; i < DISTANCE_POINTS_M.length; i++) {
-            System.out.printf("  (%.1f, %.3f)%n", DISTANCE_POINTS_M[i], p.flightTimeSec[i]);
         }
         System.out.println("Recommended distance-scale-bias points:");
         for (int i = 0; i < DISTANCE_POINTS_M.length; i++) {

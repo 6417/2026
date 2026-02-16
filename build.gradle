@@ -113,19 +113,6 @@ task(replayWatch, type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-task(shotScenarioSweep, type: JavaExec) {
-    mainClass = "frc.robot.sim.ShotScenarioSweepRunner"
-    classpath = sourceSets.main.runtimeClasspath
-    if (project.hasProperty("shotArgs")) {
-        args project.property("shotArgs").toString().split(",")
-    }
-}
-
-task(shotAutoTune, type: JavaExec) {
-    mainClass = "frc.robot.sim.ShotAutoTuneRunner"
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 task(movingShotAutoTune, type: JavaExec) {
     mainClass = "frc.robot.sim.MovingShotAutoTuneRunner"
     classpath = sourceSets.main.runtimeClasspath
@@ -137,5 +124,19 @@ task(movingShotAutoTune, type: JavaExec) {
 task(shotPlotDataExport, type: JavaExec) {
     mainClass = "frc.robot.sim.ShotPlotDataExporter"
     classpath = sourceSets.main.runtimeClasspath
+}
+
+task(shotFocusAutoTune, type: JavaExec) {
+    mainClass = "frc.robot.sim.ShotFocusAutoTuneRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty("focusTuneArgs")) {
+        args project.property("focusTuneArgs").toString().split(",")
+    }
+}
+
+task(shotFocusReport, type: JavaExec) {
+    mainClass = "frc.robot.sim.ShotFocusAutoTuneRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    args "report"
 }
 

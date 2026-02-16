@@ -1,136 +1,195 @@
-# Simulator-Branch Übersicht (`simulator`)
+# Simulator-Branch Uebersicht (`simulator`)
 
-## Komponenten:
-- Turret- und Shooter-Runtime-Logik,
-- Physik-Simulation fuer den Ballflug,
-- Offline-Analyse und Auto-Tuning,
+## Ziel
+Dieser Branch verbindet Runtime-Logik (Shooter/Turret), Ballistik-Simulation und Offline-Tuning so,
+dass aus Pose + Robotergeschwindigkeit ein robuster Shot-Command entsteht.
 
-sodass wir aus der aktuellen Roboterlage (Pose + Geschwindigkeit) einen Schuss berechnen können, der den Hub trifft, und das Verhalten vor echten Feldtests systematisch auswerten koennen.
+Wichtig: Wir verwenden jetzt einen **analytischen Solver** für den bewegten Schuss. Das alte
+"global scale clamp" ist nicht mehr die Hauptlogik, sondern nur noch Hardware-Limit (RPM-Saettigung).
 
 ---
 
-## Erklärung
-Problem: Der Roboter bewegt sich, aber der Ball braucht Zeit bis zum Ziel. Also dürfen wir nicht nur auf den Hub zeigen, sondern müssen vorausberechnen, welche mündungsrichtung und welche Ballgeschwindigkeit jetzt nötig sind, damit der Ball später dort ankommt, wo der Hub ist.
+## Erklaerung
+Die Grundidee im aktuellen Stand ist: Der Roboter schiesst nicht mehr nur aus einer statischen Situation,
+sondern waehrend er fährt. Dadurch reicht es nicht, einfach direkt auf den Hub zu zeigen. Der Ball ist eine
+Zeit lang in der Luft, waehrend sich der Roboter und der gesamte Bezugspunkt weiterbewegen. Genau deshalb wird
+zuerst aus Pose, Heading und Translationsgeschwindigkeit berechnet, welche Muendungsgeschwindigkeit im Feld
+noetig ist, damit der Ball nach seiner Flugzeit am Hub ankommt. Erst danach wird diese Feldgroesse in den
+Turret-Winkel auf dem Roboter und in die beiden Shooter-RPMs umgesetzt.
 
-Dafür nimmt der Code zuerst die aktuelle Roboterposition, die Hubposition und die aktuelle Robotergeschwindigkeit. Aus Distanz und Flight-Time-Tabelle wird abgeschaetzt, wie schnell der Ball im Feldkoordinatensystem sein muss. Danach wird die aktuelle Robotergeschwindigkeit herausgerechnet. Das Ergebnis ist die Mündungs- bzw. Abschussgeschwindigkeit relativ zum Shooter. Aus diesem Vektor entsteht direkt der Turret-Winkel. Aus dem Betrag dieses Vektors entsteht der nötige Speed-Scale fuer die Shooter-RPM.
+Der wichtige Unterschied zu frueher ist, dass wir nicht mehr primaer über eine grobe Scale-Heuristik arbeiten,
+die dann stark begrenzt wird, sondern über einen analytischen Löser. Der Solver liefert direkt eine
+physikalisch konsistente Loesung mit Status (z. B. gueltig/ungueltig), was die Diagnose deutlich klarer macht.
+Wenn es trotzdem Grenzen gibt, kommen diese jetzt vor allem von realen Hardware-Limits wie `maxRpm` und nicht
+mehr von einer zentralen mathematischen Krücke. Das führt in der Praxis zu stabileren Kurven und weniger
+Sonderfällen beim Tuning.
 
-In der Praxis wird dieser Scale begrenzt (clamped), damit das System in sicheren Grenzen bleibt. Genau hier liegt oft der Tradeoff: Wenn die Grenzen zu eng sind, sind viele Fälle am Anschlag und die Kurven werden unruhig oder zu flach. Wenn die Grenzen zu weit sind, kann das Modell zwar flexibler werden, aber die Trefferquote kann leiden. Deshalb haben wir den Simulations- und Tuning-Teil so gebaut, dass wir nicht nur einzelne Schoene-Faelle sehen, sondern robuste Raster über Distanz, Richtung und Geschwindigkeit auswerten koennen.
+In der Simulation ist das Ziel nicht nur "Hit oder Miss", sondern vor allem reproduzierbare Auswertung:
+Wie verändert sich der Fehler bei Distanz, Fahrtrichtung und Geschwindigkeit? Wo tritt RPM-Sättigung auf?
+Wo liefert der Solver keine gueltige Loesung? Dadurch können wir offline systematisch verbessern und später
+am echten Roboter meist nur noch wenige Konstanten feinjustieren, statt die Gesamtlogik erneut umzubauen.
 
-Der Simulator  integriert den Ballflug schrittweise mit Gravitation und quadratischem Luftwiderstand. Dadurch sehen wir für jeden Schuss nicht nur Hit/Miss, sondern auch den nächsten Abstand zum Hub, die horizontale/vertikale Abweichung und die gesamte Flugspur. So können wir nachvollziehen, warum ein Schuss knapp daneben geht, statt nur zu sehen, dass er daneben ging.
+---
 
-Das Zielbild ist: Der Code im Runtime-Pfad und der Code im Simulationspfad benutzen dieselbe Kernmathematik (insbesondere beim Moving-Shot-Scale). Dann sind die Offline-Plots belastbar und wir koennen Konstanten gezielt anpassen, statt blind am Robot zu raten.
+## Wie der Solver konkret arbeitet
+Der Solver bekommt als Eingabe den Shooter-Startpunkt im Feld (inklusive Höhe), den Hub-Zielpunkt
+(inklusive Höhe), die aktuelle Robotergeschwindigkeit in X/Y, den festen Launch-Pitch des Shooters
+und die physikalischen Grenzen für die Flugzeit. Dann sucht er nicht direkt nach RPM, sondern zuerst
+nach einer **gültigen Flugzeit**. Diese Flugzeit ist der Schlüssel, weil damit die nötige
+horizontale Ballgeschwindigkeit im Feldkoordinatensystem klar wird: horizontale Strecke geteilt durch Zeit.
+
+Von dieser nötigen Ballgeschwindigkeit im Feld zieht der Solver die aktuelle Robotergeschwindigkeit ab.
+Damit bleibt die Geschwindigkeit übrig, die der Shooter relativ zum fahrenden Roboter erzeugen muss.
+Aus der Richtung dieses Vektors folgt der Turret-Yaw; aus dem Betrag (plus Pitch-Geometrie) folgt die
+benötigte Mündungsgeschwindigkeit. Erst danach wird diese Geschwindigkeit in einen mittleren RPM-Wert
+für die Wheels umgerechnet.
+
+Die Suche nach der Flugzeit passiert numerisch stabil: zuerst wird in einem Zeitfenster ein Bereich
+gesucht, in dem das Vorzeichen des vertikalen Fehlers wechselt (Bracket). Wenn so ein Bereich gefunden
+wird, nutzt der Solver Bisection, bis Toleranzen erreicht sind. Falls kein Vorzeichenwechsel existiert,
+wird der beste Naeherungswert geprueft; wenn auch der zu schlecht ist, gibt der Solver sauber
+`NO_VALID_FLIGHT_TIME` zurück. Genau das macht das Verhalten debugbar: ihr seht, ob der Schuss
+mathematisch loesbar war oder nicht, statt nur ein abgeschnittenes Ergebnis zu bekommen.
+
+Optional gibt es noch eine leichte Drag-Kompensation als Faktor auf die benötigte Geschwindigkeit.
+Sie ersetzt keine volle Aerodynamik, hilft aber systematische Unterreichweite auszugleichen, ohne die
+Kernkinematik zu verbiegen. Am Ende werden wie gewohnt Hardware-Limits auf RPM angewendet und als
+Sättigung markiert, damit klar ist: war das Problem Mathematik oder Motorgrenze.
+
+---
+
+## Änderungen gegenueber letztem Commit (Analyse)
+
+### Neu
+- `src/main/java/frc/robot/utils/ShotKinematicSolver.java`
+  - analytische Berechnung von `yaw`, `flightTime` und benötigter Muendungsgeschwindigkeit,
+  - Statusausgabe (`SOLVED`, `NO_VALID_FLIGHT_TIME`, ...), damit Fehlerursachen sichtbar sind.
+
+- `src/main/java/frc/robot/sim/ShotFocusAutoTuneRunner.java`
+  - deterministischer Auto-Tuner mit Fokus auf 2-5 m,
+  - staged Suche (coarse -> fine),
+  - erzeugt Kandidaten-CSV und Zusammenfassung.
+
+- `src/main/java/frc/robot/sim/ShotFocusMetrics.java`
+  - gemeinsame Kennzahlen fuer Trefferquote, Mean Error, RPM-Saettigung und Invalid-Rate,
+  - Focus-/Long-Range-Bewertung und Gate-Checks.
+
+### Geaendert
+- `src/main/java/frc/robot/subsystems/ShooterSubsystem.java`
+  - `computeMovingShotCommand(...)` nutzt jetzt den Solver statt reiner Scale-Heuristik,
+  - `ShotCommand` traegt zusaetzlich `solveStatus`, `requiredMuzzleSpeedMps`, `rpmSaturated`,
+  - Fire-Gates koennen auf `SHOT_SOLUTION_INVALID` und `RPM_SATURATED` blocken,
+  - neue Dashboard-Telemetrie fuer Diagnose.
+
+- `src/main/java/frc/robot/sim/ShotScenarioEvaluator.java`
+  - parametrisierte `EvaluationConfig` (aus Constants + Override-Moeglichkeiten),
+  - gleiche Kernlogik wie Runtime fuer konsistente Offline-Auswertung.
+
+- `src/main/java/frc/robot/sim/MovingShotAutoTuneRunner.java`
+  - Zielfunktion staerker auf robuste Fokus-Performance ausgerichtet,
+  - bessere Behandlung von Invalid-/NaN-Faellen.
+
+- `src/main/java/frc/robot/sim/ShotPlotDataExporter.java`
+  - zusaetzlicher Export `robustness_focus_summary.csv`.
+
+- `scripts/plot_shot_data.py`
+  - liest und zeigt Focus-Summary mit an.
+
+- `build.gradle`
+  - neue Tasks:
+    - `shotFocusAutoTune`
+    - `shotFocusReport`
+  - Legacy-Tasks `shotScenarioSweep` und `shotAutoTune` wurden entfernt.
+
+- `src/main/java/frc/robot/Constants.java`
+  - neue/angepasste Tuning-Werte fuer Solver-Drag-Gain und Distance-Bias.
+
+- Bereinigung Legacy-Code:
+  - `src/main/java/frc/robot/sim/ShotScenarioSweepRunner.java` entfernt.
+  - `src/main/java/frc/robot/sim/ShotAutoTuneRunner.java` entfernt.
+
+---
+
+## Aktueller Stand (nach den letzten Runs)
+Quelle: `build/shot_plots/robustness_focus_summary.csv`
+
+- `focus_2_5m`:
+  - `hit_rate_pct = 99.049831`
+  - `mean_closest_error_m = 0.427524`
+  - `rpm_saturation_rate_pct = 1.330236`
+  - `solve_invalid_rate_pct = 0.950169`
+
+- `all_2_6m`:
+  - `hit_rate_pct = 99.239865`
+  - `mean_closest_error_m = 0.389152`
+  - `rpm_saturation_rate_pct = 1.064189`
+  - `solve_invalid_rate_pct = 0.760135`
+
+Interpretation:
+- Trefferquote ist hoch und stabil.
+- Saettigung ist niedrig (~1%), also kein dominantes Clamp-Problem mehr.
+- Rest-Invalids sind klein, aber noch ein sinnvoller Optimierungspunkt.
 
 ---
 
 ## Architektur auf einen Blick
-Drei Ebenen arbeiten zusammen:
-1. **Planungsebene**: aus Pose + Velocity wird ein ShotCommand berechnet (TurretYaw + TopRPM + BottomRPM).
-2. **Mechanikebene**: Turret und Wheels folgen diesen Sollwerten.
-3. **Ballistikebene**: simulierte Flugbahn bewertet, ob der Schuss den Hub trifft.
+1. Planungsebene:
+   - aus Pose + Velocity wird ein `ShotCommand` berechnet (`yaw`, `topRPM`, `bottomRPM`).
+2. Mechanikebene:
+   - Turret und Wheels folgen Sollwerten.
+3. Ballistikebene:
+   - Flugbahn-Simulation bewertet Hit/Miss und Fehler.
 
 ---
 
-## Wichtige Dateien und Aufgaben
-
-### Runtime / Steuerung
-
-- `src/main/java/frc/robot/subsystems/ShooterSubsystem.java`
-  - Kernlogik für Moving Shot.
-  - Berechnet aus Roboterdaten den Schussbefehl:
-    - Turret-Winkel,
-    - Top/Bottom-RPM.
-  - Regelt Wheels via PID + Feedforward.
-  - Schreibt Sim-Telemetrie (Hit, Error, Trace-Infos).
-
-- `src/main/java/frc/robot/subsystems/TurretSubsystem.java`
-  - Turret-Sollwinkel und aktueller Winkel.
-  - Derzeit Hybridzustand: Hardware-Konfig vorbereitet, Sim-Fallback aktiv.
-
-- `src/main/java/frc/robot/Constants.java`
-  - Alle entscheidenden Konstanten:
-    - RPM-Tabellen,
-    - Flight-Time-Tabelle,
-    - Scale-Grenzen,
-    - `rpmToMpsFactor`, Drag,
-    - `distanceScaleBiasTable`.
-
-### Simulation
-- `src/main/java/frc/robot/sim/ShooterTurretSimulator.java`
-  - Simuliert Wheel-Dynamik + Turret-Dynamik.
-  - Erzeugt Schuss-Events fuer den Ballistik-Simulator.
-
-- `src/main/java/frc/robot/sim/BallisticShotSimulator.java`
-  - Integriert Ballflug (g + quadratischer Drag).
-  - Liefert Hit/Miss und naechste Annaherung.
-
-- `src/main/java/frc/robot/sim/ShooterField2dVisualizer.java`
-  - Zeichnet Robot, Turret-Vektor, aktive Kugel und Flugspuren auf Field2d.
-
-- Datenobjekte:
-  - `ShotEvent.java`, `ShotSample.java`, `ShotResult.java`, `CompletedShotTrace.java`.
-
-### Analyse / Tuning
-- `src/main/java/frc/robot/sim/ShotScenarioEvaluator.java`
-  - Bewertet einzelne Szenarien mit derselben Schussformel wie Runtime.
-
-- `src/main/java/frc/robot/sim/ShotPlotDataExporter.java`
-  - Exportiert:
-    - `rpm_distance.csv`
-    - `trajectories.csv`
-    - `direction_sweep.csv`
-    - `robustness_grid.csv`
-    - `robustness_summary.csv`
-
-- `src/main/java/frc/robot/sim/MovingShotAutoTuneRunner.java`
-  - Clamp-bewusster Auto-Tuner (Haupttuner).
-
-- `src/main/java/frc/robot/sim/ShotAutoTuneRunner.java`
-  - Legacy-Tuner (Referenz).
-
-- `scripts/plot_shot_data.py`
-  - Erzeugt SVG-Plots aus den CSV-Dateien.
-
----
-
-## Was passiert im Code bei bekannten Roboterdaten?
+## Runtime-Ablauf: Von Roboterdaten zu ShotCommand
 Gegeben:
 - Roboterpose im Feld,
 - Robotergeschwindigkeit im Feld,
 - Hubposition.
 
 Ablauf:
-1. Shooterposition im Feld berechnen (Roboterpose + Shooter-Offset).
-2. Vektor Shooter -> Hub und Distanz bestimmen.
-3. Baseline-Werte aus Tabellen holen (TopRPM, BottomRPM, FlightTime).
-4. Noetige Ball-Feldgeschwindigkeit berechnen (`toHub / flightTime`).
-5. Robotergeschwindigkeit abziehen -> noetige Muen dungs-Geschwindigkeit.
-6. Richtung dieses Vektors -> Turret-Winkel.
-7. Betrag dieses Vektors -> noetiger Speed-Scale.
-8. Scale mit `distanceScaleBias` korrigieren und in `[min,max]` clampen.
-9. RPMs skalieren und als finalen ShotCommand ausgeben.
-
-Ergebnis:
-- Turret richtet sich auf den berechneten Vorhaltewinkel aus,
-- Shooter-Wheels laufen auf die berechneten RPM-Sollwerte,
-- Schuss kann mit Fire-Gates freigegeben werden.
-
----
-
-## Clamp-Rate kurz erklaert
-`clampRate` = Anteil der Szenarien, bei denen `rawScale` ausserhalb der erlaubten Grenzen liegt und abgeschnitten wird.
-
-Hohe Clamp-Rate bedeutet:
-- viele verschiedene Situationen landen auf demselben Grenzwert,
-- weniger feine Anpassung,
-- oft zackige oder platte Kurven in den Richtungsplots.
-
-Niedrige Clamp-Rate bedeutet:
-- mehr nutzbarer Regelbereich,
-- feinere Anpassung ueber Richtung/Speed/Distanz.
+1. Shooterposition im Feld berechnen (Pose + Shooter-Offset).
+2. Solver-Eingabe bauen (Shooter/Hub als 3D-Punkte, Pitch, g, Velocity, Solver-Grenzen).
+3. Solver loesen:
+   - finde gueltige Flugzeit,
+   - berechne noetigen Muendungsvektor,
+   - gib `yawFieldRad`, `requiredMuzzleSpeedMps`, `status` zurueck.
+4. In Roboterkoordinaten umrechnen:
+   - `turretYawRobotRad = yawField - robotHeading - turretZeroOffset`.
+5. Aus Muendungsgeschwindigkeit -> `requiredAvgRpm`.
+6. Baseline-Split beibehalten:
+   - aus Tabellen kommt `splitRpm = top - bottom`,
+   - final: `top = avg + split/2`, `bottom = avg - split/2`.
+7. Hardware-Limits anwenden (`maxRpm`), Saettigung markieren.
+8. Fire-Gates entscheiden (Distance, Turn-Rate, Solver-Status, Saettigung, Ready-Checks).
 
 ---
 
-## Workflow: Export, Plot, Tuning
+## Wichtige Dateien
+
+### Runtime
+- `src/main/java/frc/robot/subsystems/ShooterSubsystem.java`
+- `src/main/java/frc/robot/subsystems/TurretSubsystem.java`
+- `src/main/java/frc/robot/Constants.java`
+- `src/main/java/frc/robot/utils/ShotKinematicSolver.java`
+
+### Simulation
+- `src/main/java/frc/robot/sim/ShooterTurretSimulator.java`
+- `src/main/java/frc/robot/sim/BallisticShotSimulator.java`
+- `src/main/java/frc/robot/sim/ShooterField2dVisualizer.java`
+- `src/main/java/frc/robot/sim/ShotScenarioEvaluator.java`
+
+### Analyse / Tuning
+- `src/main/java/frc/robot/sim/MovingShotAutoTuneRunner.java`
+- `src/main/java/frc/robot/sim/ShotFocusAutoTuneRunner.java`
+- `src/main/java/frc/robot/sim/ShotFocusMetrics.java`
+- `src/main/java/frc/robot/sim/ShotPlotDataExporter.java`
+- `scripts/plot_shot_data.py`
+
+---
+
+## Workflow
 
 ### Daten exportieren
 ```powershell
@@ -138,30 +197,33 @@ cd C:\Users\janis.j\Documents\2026Code\2026_MergedShooterTurret
 ./gradlew shotPlotDataExport
 ```
 
-### Plots erzeugen
+### Plots bauen
 ```powershell
 py -3 scripts\plot_shot_data.py
 ```
 
-### Wichtige Plots
-- `build/shot_plots/turret_angle_vs_direction.svg`
-- `build/shot_plots/motor_rpm_vs_direction.svg`
-- `build/shot_plots/closest_error_vs_direction.svg`
-- `build/shot_plots/scale_vs_direction.svg`
-- `build/shot_plots/robust_hit_rate_vs_speed.svg`
-- `build/shot_plots/robust_mean_error_vs_speed.svg`
-- `build/shot_plots/robust_clamp_rate_vs_speed.svg`
+### Fokus-Report (ohne Tuning)
+```powershell
+./gradlew shotFocusReport
+```
 
-### Auto-Tuner starten
+### Fokus-Auto-Tuning
+```powershell
+./gradlew shotFocusAutoTune -PfocusTuneArgs="20260225"
+```
+
+### Optional: bestehender Moving-Tuner
 ```powershell
 ./gradlew movingShotAutoTune -PmovingTuneArgs="6000,20260225"
 ```
-- arg1: Iterationen
-- arg2: Seed
 
 ---
 
-## Praktische Hinweise
-- Plot-Dateien liegen in `build/` und werden typischerweise nicht von Git getrackt.
-- Fuer Team-Reviews wichtige Plots in einen versionierten Ordner kopieren.
-- Es gibt aktuell bekannte Deprecation-Warnings zu `schedule()` (nicht Teil der Shot-Mathematik).
+## Hinweis zu Clamp/Saettigung
+Frueher war "clamp rate" ein zentrales Problem wegen globaler Scale-Grenzen.
+Jetzt gilt:
+- mathematisch loest der Solver direkt die benoetigte Schusskinematik,
+- begrenzt wird primaer nur noch durch reale Motorgrenzen (`maxRpm`),
+- die relevante Kennzahl ist daher `rpm_saturation_rate_pct`.
+
+Bei den aktuellen Werten ist diese Rate niedrig. Damit ist Clamp aktuell kein Hauptblocker.

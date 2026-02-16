@@ -123,7 +123,7 @@ public class Constants {
         public static final double kD = 0.0;
         public static final double kS = 0.0;
         public static final double kV = 0.0001575;
-        public static final double maxRpm = 0.0;
+        public static final double maxRpm = 7600.0;
         public static final double maxNegPower = -0.30;
 
         public static final double defaultTopRpm = 3000.0;
@@ -139,8 +139,24 @@ public class Constants {
         public static final double rpmToMpsFactor =
                 shooterSlipEfficiencyEta * ((2.0 * Math.PI / 60.0) * wheelRadiusMeters);
 
-        // Wider compensation range so moving shots do not saturate as often.
+        // Analytic moving-shot solver bounds.
+        public static final double solverMinFlightTimeSec = 0.12;
+        public static final double solverMaxFlightTimeSec = 1.40;
+        public static final int solverMaxIterations = 40;
+        public static final double solverFlightTimeToleranceSec = 1e-4;
+        public static final double solverVerticalErrorToleranceMeters = 0.010;
+        // Optional first-order drag compensation gain for required muzzle speed.
+        // 0.0 disables speed correction and keeps purely kinematic solve output.
+        public static final double solverDragSpeedCompensationGain = 0.08;
+
+        // Fire-gate options tied to analytic-solver outputs.
+        public static final boolean blockWhenShotSolutionInvalid = true;
+        public static final boolean blockWhenRpmSaturated = false;
+
+        // Legacy scale bounds kept for compatibility with old tuning tools.
+        @Deprecated(since = "2026-analytic-moving-shot", forRemoval = false)
         public static final double movingShotScaleMin = 0.588;
+        @Deprecated(since = "2026-analytic-moving-shot", forRemoval = false)
         public static final double movingShotScaleMax = 1.234;
         public static final double minFlightTimeSec = 0.10;
         public static final boolean aimAtHubOnly = true;
@@ -186,9 +202,9 @@ public class Constants {
         private static final Point2D[] kDistanceScaleBiasPoints = new Point2D.Double[] {
                 new Point2D.Double(1.5, 1.225),
                 new Point2D.Double(2.5, 0.975),
-                new Point2D.Double(3.5, 1.000),
-                new Point2D.Double(4.5, 0.978),
-                new Point2D.Double(5.5, 1.000)
+                new Point2D.Double(3.5, 1.190),
+                new Point2D.Double(4.5, 1.000),
+                new Point2D.Double(5.5, 1.070)
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
@@ -199,6 +215,10 @@ public class Constants {
 
         public static double getDistanceScaleBias(double distanceMeters) {
             return distanceScaleBiasTable.getOutput(distanceMeters);
+        }
+
+        public static double getSplitRpm(double distanceMeters) {
+            return topRpmTable.getOutput(distanceMeters) - bottomRpmTable.getOutput(distanceMeters);
         }
 
         public static final IdleMode idleMode = IdleMode.kCoast;

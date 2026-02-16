@@ -13,8 +13,8 @@ import java.util.Map;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.MathUtil;
 import frc.robot.Constants;
+import frc.robot.utils.ShotKinematicSolver;
 
 /**
  * Exports shot simulation data (RPM sweep + trajectories) to CSV files for plotting.
@@ -49,24 +49,55 @@ public class ShotPlotDataExporter {
             double timeAtHubHeightSec) {
     }
 
-    private record ScaleInfo(double rawScale, double appliedScale, boolean clamped) {
-    }
-
     private static final class SummaryCell {
         int count = 0;
         int hitCount = 0;
-        int clampedCount = 0;
+        int saturatedCount = 0;
+        int invalidSolveCount = 0;
         double sumClosestError = 0.0;
+        int finiteErrorCount = 0;
 
-        void add(boolean hit, boolean clamped, double closestErrorMeters) {
+        void add(boolean hit, boolean saturated, boolean invalidSolve, double closestErrorMeters) {
             count++;
             if (hit) {
                 hitCount++;
             }
-            if (clamped) {
-                clampedCount++;
+            if (saturated) {
+                saturatedCount++;
             }
-            sumClosestError += closestErrorMeters;
+            if (invalidSolve) {
+                invalidSolveCount++;
+            }
+            if (Double.isFinite(closestErrorMeters)) {
+                sumClosestError += closestErrorMeters;
+                finiteErrorCount++;
+            }
+        }
+    }
+
+    private static final class AggregateStats {
+        int count = 0;
+        int hitCount = 0;
+        int saturatedCount = 0;
+        int invalidSolveCount = 0;
+        int finiteErrCount = 0;
+        double sumClosestError = 0.0;
+
+        void add(ShotScenarioEvaluator.Evaluation eval) {
+            count++;
+            if (eval.hit()) {
+                hitCount++;
+            }
+            if (eval.rpmSaturatedAny()) {
+                saturatedCount++;
+            }
+            if (eval.solveStatus() != ShotKinematicSolver.SolveStatus.SOLVED) {
+                invalidSolveCount++;
+            }
+            if (Double.isFinite(eval.closestDistanceMeters())) {
+                sumClosestError += eval.closestDistanceMeters();
+                finiteErrCount++;
+            }
         }
     }
 
@@ -79,20 +110,25 @@ public class ShotPlotDataExporter {
         Path directionSweepCsv = outputDir.resolve("direction_sweep.csv");
         Path robustnessGridCsv = outputDir.resolve("robustness_grid.csv");
         Path robustnessSummaryCsv = outputDir.resolve("robustness_summary.csv");
+        Path focusSummaryCsv = outputDir.resolve("robustness_focus_summary.csv");
 
         List<String> distanceRows = new ArrayList<>();
         List<String> trajectoryRows = new ArrayList<>();
         List<String> directionRows = new ArrayList<>();
         List<String> robustnessRows = new ArrayList<>();
         List<String> robustnessSummaryRows = new ArrayList<>();
+        List<String> focusSummaryRows = new ArrayList<>();
         Map<String, SummaryCell> summaryByDistanceSpeed = new HashMap<>();
+        AggregateStats aggregateAll = new AggregateStats();
+        AggregateStats aggregateFocus = new AggregateStats();
         distanceRows.add("rpm,distance_at_hub_height_m,range_at_ground_m,max_height_m,time_at_hub_height_s,hub_height_m");
         trajectoryRows.add("rpm,time_s,x_m,z_m");
         directionRows.add(
-                "speed_mps,direction_deg,vx_mps,vy_mps,distance_m,raw_scale,applied_scale,scale_clamped,turret_yaw_deg,top_rpm,bottom_rpm,muzzle_speed_mps,closest_error_m,horizontal_error_m,vertical_error_m,flight_time_s,hit");
+                "speed_mps,direction_deg,vx_mps,vy_mps,distance_m,turret_yaw_deg,top_rpm,bottom_rpm,required_muzzle_speed_mps,muzzle_speed_mps,closest_error_m,horizontal_error_m,vertical_error_m,flight_time_s,solve_status,rpm_saturated_top,rpm_saturated_bottom,rpm_saturated_any,hit");
         robustnessRows.add(
-                "distance_m,bearing_deg,speed_mps,direction_deg,vx_mps,vy_mps,raw_scale,applied_scale,scale_clamped,turret_yaw_deg,top_rpm,bottom_rpm,muzzle_speed_mps,closest_error_m,horizontal_error_m,vertical_error_m,flight_time_s,hit");
-        robustnessSummaryRows.add("distance_m,speed_mps,samples,hit_rate_pct,mean_closest_error_m,clamp_rate_pct");
+                "distance_m,bearing_deg,speed_mps,direction_deg,vx_mps,vy_mps,turret_yaw_deg,top_rpm,bottom_rpm,required_muzzle_speed_mps,muzzle_speed_mps,closest_error_m,horizontal_error_m,vertical_error_m,flight_time_s,solve_status,rpm_saturated_top,rpm_saturated_bottom,rpm_saturated_any,hit");
+        robustnessSummaryRows.add("distance_m,speed_mps,samples,hit_rate_pct,mean_closest_error_m,rpm_saturation_rate_pct,solve_invalid_rate_pct");
+        focusSummaryRows.add("scope,samples,hit_rate_pct,mean_closest_error_m,rpm_saturation_rate_pct,solve_invalid_rate_pct");
 
         // 1) RPM sweep dataset for scalar trajectory behavior.
         for (int i = 0; i < NUM_POINTS; i++) {
@@ -138,33 +174,28 @@ public class ShotPlotDataExporter {
                         Constants.Shooter.shooterOffsetRobot.rotateBy(scenario.robotPoseField().getRotation()));
                 Translation2d toHub = Constants.Shooter.hubPositionField.minus(shooterPos);
                 double distance = toHub.getNorm();
-                double flightTime = Math.max(
-                        Constants.Shooter.minFlightTimeSec,
-                        Constants.Shooter.flightTimeTable.getOutput(distance));
-                Translation2d requiredBallVelocity = toHub.div(flightTime);
-                Translation2d requiredMuzzleVelocity = requiredBallVelocity.minus(velocity);
-                double requiredMuzzleSpeed = requiredMuzzleVelocity.getNorm();
-                ScaleInfo scaleInfo = computeScale(distance, requiredMuzzleSpeed);
 
                 directionRows.add(String.format(
                         Locale.US,
-                        "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s",
+                        "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s,%s,%s",
                         speedMps,
                         directionDeg,
                         velocity.getX(),
                         velocity.getY(),
                         distance,
-                        scaleInfo.rawScale(),
-                        scaleInfo.appliedScale(),
-                        scaleInfo.clamped(),
                         eval.turretYawRobotDeg(),
                         eval.topRpm(),
                         eval.bottomRpm(),
+                        eval.requiredMuzzleSpeedMps(),
                         eval.muzzleSpeedMps(),
                         eval.closestDistanceMeters(),
                         eval.horizontalErrorMeters(),
                         eval.verticalErrorMeters(),
                         eval.flightTimeSec(),
+                        eval.solveStatus(),
+                        eval.rpmSaturatedTop(),
+                        eval.rpmSaturatedBottom(),
+                        eval.rpmSaturatedAny(),
                         eval.hit()));
             }
         }
@@ -182,44 +213,42 @@ public class ShotPlotDataExporter {
                                 pose,
                                 velocity);
                         ShotScenarioEvaluator.Evaluation eval = evaluator.evaluate(scenario);
-
-                        Translation2d shooterPos = scenario.robotPoseField().getTranslation().plus(
-                                Constants.Shooter.shooterOffsetRobot.rotateBy(scenario.robotPoseField().getRotation()));
-                        Translation2d toHub = Constants.Shooter.hubPositionField.minus(shooterPos);
-                        double distance = toHub.getNorm();
-                        double flightTime = Math.max(
-                                Constants.Shooter.minFlightTimeSec,
-                                Constants.Shooter.flightTimeTable.getOutput(distance));
-                        Translation2d requiredBallVelocity = toHub.div(flightTime);
-                        Translation2d requiredMuzzleVelocity = requiredBallVelocity.minus(velocity);
-                        double requiredMuzzleSpeed = requiredMuzzleVelocity.getNorm();
-                        ScaleInfo scaleInfo = computeScale(distance, requiredMuzzleSpeed);
+                        aggregateAll.add(eval);
+                        if (distanceM >= 2.0 && distanceM <= 5.0) {
+                            aggregateFocus.add(eval);
+                        }
 
                         robustnessRows.add(String.format(
                                 Locale.US,
-                                "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s",
+                                "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s,%s,%s",
                                 distanceM,
                                 bearingDeg,
                                 speedMps,
                                 directionDeg,
                                 velocity.getX(),
                                 velocity.getY(),
-                                scaleInfo.rawScale(),
-                                scaleInfo.appliedScale(),
-                                scaleInfo.clamped(),
                                 eval.turretYawRobotDeg(),
                                 eval.topRpm(),
                                 eval.bottomRpm(),
+                                eval.requiredMuzzleSpeedMps(),
                                 eval.muzzleSpeedMps(),
                                 eval.closestDistanceMeters(),
                                 eval.horizontalErrorMeters(),
                                 eval.verticalErrorMeters(),
                                 eval.flightTimeSec(),
+                                eval.solveStatus(),
+                                eval.rpmSaturatedTop(),
+                                eval.rpmSaturatedBottom(),
+                                eval.rpmSaturatedAny(),
                                 eval.hit()));
 
                         String summaryKey = String.format(Locale.US, "%.3f|%.3f", distanceM, speedMps);
                         SummaryCell cell = summaryByDistanceSpeed.computeIfAbsent(summaryKey, key -> new SummaryCell());
-                        cell.add(eval.hit(), scaleInfo.clamped(), eval.closestDistanceMeters());
+                        cell.add(
+                                eval.hit(),
+                                eval.rpmSaturatedAny(),
+                                eval.solveStatus() != ShotKinematicSolver.SolveStatus.SOLVED,
+                                eval.closestDistanceMeters());
                     }
                 }
             }
@@ -234,25 +263,33 @@ public class ShotPlotDataExporter {
                     continue;
                 }
                 double hitRatePct = (100.0 * cell.hitCount) / cell.count;
-                double clampRatePct = (100.0 * cell.clampedCount) / cell.count;
-                double meanErr = cell.sumClosestError / cell.count;
+                double saturationRatePct = (100.0 * cell.saturatedCount) / cell.count;
+                double invalidSolveRatePct = (100.0 * cell.invalidSolveCount) / cell.count;
+                double meanErr = cell.finiteErrorCount > 0
+                        ? (cell.sumClosestError / cell.finiteErrorCount)
+                        : Double.POSITIVE_INFINITY;
                 robustnessSummaryRows.add(String.format(
                         Locale.US,
-                        "%.6f,%.6f,%d,%.6f,%.6f,%.6f",
+                        "%.6f,%.6f,%d,%.6f,%.6f,%.6f,%.6f",
                         distanceM,
                         speedMps,
                         cell.count,
                         hitRatePct,
                         meanErr,
-                        clampRatePct));
+                        saturationRatePct,
+                        invalidSolveRatePct));
             }
         }
+
+        appendAggregateSummary(focusSummaryRows, "focus_2_5m", aggregateFocus);
+        appendAggregateSummary(focusSummaryRows, "all_2_6m", aggregateAll);
 
         Files.write(rpmDistanceCsv, distanceRows, StandardCharsets.UTF_8);
         Files.write(trajectoriesCsv, trajectoryRows, StandardCharsets.UTF_8);
         Files.write(directionSweepCsv, directionRows, StandardCharsets.UTF_8);
         Files.write(robustnessGridCsv, robustnessRows, StandardCharsets.UTF_8);
         Files.write(robustnessSummaryCsv, robustnessSummaryRows, StandardCharsets.UTF_8);
+        Files.write(focusSummaryCsv, focusSummaryRows, StandardCharsets.UTF_8);
 
         System.out.println("Exported CSV files:");
         System.out.println(" - " + rpmDistanceCsv.toAbsolutePath());
@@ -260,6 +297,7 @@ public class ShotPlotDataExporter {
         System.out.println(" - " + directionSweepCsv.toAbsolutePath());
         System.out.println(" - " + robustnessGridCsv.toAbsolutePath());
         System.out.println(" - " + robustnessSummaryCsv.toAbsolutePath());
+        System.out.println(" - " + focusSummaryCsv.toAbsolutePath());
     }
 
     private static Pose2d buildSweepPose() {
@@ -271,25 +309,6 @@ public class ShotPlotDataExporter {
                 new Translation2d(shooterDistanceMeters, bearingFromHub));
         Translation2d robotPos = shooterPos.minus(Constants.Shooter.shooterOffsetRobot.rotateBy(robotHeading));
         return new Pose2d(robotPos, robotHeading);
-    }
-
-    private static ScaleInfo computeScale(double distanceMeters, double requiredMuzzleSpeedMps) {
-        double baseTopRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
-        double baseBottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
-        double nominalMuzzleSpeed = ((baseTopRpm + baseBottomRpm) * 0.5) * Constants.Shooter.rpmToMpsFactor;
-
-        double rawScale = 1.0;
-        if (nominalMuzzleSpeed > 1e-6) {
-            rawScale = requiredMuzzleSpeedMps / nominalMuzzleSpeed;
-        }
-        // Distance-bias term matches runtime moving-shot math.
-        rawScale *= Constants.Shooter.getDistanceScaleBias(distanceMeters);
-        double appliedScale = MathUtil.clamp(
-                rawScale,
-                Constants.Shooter.movingShotScaleMin,
-                Constants.Shooter.movingShotScaleMax);
-        boolean scaleClamped = Math.abs(appliedScale - rawScale) > 1e-6;
-        return new ScaleInfo(rawScale, appliedScale, scaleClamped);
     }
 
     private static List<Sample> simulateTrajectory(double muzzleSpeedMps) {
@@ -359,5 +378,26 @@ public class ShotPlotDataExporter {
         }
 
         return new TrajectoryMetrics(distanceAtHubHeight, rangeAtGround, maxHeight, timeAtHubHeight);
+    }
+
+    private static void appendAggregateSummary(List<String> out, String scopeName, AggregateStats stats) {
+        if (stats.count == 0) {
+            return;
+        }
+        double hitRatePct = (100.0 * stats.hitCount) / stats.count;
+        double satRatePct = (100.0 * stats.saturatedCount) / stats.count;
+        double invalidRatePct = (100.0 * stats.invalidSolveCount) / stats.count;
+        double meanErr = stats.finiteErrCount > 0
+                ? (stats.sumClosestError / stats.finiteErrCount)
+                : Double.POSITIVE_INFINITY;
+        out.add(String.format(
+                Locale.US,
+                "%s,%d,%.6f,%.6f,%.6f,%.6f",
+                scopeName,
+                stats.count,
+                hitRatePct,
+                meanErr,
+                satRatePct,
+                invalidRatePct));
     }
 }

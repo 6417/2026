@@ -51,6 +51,8 @@ def read_direction_sweep(path: Path):
                     "closest_error_m": [],
                     "raw_scale": [],
                     "applied_scale": [],
+                    "required_muzzle_speed_mps": [],
+                    "rpm_saturated_pct": [],
                 },
             )
             entry["direction_deg"].append(float(row["direction_deg"]))
@@ -60,6 +62,11 @@ def read_direction_sweep(path: Path):
             entry["closest_error_m"].append(float(row["closest_error_m"]))
             entry["raw_scale"].append(float(row.get("raw_scale", "1.0") or 1.0))
             entry["applied_scale"].append(float(row.get("applied_scale", "1.0") or 1.0))
+            entry["required_muzzle_speed_mps"].append(
+                float(row.get("required_muzzle_speed_mps", row.get("muzzle_speed_mps", "0.0")) or 0.0)
+            )
+            saturated = row.get("rpm_saturated_any", row.get("scale_clamped", "false"))
+            entry["rpm_saturated_pct"].append(100.0 if saturated.lower() == "true" else 0.0)
     return data
 
 
@@ -68,13 +75,34 @@ def read_robustness_grid(path: Path):
     with path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            sat = row.get("rpm_saturated_any", row.get("scale_clamped", "false"))
             rows.append(
                 {
                     "distance_m": float(row["distance_m"]),
                     "speed_mps": float(row["speed_mps"]),
                     "closest_error_m": float(row["closest_error_m"]),
                     "hit": (row["hit"].lower() == "true"),
-                    "scale_clamped": (row["scale_clamped"].lower() == "true"),
+                    "rpm_saturated_any": (sat.lower() == "true"),
+                }
+            )
+    return rows
+
+
+def read_focus_summary(path: Path):
+    if not path.exists():
+        return []
+    rows = []
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "scope": row["scope"],
+                    "samples": int(row["samples"]),
+                    "hit_rate_pct": float(row["hit_rate_pct"]),
+                    "mean_closest_error_m": float(row["mean_closest_error_m"]),
+                    "rpm_saturation_rate_pct": float(row["rpm_saturation_rate_pct"]),
+                    "solve_invalid_rate_pct": float(row["solve_invalid_rate_pct"]),
                 }
             )
     return rows
@@ -426,7 +454,7 @@ def write_robustness_summary_svgs(hit_path: Path, err_path: Path, clamp_path: Pa
     for (distance, speed), vals in grouped.items():
         hit_rate = sum(1 for v in vals if v["hit"]) / len(vals)
         mean_err = sum(v["closest_error_m"] for v in vals) / len(vals)
-        clamp_rate = sum(1 for v in vals if v["scale_clamped"]) / len(vals)
+        clamp_rate = sum(1 for v in vals if v["rpm_saturated_any"]) / len(vals)
         bucket = by_distance.setdefault(
             distance,
             {"speed_mps": [], "hit_rate_pct": [], "mean_error_m": [], "clamp_rate_pct": []},
@@ -461,9 +489,9 @@ def write_robustness_summary_svgs(hit_path: Path, err_path: Path, clamp_path: Pa
         by_distance,
         "speed_mps",
         "clamp_rate_pct",
-        "Robustness: scale clamp rate vs speed",
+        "Robustness: RPM saturation rate vs speed",
         "Robot speed [m/s]",
-        "Clamp rate [%]",
+        "RPM saturation [%]",
         y_pad_ratio=0.04,
     )
 
@@ -474,6 +502,7 @@ def main():
     trajectories_csv = output_dir / "trajectories.csv"
     direction_sweep_csv = output_dir / "direction_sweep.csv"
     robustness_grid_csv = output_dir / "robustness_grid.csv"
+    focus_summary_csv = output_dir / "robustness_focus_summary.csv"
     if (
         not rpm_distance_csv.exists()
         or not trajectories_csv.exists()
@@ -486,6 +515,7 @@ def main():
     trajectories = read_trajectories(trajectories_csv)
     direction_sweep = read_direction_sweep(direction_sweep_csv)
     robustness_rows = read_robustness_grid(robustness_grid_csv)
+    focus_summary = read_focus_summary(focus_summary_csv)
 
     rpm_plot = output_dir / "rpm_distance_plot.svg"
     rpm_zoom_plot = output_dir / "rpm_distance_transition_zoom.svg"
@@ -494,6 +524,7 @@ def main():
     motor_plot = output_dir / "motor_rpm_vs_direction.svg"
     error_plot = output_dir / "closest_error_vs_direction.svg"
     scale_plot = output_dir / "scale_vs_direction.svg"
+    saturation_plot = output_dir / "rpm_saturation_vs_direction.svg"
     robust_hit_plot = output_dir / "robust_hit_rate_vs_speed.svg"
     robust_err_plot = output_dir / "robust_mean_error_vs_speed.svg"
     robust_clamp_plot = output_dir / "robust_clamp_rate_vs_speed.svg"
@@ -532,10 +563,20 @@ def main():
         scale_plot,
         direction_sweep,
         "direction_deg",
-        "applied_scale",
-        "Applied moving-shot scale vs robot velocity direction",
+        "required_muzzle_speed_mps",
+        "Required muzzle speed vs robot velocity direction",
         "Robot velocity direction [deg]",
-        "Applied scale [-]",
+        "Required muzzle speed [m/s]",
+        y_pad_ratio=0.05,
+    )
+    write_grouped_lines_svg(
+        saturation_plot,
+        direction_sweep,
+        "direction_deg",
+        "rpm_saturated_pct",
+        "RPM saturation indicator vs robot velocity direction",
+        "Robot velocity direction [deg]",
+        "RPM saturated [%]",
         y_pad_ratio=0.05,
     )
     write_robustness_summary_svgs(
@@ -553,9 +594,16 @@ def main():
     print(f" - {motor_plot.resolve()}")
     print(f" - {error_plot.resolve()}")
     print(f" - {scale_plot.resolve()}")
+    print(f" - {saturation_plot.resolve()}")
     print(f" - {robust_hit_plot.resolve()}")
     print(f" - {robust_err_plot.resolve()}")
     print(f" - {robust_clamp_plot.resolve()}")
+    if focus_summary:
+        print("Focus summary:")
+        for row in focus_summary:
+            print(
+                f" - {row['scope']}: hit={row['hit_rate_pct']:.2f}% err={row['mean_closest_error_m']:.3f}m sat={row['rpm_saturation_rate_pct']:.2f}% invalid={row['solve_invalid_rate_pct']:.2f}%"
+            )
 
 
 if __name__ == "__main__":
