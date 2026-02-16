@@ -7,9 +7,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
+    public static final IntakeSubsystem intake;
     public static final Controls controls;
     public static final SwerveSubsystem drive;
     public static final TurretSubsystem turret;
@@ -17,6 +19,7 @@ public class RobotContainer {
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
+        intake = new IntakeSubsystem();
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         vision = new VisionSubsystem(true, true);
         drive = new SwerveSubsystem();

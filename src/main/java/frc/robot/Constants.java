@@ -10,6 +10,16 @@ import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 
+import java.util.Arrays;
+import java.util.List;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import frc.fridowpi.motors.utils.FeedForwardValues;
+import frc.fridowpi.motors.utils.PidValues;
+
 public class Constants {
     public static final class Field {
         public static final double FIELD_LENGTH_METERS = 16.540988;
@@ -87,5 +97,41 @@ public class Constants {
     public static final class Controls {
         public static final double deadBandDrive = 0.08;
         public static final double deadBandTurn = 0.08;
+    }
+    
+
+    public static final class Intake {
+        public static final int intakeMotorId = 10;
+
+        public static final boolean intakeMotorInverted = false;
+
+        public static final double intakeSpeed = 0.6;
+        public static final double outtakeSpeed = -0.6;
+
+        public static final double intakeStallCurrentAmps = 80;
+        public static final double intakeStallRpmThreshold = 200;
+
+        public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
+    public static final class Shooter {
+        public static final int topMotorId = 20;
+        public static final int bottomMotorId = 21;
+
+        public static final boolean topMotorInverted = false;
+        public static final boolean bottomMotorInverted = true;
+
+        public static final double defaultShootPercent = 0.7;
+
+        // Spin ratio = top / bottom
+        public static final double defaultSpinRatio = 1.0;
+        public static final double minSpinRatio = 0.6;
+        public static final double maxSpinRatio = 1.4;
+
+        // Angle mapping (degrees). This is a simple linear placeholder.
+        public static final double minAngleDeg = 15.0;
+        public static final double maxAngleDeg = 60.0;
+
+        public static final IdleMode idleMode = IdleMode.kCoast;
     }
 }
