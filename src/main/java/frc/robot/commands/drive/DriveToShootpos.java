@@ -9,6 +9,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Utils;
 
 public class DriveToShootpos extends Command {
     private double radius = Constants.Field.RADIUS_TO_HUB;
@@ -19,23 +20,23 @@ public class DriveToShootpos extends Command {
     private boolean isFinished = false;
 
     private Command pathCommand;
-    
+
     public DriveToShootpos(SwerveSubsystem drive, TurretSubsystem turret) {
         this.drive = drive;
         this.turret = turret;
-        addRequirements(drive);   
+        addRequirements(drive);
     }
 
     @Override
     public void initialize() {
         drive.setAutomatedControl();
 
-        Pose2d nearestPos = DriverStation.getAlliance().get() == Alliance.Blue ? Constants.Field.HUB_CENTER_BLUE : Constants.Field.HUB_CENTER_RED;
+        Pose2d nearestPos = DriverStation.getAlliance().get() == Alliance.Blue ? Constants.Field.HUB_CENTER_BLUE
+                : Constants.Field.HUB_CENTER_RED;
         Pose2d robotPose = drive.getPose();
 
         // return if in neutral zone, cannot shoot from there
-        if(DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() > Constants.Field.neutralZoneStartX ||
-            (DriverStation.getAlliance().get() == Alliance.Red && robotPose.getX() < Constants.Field.neutralZoneStartX)) {
+        if (Utils.isRobotInNeutralZone()) {
             isFinished = true;
             return;
         }
@@ -50,8 +51,7 @@ public class DriveToShootpos extends Command {
         Pose2d sweetSpot = new Pose2d(robotPose.getTranslation().plus(toPos), robotPose.getRotation().plus(RobotContainer.calculationSubsystem.getDesiredTurretAngle()));
 
         pathCommand = drive.driveToPose(
-            sweetSpot
-        );
+                sweetSpot);
         pathCommand.initialize();
     }
 
@@ -75,5 +75,5 @@ public class DriveToShootpos extends Command {
     public boolean isFinished() {
         return isFinished || pathCommand.isFinished();
     }
-    
+
 }

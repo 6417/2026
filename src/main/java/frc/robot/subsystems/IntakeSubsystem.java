@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
-import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 import frc.robot.commands.intake.IntakeCommand;
 

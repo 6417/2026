@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
+import frc.robot.Utils;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.SwerveSubsystem;
 
@@ -27,8 +28,33 @@ public class SmartTurret extends Command {
     
     @Override
     public void execute() {
-        Rotation2d desiredAngle = RobotContainer.calculationSubsystem.getDesiredTurretAngle();
-        turret.setDesiredRotation(desiredAngle);
+        Translation2d turretPose = drive.getPose().getTranslation().plus(Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(drive.getPose().getRotation()));
+
+        Translation2d poseToTrack = null;
+
+        boolean toHub = false;
+        // first check if is in neutral zone or team zone
+        if (Utils.isRobotInNeutralZone()) {
+            // in neutral zone, track edges for shooting balls in the back to team zone
+            poseToTrack = Constants.Field.EDGE.getTranslation();
+        } else {
+            // in team zone, track hub
+            poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
+            toHub = true;
+        }
+        
+        // translation from robot to hub
+        Translation2d turretToHub = poseToTrack.minus(turretPose);
+
+        if (toHub) {
+            // calculate distance to hub
+            double distance = turretToHub.getNorm();
+            turret.setDistanceHubTurret(distance);
+        }
+
+        Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
+
+        turret.setDesiredRotation(angle.getDegrees());
     }
 
     @Override

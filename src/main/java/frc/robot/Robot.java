@@ -89,6 +89,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
    */
   @Override
   public void autonomousInit() {
+    
     Constants.Field.EDGE = DriverStation.getAlliance().get() == Alliance.Blue ? 
         new Pose2d(0, 0, null) : 
         new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);

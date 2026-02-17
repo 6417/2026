@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Utils;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
@@ -28,13 +29,8 @@ public class IntakeCommand extends Command {
             return;
         }
 
-        var isInNeutralZone = (DriverStation.getAlliance().get() == Alliance.Blue
-                && RobotContainer.drive.getPose().getX() > Constants.Field.neutralZoneStartX) ||
-                (DriverStation.getAlliance().get() == Alliance.Red
-                        && RobotContainer.drive.getPose().getX() < Constants.Field.neutralZoneStartX);
-
         // If the Robot is in the Alliance-Zone, stop the intake.
-        if (!isInNeutralZone && intake.isIntakeOn) {
+        if (!Utils.isRobotInNeutralZone() && intake.isIntakeOn) {
             intake.stop();
             return;
         }
