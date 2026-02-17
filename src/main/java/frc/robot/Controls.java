@@ -36,7 +36,7 @@ public class Controls implements Sendable {
     Trigger windowsButtonDrive = driveJoystick.back();
     Trigger burgerButtonDrive = driveJoystick.start();
     Trigger pov0Drive = driveJoystick.povUp();
-    Trigger speedKnopf = driveJoystick.leftStick();
+    Trigger speedButton = driveJoystick.leftStick();
 
     Trigger ltButtonOperator = operatorJoystick.leftTrigger();
     Trigger rtButtonOperator = operatorJoystick.rightTrigger();
@@ -98,7 +98,7 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        speedKnopf.whileTrue(Commands.startEnd(
+        speedButton.whileTrue(Commands.startEnd(
                 () -> {
                     setActiveSpeedFactor(DriveSpeed.SLOW);
                 },

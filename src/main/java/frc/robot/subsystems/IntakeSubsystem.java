@@ -10,14 +10,20 @@ import frc.robot.commands.intake.IntakeCommand;
 public class IntakeSubsystem extends SubsystemBase {
     private final FridoSparkMax intakeMotor;
 
-    public boolean isIntakeOn;
+    /** Whether the intake is currently on.
+     */
+    public boolean isIntakeOn = false;
 
-    public boolean run = true;
+    /** Whether the intake motor is currently blocked e.g. by a ball.
+     */
+    public boolean motorIsBlocked = false;
+
+    /** Whether the operator is currently controlling the intake.
+     */
+    public boolean operatorIsControlling = false;
 
     public IntakeSubsystem() {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
-        isIntakeOn = false;
-        run = true;
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
 
@@ -29,16 +35,20 @@ public class IntakeSubsystem extends SubsystemBase {
         double currentAmps = intakeMotor.getOutputCurrent();
         double rpms = intakeMotor.getEncoderVelocity();
         if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpms < Constants.Intake.intakeStallRpmThreshold) {
-            run = false;
+            motorIsBlocked = true;
+            operatorIsControlling = true;
+            stop();
         }
     }
 
-    public void intake() {
+    public void ballsIn() {
         setPercent(Constants.Intake.intakeSpeed);
+        isIntakeOn = true;
     }
 
-    public void outtake() {
+    public void ballsOut() {
         setPercent(Constants.Intake.outtakeSpeed);
+        isIntakeOn = true;
     }
 
     public void setPercent(double percent) {
@@ -47,6 +57,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public void stop() {
-        intakeMotor.stopMotor();;
+        intakeMotor.stopMotor();
+        isIntakeOn = false;
     }
 }

@@ -3,51 +3,47 @@ package frc.robot.commands.intake;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
-    private final double intakePercent;
     private IntakeSubsystem intake;
 
-    private boolean changeState = false;
-
     public IntakeCommand(IntakeSubsystem intake) {
-        this(intake, Constants.Intake.intakeSpeed);
-    }
-
-    public IntakeCommand(IntakeSubsystem intake, double intakePercent) {
-        this.intakePercent = intakePercent;
+        this.intake = intake;
         addRequirements(intake);
     }
 
     @Override
-    public void initialize() {}
+    public void initialize() {
+    }
 
     @Override
     public void execute() {
-        if (!intake.run)
-        {
+        if (intake.operatorIsControlling) {
+            return;
+        }
+        if (intake.motorIsBlocked) {
+            return;
+        }
+
+        var isInNeutralZone = (DriverStation.getAlliance().get() == Alliance.Blue
+                && RobotContainer.drive.getPose().getX() > Constants.Field.neutralZoneStartX) ||
+                (DriverStation.getAlliance().get() == Alliance.Red
+                        && RobotContainer.drive.getPose().getX() < Constants.Field.neutralZoneStartX);
+
+        // If the Robot is in the Alliance-Zone, stop the intake.
+        if (!isInNeutralZone && intake.isIntakeOn) {
             intake.stop();
             return;
         }
 
-        if ((DriverStation.getAlliance().get() == Alliance.Blue && RobotContainer.drive.getPose().getX() > Constants.Field.neutralZoneStartX) ||
-            (DriverStation.getAlliance().get() == Alliance.Red && RobotContainer.drive.getPose().getX() < Constants.Field.neutralZoneStartX)) {
-
-            // in neutral zone
-            if (!intake.isIntakeOn)
-                intake.setPercent(intakePercent);
-            else 
-                intake.stop();
-        }
-        else if (intake.isIntakeOn) {
-            intake.setPercent(intakePercent);
-        }
-        else {
-            intake.stop();
+        // If the Robot is in the Neutral-Zone, turn on the intake to pick up balls.
+        // If the Intake is already on, don't turn it on again to prevent stalling the
+        // motor
+        if (!intake.isIntakeOn) {
+            intake.ballsIn();
         }
     }
 
