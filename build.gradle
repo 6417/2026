@@ -148,3 +148,11 @@ task(realityCalibratorBenchmark, type: JavaExec) {
     }
 }
 
+task(singleScenarioRun, type: JavaExec) {
+    mainClass = "frc.robot.sim.SingleScenarioRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty("singleScenarioArgs")) {
+        args project.property("singleScenarioArgs").toString().split(",")
+    }
+}
+

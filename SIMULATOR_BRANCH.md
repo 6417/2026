@@ -236,11 +236,11 @@ Es gibt jetzt einen controller-gesteuerten Feld-Kalibrierer für Shooter/Turret:
 - Persistenz als JSON via `src/main/java/frc/robot/calibration/CalibrationIO.java`
 
 Erklärung:
-Der Reality Calibrator ist der praktische Übergang zwischen Simulation und echter Hardware.
-Während die Simulation euch stabile Vergleichswerte gibt, erfasst der Calibrator systematisch
+Der Reality Calibrator ist der praktische Übergang zwischen Simulation und Hardware.
+Während die Simulation stabile Vergleichswerte gibt, erfasst der Calibrator systematisch
 reale Schüsse und lernt daraus Korrekturen für Turret-Offset und distanzabhängigen Bias.
 
-Wichtig ist die Trennung in zwei Schritte:
+Trennung in zwei Schritte:
 1. Beim Abfeuern wird ein technisches Sample erfasst (Pose, Velocity, Distanz, berechnete RPM/Yaw, Solver-Status).
 2. Danach wird das Ergebnis vom Operator gelabelt (Hit, Miss links/rechts, Miss short/long).
 

@@ -164,7 +164,7 @@ public class Constants {
         public static final double kD = 0.0;
         public static final double kS = 0.0;
         public static final double kV = 0.0001575;
-        public static final double maxRpm = 7600.0;
+        public static final double maxRpm = 5600.0;
         public static final double maxNegPower = -0.30;
 
         public static final double defaultTopRpm = 3000.0;
