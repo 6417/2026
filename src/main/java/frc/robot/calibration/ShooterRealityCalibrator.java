@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
@@ -16,11 +17,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 
 /**
- * Führt einen operator-gesteuerten Kalibrierablauf auf dem Feld aus.
- *
- * <p>Der Calibrator sammelt reale Schussbeobachtungen (Hit/Miss + Richtung),
- * passt daraus Distanz-Bias und Turret-Nulloffset an und kann das Ergebnis als
- * Runtime-Override (JSON) persistent speichern.
+ * Runs operator-driven shooter calibration and applies runtime overrides.
  */
 public class ShooterRealityCalibrator {
     private final ShooterSubsystem shooter;
@@ -35,15 +32,23 @@ public class ShooterRealityCalibrator {
     private ShooterCalibrationConfig pendingSuggestion;
     private ShooterCalibrationConfig loadedConfig;
 
+    private final CalibrationImpactVisualizer impactVisualizer;
+    private boolean impactAdjustActive = false;
+    private Translation2d impactCursorField = new Translation2d();
+    private Translation2d predictedImpactField = null;
+    private Pose2d shooterPoseForImpact = new Pose2d();
+
     private String statusText = "Idle";
     private String lastCommitStatus = "none";
     private double lastDistanceErrorMeters = 0.0;
     private boolean lastDistanceWithinTolerance = true;
+    private CalibrationFitter.FitResult lastFitResult = null;
 
     public ShooterRealityCalibrator(ShooterSubsystem shooter, TurretSubsystem turret, SwerveSubsystem drive) {
         this.shooter = shooter;
         this.turret = turret;
         this.drive = drive;
+        this.impactVisualizer = new CalibrationImpactVisualizer();
 
         Optional<ShooterCalibrationConfig> loaded = CalibrationIO.loadBestAvailable();
         if (loaded.isPresent()) {
@@ -55,36 +60,30 @@ public class ShooterRealityCalibrator {
         publishTelemetry();
     }
 
-    /** Aktualisiert Dashboard-Telemetrie, damit der Operator jederzeit den Session-Status sieht. */
     public void periodic() {
         publishTelemetry();
     }
 
-    /** @return true, wenn der Kalibriermodus aktiv ist und Label-/Fit-Aktionen erlaubt sind. */
     public boolean isModeEnabled() {
         return modeEnabled;
     }
 
-    /** Schaltet den Kalibriermodus um und aktualisiert den Status-Text. */
     public void toggleMode() {
         modeEnabled = !modeEnabled;
         statusText = modeEnabled ? "Calibration mode enabled" : "Calibration mode disabled";
         publishTelemetry();
     }
 
-    /** Erzwingt einen bestimmten Kalibriermodus (an/aus). */
     public void setModeEnabled(boolean enabled) {
         modeEnabled = enabled;
         statusText = modeEnabled ? "Calibration mode enabled" : "Calibration mode disabled";
         publishTelemetry();
     }
 
-    /** @return Name des aktuell gewählten Presets. */
     public String getSelectedPresetName() {
         return presets.get(presetIndex).name();
     }
 
-    /** Springt zyklisch zum nächsten Kalibrier-Preset. */
     public void cyclePreset() {
         if (presets.isEmpty()) {
             return;
@@ -94,30 +93,26 @@ public class ShooterRealityCalibrator {
         publishTelemetry();
     }
 
-    /** Startet eine neue Session mit dem aktuell gewählten Preset. */
     public void startSelectedPreset() {
         session = new CalibrationSession(presets.get(presetIndex));
         pendingSuggestion = null;
+        lastFitResult = null;
+        impactAdjustActive = false;
+        predictedImpactField = null;
         statusText = "Started preset: " + getSelectedPresetName();
         publishTelemetry();
     }
 
-    /** Bricht die laufende Session inklusive nicht bestätigter Suggestion ab. */
     public void cancelSession() {
         session = null;
         pendingSuggestion = null;
+        lastFitResult = null;
+        impactAdjustActive = false;
+        predictedImpactField = null;
         statusText = "Session canceled";
         publishTelemetry();
     }
 
-    /**
-     * Erfasst einen Schuss-Snapshot auf Basis des aktuellen Robot- und Shooter-Zustands.
-     *
-     * <p>Der Shot wird nur aufgenommen, wenn der Fire-Gate im Shooter die Freigabe gibt.
-     * Danach muss der Operator den Ausgang (Hit/Miss) separat labeln.
-     *
-     * @return true, wenn ein Sample erfolgreich erfasst und in die Pending-Queue gelegt wurde.
-     */
     public boolean runNextShot() {
         if (!modeEnabled) {
             statusText = "Enable calibration mode first";
@@ -126,6 +121,16 @@ public class ShooterRealityCalibrator {
         }
         if (session == null || session.isComplete()) {
             startSelectedPreset();
+        }
+        if (impactAdjustActive) {
+            statusText = "Confirm or cancel impact adjust first";
+            publishTelemetry();
+            return false;
+        }
+        if (session.getPendingSamplesCount() > 0) {
+            statusText = "Label pending sample first";
+            publishTelemetry();
+            return false;
         }
 
         ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
@@ -156,7 +161,7 @@ public class ShooterRealityCalibrator {
         CalibrationPreset.Step step = activeStep.get();
         ShooterSubsystem.ShotContext context = contextOpt.get();
 
-        CalibrationSample pending = new CalibrationSample(
+        CalibrationSample basePending = CalibrationSample.createPending(
                 Timer.getFPGATimestamp(),
                 session.getPreset().name(),
                 session.getActiveStepIndex(),
@@ -170,57 +175,123 @@ public class ShooterRealityCalibrator {
                 context.turretYawRad(),
                 context.solveStatus(),
                 context.rpmSaturated(),
-                null);
+                context.robotPoseField().getTranslation());
+
+        ShotImpactPredictor.Prediction prediction = ShotImpactPredictor.predictFromSample(
+                basePending,
+                Constants.Shooter.hubPositionField);
+
+        CalibrationSample pending = new CalibrationSample(
+                basePending.timestampSec(),
+                basePending.presetName(),
+                basePending.presetStepIndex(),
+                basePending.presetStepLabel(),
+                basePending.presetTargetDistanceMeters(),
+                basePending.robotPoseField(),
+                basePending.robotVelocityFieldMps(),
+                basePending.distanceToHubMeters(),
+                basePending.commandedTopRpm(),
+                basePending.commandedBottomRpm(),
+                basePending.commandedTurretYawRad(),
+                basePending.solveStatus(),
+                basePending.rpmSaturated(),
+                null,
+                prediction.impactField(),
+                prediction.impactField(),
+                false,
+                Constants.Calibration.impactAdjustDefaultConfidence);
+
         session.registerFiredShot(pending);
         pendingSuggestion = null;
+
+        shooterPoseForImpact = new Pose2d(
+                context.robotPoseField().getTranslation().plus(
+                        Constants.Shooter.shooterOffsetRobot.rotateBy(context.robotPoseField().getRotation())),
+                new Rotation2d());
+        predictedImpactField = prediction.impactField();
+        impactCursorField = prediction.impactField();
+        impactAdjustActive = prediction.valid();
+
         lastDistanceErrorMeters = Math.abs(context.distanceToHubMeters() - step.targetDistanceMeters());
         lastDistanceWithinTolerance = lastDistanceErrorMeters <= Constants.Calibration.stepDistanceToleranceMeters;
 
-        statusText = lastDistanceWithinTolerance
-                ? "Shot captured. Label with X/B or D-pad."
-                : "Shot captured (distance off target). Label with X/B or D-pad.";
+        statusText = impactAdjustActive
+                ? "Shot captured. Adjust red impact point with D-pad and confirm with A."
+                : "Shot captured. Prediction invalid, label with X/B or D-pad.";
         publishTelemetry();
         return true;
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als Treffer. */
+    public boolean isImpactAdjustActive() {
+        return impactAdjustActive;
+    }
+
+    public boolean nudgeImpactCursor(double dxMeters, double dyMeters) {
+        if (!impactAdjustActive) {
+            return false;
+        }
+
+        double newX = impactCursorField.getX() + dxMeters;
+        double newY = impactCursorField.getY() + dyMeters;
+        newX = Math.max(0.0, Math.min(Constants.Field.FIELD_LENGTH_METERS, newX));
+        newY = Math.max(0.0, Math.min(Constants.Field.FIELD_WIDTH_METERS, newY));
+        impactCursorField = new Translation2d(newX, newY);
+        statusText = String.format("Impact cursor: x=%.2f y=%.2f", impactCursorField.getX(), impactCursorField.getY());
+        publishTelemetry();
+        return true;
+    }
+
+    public boolean confirmImpactAdjust() {
+        if (!impactAdjustActive || session == null) {
+            return false;
+        }
+        Optional<CalibrationSample> updated = session.updatePendingImpact(
+                impactCursorField,
+                Constants.Calibration.impactAdjustDefaultConfidence);
+        if (updated.isEmpty()) {
+            statusText = "No pending sample for impact adjust";
+            publishTelemetry();
+            return false;
+        }
+        impactAdjustActive = false;
+        statusText = "Impact point confirmed. Label with X/B or D-pad.";
+        publishTelemetry();
+        return true;
+    }
+
+    public void cancelImpactAdjust() {
+        if (!impactAdjustActive) {
+            return;
+        }
+        impactAdjustActive = false;
+        statusText = "Impact adjust canceled. Label with X/B or D-pad.";
+        publishTelemetry();
+    }
+
     public boolean markHit() {
         return recordOutcome(ShotOutcome.HIT, "Marked HIT");
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als Miss ohne Richtungsinformation. */
     public boolean markMissUnknown() {
         return recordOutcome(ShotOutcome.MISS_UNKNOWN, "Marked MISS");
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als links vorbei. */
     public boolean markMissLeft() {
         return recordOutcome(ShotOutcome.MISS_LEFT, "Marked MISS_LEFT");
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als rechts vorbei. */
     public boolean markMissRight() {
         return recordOutcome(ShotOutcome.MISS_RIGHT, "Marked MISS_RIGHT");
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als zu kurz. */
     public boolean markMissShort() {
         return recordOutcome(ShotOutcome.MISS_SHORT, "Marked MISS_SHORT");
     }
 
-    /** Labelt den ältesten ungekennzeichneten Schuss als zu lang. */
     public boolean markMissLong() {
         return recordOutcome(ShotOutcome.MISS_LONG, "Marked MISS_LONG");
     }
 
-    /**
-     * Führt den deterministischen Fit über alle gelabelten Samples der Session aus.
-     *
-     * <p>Ergebnis ist eine neue Kalibrier-Suggestion (Bias-Knoten + Turret-Offset),
-     * die noch nicht angewendet ist und erst per {@link #commitSuggestion()} aktiv wird.
-     *
-     * @return Optional mit neuer Suggestion; leer, wenn Session/Samples nicht ausreichen.
-     */
     public Optional<ShooterCalibrationConfig> computeSuggestion() {
         if (session == null) {
             statusText = "No active session";
@@ -256,7 +327,18 @@ public class ShooterRealityCalibrator {
                         Constants.Calibration.maxBiasValue,
                         Constants.Calibration.minDirectionalSamplesForTurretFit,
                         Constants.Calibration.turretDegPerDirectionalMiss,
-                        Constants.Calibration.maxTurretOffsetDeg));
+                        Constants.Calibration.maxTurretOffsetDeg,
+                        Constants.Calibration.impactResidualWeight,
+                        Constants.Calibration.impactRangeMetersPerBiasUnit,
+                        Constants.Calibration.impactLateralMetersPerTurretDeg,
+                        Constants.Calibration.turretResidualLearningRate,
+                        Constants.Calibration.biasResidualLearningRate,
+                        Constants.Calibration.maxTurretDeltaDegPerRound,
+                        Constants.Calibration.maxBiasDeltaPerRound,
+                        Constants.Calibration.minLateralWeightForTurretUpdate,
+                        Constants.Calibration.minRangeWeightForBiasUpdate,
+                        Constants.Calibration.fitShrinkFactorLowConfidence,
+                        Constants.Calibration.residualHuberDeltaMeters));
 
         ShooterCalibrationConfig suggestion = new ShooterCalibrationConfig();
         suggestion.version = 1;
@@ -266,17 +348,13 @@ public class ShooterRealityCalibrator {
         suggestion.biasDistancesM = knotDistances;
         suggestion.biasValues = fit.biasValues();
 
+        lastFitResult = fit;
         pendingSuggestion = suggestion;
         statusText = "Suggestion ready (" + samples.size() + " samples)";
         publishTelemetry();
         return Optional.of(suggestion);
     }
 
-    /**
-     * Übernimmt die letzte berechnete Suggestion in den Shooter und speichert sie als Runtime-JSON.
-     *
-     * @return true bei erfolgreicher Übernahme (Speichern kann trotzdem fehlschlagen und wird per Status gemeldet).
-     */
     public boolean commitSuggestion() {
         if (pendingSuggestion == null) {
             statusText = "No suggestion to commit";
@@ -298,12 +376,12 @@ public class ShooterRealityCalibrator {
         return true;
     }
 
-    /**
-     * Schreibt ein Outcome auf das älteste Pending-Sample.
-     *
-     * <p>Die Reihenfolge bleibt deterministisch: first-fired, first-labeled.
-     */
     private boolean recordOutcome(ShotOutcome outcome, String successMessage) {
+        if (impactAdjustActive) {
+            statusText = "Confirm/cancel impact adjust first";
+            publishTelemetry();
+            return false;
+        }
         if (session == null) {
             statusText = "No active session";
             publishTelemetry();
@@ -316,17 +394,12 @@ public class ShooterRealityCalibrator {
             return false;
         }
         pendingSuggestion = null;
+        lastFitResult = null;
         statusText = successMessage;
         publishTelemetry();
         return true;
     }
 
-    /**
-     * Spiegelt den vollständigen Kalibrierstatus auf das Dashboard.
-     *
-     * <p>Damit sind Preset-Fortschritt, offene Labels, Suggestion-Status und
-     * Persistenzstatus während der Feldarbeit direkt sichtbar.
-     */
     private void publishTelemetry() {
         SmartDashboard.putBoolean("Calib/ModeActive", modeEnabled);
         SmartDashboard.putString("Calib/Status", statusText);
@@ -363,5 +436,33 @@ public class ShooterRealityCalibrator {
         SmartDashboard.putBoolean("Calib/LoadedConfigPresent", loadedConfig != null);
         SmartDashboard.putNumber("Calib/LastDistanceErrorM", lastDistanceErrorMeters);
         SmartDashboard.putBoolean("Calib/LastDistanceInTolerance", lastDistanceWithinTolerance);
+        SmartDashboard.putNumber("Calib/FitDirectionalSamples", lastFitResult == null ? 0 : lastFitResult.directionalSamples());
+        SmartDashboard.putNumber("Calib/FitShortLongSamples", lastFitResult == null ? 0 : lastFitResult.shortLongSamples());
+        SmartDashboard.putBoolean("Calib/FitTurretSuppressed", lastFitResult != null && lastFitResult.turretUpdateSuppressed());
+        SmartDashboard.putNumber("Calib/FitTurretDeltaDeg",
+                lastFitResult == null ? 0.0 : Math.toDegrees(lastFitResult.turretDeltaRad()));
+        SmartDashboard.putNumber("Calib/FitLateralWeight",
+                lastFitResult == null ? 0.0 : lastFitResult.lateralWeightUsed());
+        SmartDashboard.putNumber("Calib/FitSuppressedBiasKnots",
+                lastFitResult == null ? 0 : lastFitResult.suppressedBiasKnots());
+        for (int i = 0; i < Constants.Calibration.biasFitDistancesMeters.length; i++) {
+            double rangeWeight = 0.0;
+            if (lastFitResult != null && i < lastFitResult.rangeWeightPerKnot().length) {
+                rangeWeight = lastFitResult.rangeWeightPerKnot()[i];
+            }
+            SmartDashboard.putNumber("Calib/FitRangeWeightKnot" + i, rangeWeight);
+        }
+        SmartDashboard.putBoolean("Calib/ImpactAdjustActive", impactAdjustActive);
+        SmartDashboard.putNumber("Calib/ImpactCursorX", impactCursorField.getX());
+        SmartDashboard.putNumber("Calib/ImpactCursorY", impactCursorField.getY());
+        SmartDashboard.putNumber("Calib/PredictedImpactX", predictedImpactField == null ? 0.0 : predictedImpactField.getX());
+        SmartDashboard.putNumber("Calib/PredictedImpactY", predictedImpactField == null ? 0.0 : predictedImpactField.getY());
+
+        impactVisualizer.update(
+                Constants.Shooter.hubPositionField,
+                Constants.ShooterSim.hubRadiusMeters,
+                Optional.of(shooterPoseForImpact),
+                Optional.ofNullable(predictedImpactField),
+                impactAdjustActive ? Optional.of(impactCursorField) : Optional.empty());
     }
 }

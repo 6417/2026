@@ -7,10 +7,35 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.utils.ShotKinematicSolver;
 
 class CalibrationFitterTest {
+    private static CalibrationFitter.Params params(double[] knots) {
+        return new CalibrationFitter.Params(
+                knots,
+                1.0,
+                0.12,
+                0.15,
+                0.80,
+                1.35,
+                4,
+                2.0,
+                4.0,
+                1.0,
+                0.60,
+                0.08,
+                0.35,
+                0.65,
+                1.0,
+                0.08,
+                2.0,
+                2.0,
+                0.35,
+                0.35);
+    }
+
     private static CalibrationSample sample(double distanceMeters, ShotOutcome outcome) {
         return new CalibrationSample(
                 1.0,
@@ -26,7 +51,11 @@ class CalibrationFitterTest {
                 0.0,
                 ShotKinematicSolver.SolveStatus.SOLVED,
                 false,
-                outcome);
+                outcome,
+                new Translation2d(3.0, 3.0),
+                new Translation2d(3.0, 3.0),
+                false,
+                1.0);
     }
 
     @Test
@@ -38,7 +67,7 @@ class CalibrationFitterTest {
                 List.of(sample(3.5, ShotOutcome.MISS_SHORT), sample(3.4, ShotOutcome.MISS_SHORT)),
                 0.0,
                 baseBias,
-                new CalibrationFitter.Params(knots, 1.0, 0.12, 0.15, 0.80, 1.35, 4, 2.0, 4.0));
+                params(knots));
 
         assertTrue(fit.biasValues()[1] > 1.0);
     }
@@ -56,9 +85,77 @@ class CalibrationFitterTest {
                         sample(3.0, ShotOutcome.MISS_RIGHT)),
                 0.0,
                 baseBias,
-                new CalibrationFitter.Params(knots, 1.0, 0.12, 0.15, 0.80, 1.35, 4, 2.0, 4.0));
+                params(knots));
 
         assertTrue(fit.turretZeroOffsetRad() > 0.0);
+        assertTrue(Math.abs(fit.turretDeltaRad()) > 0.0);
+    }
+
+    @Test
+    void impactResidualCanDriveBiasAndTurretWithoutDirectionalLabels() {
+        double[] knots = {2.5, 3.5, 4.5, 5.5};
+        double[] baseBias = {1.0, 1.0, 1.0, 1.0};
+        CalibrationSample sample = new CalibrationSample(
+                1.0,
+                "test",
+                0,
+                "s",
+                3.5,
+                new Pose2d(1.0, 1.0, new Rotation2d()),
+                new Translation2d(),
+                3.5,
+                3000.0,
+                2800.0,
+                0.0,
+                ShotKinematicSolver.SolveStatus.SOLVED,
+                false,
+                ShotOutcome.HIT,
+                new Translation2d(3.0, 1.0),
+                new Translation2d(3.3, 1.1),
+                true,
+                1.0);
+
+        CalibrationFitter.FitResult fit = CalibrationFitter.fit(
+                List.of(sample, sample),
+                0.0,
+                baseBias,
+                params(knots));
+
+        assertTrue(fit.biasValues()[1] < 1.0);
+        assertTrue(fit.turretZeroOffsetRad() != 0.0);
+    }
+
+    @Test
+    void weakLateralEvidenceSuppressesTurretResidualUpdate() {
+        double[] knots = {2.5, 3.5, 4.5, 5.5};
+        double[] baseBias = {1.0, 1.0, 1.0, 1.0};
+        CalibrationSample sample = new CalibrationSample(
+                1.0,
+                "test",
+                0,
+                "s",
+                3.5,
+                new Pose2d(1.0, 1.0, new Rotation2d()),
+                new Translation2d(),
+                3.5,
+                3000.0,
+                2800.0,
+                0.0,
+                ShotKinematicSolver.SolveStatus.SOLVED,
+                false,
+                ShotOutcome.MISS_UNKNOWN,
+                new Translation2d(3.0, 1.0),
+                new Translation2d(3.05, 1.4),
+                true,
+                0.2);
+
+        CalibrationFitter.FitResult fit = CalibrationFitter.fit(
+                List.of(sample),
+                0.0,
+                baseBias,
+                params(knots));
+
+        assertTrue(fit.turretUpdateSuppressed());
+        assertTrue(Math.abs(fit.turretDeltaRad()) < 1e-9);
     }
 }
-

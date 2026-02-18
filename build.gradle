@@ -140,3 +140,11 @@ task(shotFocusReport, type: JavaExec) {
     args "report"
 }
 
+task(realityCalibratorBenchmark, type: JavaExec) {
+    mainClass = "frc.robot.sim.RealityCalibratorBenchmarkRunner"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty("calibBenchmarkArgs")) {
+        args project.property("calibBenchmarkArgs").toString().split(",")
+    }
+}
+

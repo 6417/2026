@@ -2,6 +2,7 @@ package frc.robot.calibration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -36,7 +37,11 @@ class CalibrationSessionTest {
                 0.0,
                 ShotKinematicSolver.SolveStatus.SOLVED,
                 false,
-                null);
+                null,
+                new Translation2d(2.0, 3.0),
+                new Translation2d(2.0, 3.0),
+                false,
+                1.0);
 
         session.registerFiredShot(pending);
         session.registerFiredShot(pending);
@@ -49,6 +54,42 @@ class CalibrationSessionTest {
 
         assertEquals(2, session.getLabeledSampleCount());
         assertTrue(session.getLabeledSamples().stream().allMatch(s -> s.outcome() != null));
+    }
+
+    @Test
+    void pendingImpactCanBeUpdatedBeforeLabeling() {
+        CalibrationPreset preset = new CalibrationPreset(
+                "test",
+                "test preset",
+                List.of(new CalibrationPreset.Step("step0", 2.0, new Translation2d(), 1)));
+        CalibrationSession session = new CalibrationSession(preset);
+
+        CalibrationSample pending = new CalibrationSample(
+                1.0,
+                "test",
+                0,
+                "step0",
+                2.0,
+                new Pose2d(),
+                new Translation2d(),
+                2.0,
+                3000.0,
+                2800.0,
+                0.0,
+                ShotKinematicSolver.SolveStatus.SOLVED,
+                false,
+                null,
+                new Translation2d(2.0, 2.0),
+                new Translation2d(2.0, 2.0),
+                false,
+                1.0);
+        session.registerFiredShot(pending);
+
+        var updated = session.updatePendingImpact(new Translation2d(2.2, 2.1), 0.8);
+        assertTrue(updated.isPresent());
+        assertTrue(updated.get().impactAdjusted());
+        assertEquals(2.2, updated.get().adjustedImpactField().getX(), 1e-9);
+        assertNotNull(session.peekPendingSample().orElse(null));
     }
 }
 

@@ -258,9 +258,9 @@ Kurzablauf:
 2. Mit `A` Schüsse erfassen.
 3. Mit `X` = Hit, `B` = Miss markieren.
 4. Optional Miss-Richtung:
-   - D-Pad links/rechts fuer seitlichen Fehler,
-   - D-Pad hoch/runter fuer long/short.
-5. Mit `RB` Fit berechnen, mit `LB` uebernehmen/speichern.
+   - D-Pad links/rechts für seitlichen Fehler,
+   - D-Pad hoch/runter für long/short.
+5. Mit `RB` Fit berechnen, mit `LB` übernehmen/speichern.
 
 Persistenz:
 - Laufzeitdatei: `calibration/shooter_calibration.json`

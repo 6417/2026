@@ -94,6 +94,20 @@ public class Constants {
         // Directional miss -> turret offset update.
         public static final double turretDegPerDirectionalMiss = 2.0;
         public static final double maxTurretOffsetDeg = 4.0;
+        // Impact residual fit (meters) -> correction scaling.
+        public static final double impactResidualWeight = 1.0;
+        public static final double impactRangeMetersPerBiasUnit = 0.60;
+        public static final double impactLateralMetersPerTurretDeg = 0.08;
+        public static final double turretResidualLearningRate = 0.35;
+        public static final double biasResidualLearningRate = 0.65;
+        public static final double maxTurretDeltaDegPerRound = 1.0;
+        public static final double maxBiasDeltaPerRound = 0.08;
+        public static final double minLateralWeightForTurretUpdate = 2.0;
+        public static final double minRangeWeightForBiasUpdate = 2.0;
+        public static final double fitShrinkFactorLowConfidence = 0.35;
+        public static final double residualHuberDeltaMeters = 0.35;
+        public static final double impactAdjustStepMeters = 0.10;
+        public static final double impactAdjustDefaultConfidence = 1.0;
 
         public static final double stepDistanceToleranceMeters = 0.35;
 

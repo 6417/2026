@@ -80,27 +80,56 @@ public class Controls {
         // Reality-calibration bindings (active only when calibration mode is enabled).
         yButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.cyclePreset()));
-        aButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        aButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.runNextShot()));
+        aButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.confirmImpactAdjust()));
         xButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markHit()));
         bButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markMissUnknown()));
 
-        dpadLeftOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        dpadLeftOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator
+                        .nudgeImpactCursor(-Constants.Calibration.impactAdjustStepMeters, 0.0)));
+        dpadRightOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator
+                        .nudgeImpactCursor(Constants.Calibration.impactAdjustStepMeters, 0.0)));
+        dpadUpOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator
+                        .nudgeImpactCursor(0.0, Constants.Calibration.impactAdjustStepMeters)));
+        dpadDownOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator
+                        .nudgeImpactCursor(0.0, -Constants.Calibration.impactAdjustStepMeters)));
+
+        dpadLeftOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markMissLeft()));
-        dpadRightOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        dpadRightOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markMissRight()));
-        dpadUpOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        dpadUpOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markMissLong()));
-        dpadDownOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        dpadDownOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.markMissShort()));
 
         rbButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
                 .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.computeSuggestion()));
         lbButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
                 .onTrue(new CommitCalibrationCommand(RobotContainer.realityCalibrator));
-        rightStickButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled())
+        rightStickButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && RobotContainer.realityCalibrator.isImpactAdjustActive())
+                .onTrue(Commands.runOnce(() -> RobotContainer.realityCalibrator.cancelImpactAdjust()));
+        rightStickButtonOperator.and(() -> RobotContainer.realityCalibrator.isModeEnabled()
+                && !RobotContainer.realityCalibrator.isImpactAdjustActive())
                 .onTrue(new CancelCalibrationCommand(RobotContainer.realityCalibrator));
 
         // Shooter simulator bindings (only active in desktop sim).

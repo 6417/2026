@@ -101,6 +101,28 @@ public class CalibrationSession {
         return Optional.of(labeled);
     }
 
+    /** @return ältestes noch ungelabeltes Sample oder leer. */
+    public Optional<CalibrationSample> peekPendingSample() {
+        CalibrationSample sample = pendingSamples.peekFirst();
+        return sample == null ? Optional.empty() : Optional.of(sample);
+    }
+
+    /**
+     * Aktualisiert das älteste Pending-Sample mit einem manuell angepassten Impactpunkt.
+     *
+     * @return aktualisiertes Sample oder leer, wenn aktuell kein Pending-Sample vorhanden ist.
+     */
+    public Optional<CalibrationSample> updatePendingImpact(edu.wpi.first.math.geometry.Translation2d adjustedImpactField,
+            double confidence) {
+        CalibrationSample sample = pendingSamples.pollFirst();
+        if (sample == null) {
+            return Optional.empty();
+        }
+        CalibrationSample updated = sample.withImpactAdjustment(adjustedImpactField, confidence);
+        pendingSamples.addFirst(updated);
+        return Optional.of(updated);
+    }
+
     /** @return Unveränderliche Kopie aller gelabelten Samples für den Fit. */
     public List<CalibrationSample> getLabeledSamples() {
         return List.copyOf(labeledSamples);
