@@ -33,9 +33,9 @@ public class SmartTurret extends Command {
         Pose2d robotPose = drive.getPose();
         Translation2d turretPose = robotPose.getTranslation().plus(
                 Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(robotPose.getRotation()));
-        Translation2d hubPosition = Constants.Shooter.hubPositionField;
-        Translation2d turretToHub = hubPosition.minus(turretPose);
-        turret.setDistanceHubTurret(turretToHub.getNorm());
+        Translation2d targetPosition = RobotContainer.shooter.getTargetPointForPose(robotPose);
+        Translation2d turretToTarget = targetPosition.minus(turretPose);
+        turret.setDistanceHubTurret(turretToTarget.getNorm());
 
         if (Constants.Shooter.aimAtHubOnly) {
             ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
@@ -44,7 +44,7 @@ public class SmartTurret extends Command {
                     new Translation2d(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
             turret.setDesiredRotation(Math.toDegrees(shotCommand.turretYawRad()));
         } else {
-            Rotation2d angle = turretToHub.getAngle().minus(robotPose.getRotation());
+            Rotation2d angle = turretToTarget.getAngle().minus(robotPose.getRotation());
             turret.setDesiredRotation(angle.getDegrees());
         }
     }

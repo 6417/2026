@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
@@ -38,9 +39,47 @@ public class Constants {
                 Units.inchesToMeters(FIELD_WIDTH_INCHES / 2.0),
                 new Rotation2d());
 
+        // Neutral-zone pass targets (own side of field). These are not hub shots.
+        public static final Translation2d PASS_TARGET_BLUE = new Translation2d(
+                Units.inchesToMeters(120.0),
+                Units.inchesToMeters(FIELD_WIDTH_INCHES / 2.0));
+        public static final Translation2d PASS_TARGET_RED = new Translation2d(
+                Units.inchesToMeters(FIELD_LENGTH_INCHES - 120.0),
+                Units.inchesToMeters(FIELD_WIDTH_INCHES / 2.0));
+
         public static Pose2d EDGE;
         public static Pose2d HUB_CENTER;
         public static double neutralZoneStartX;
+        public static final double neutralZoneEpsilonMeters = 0.01;
+
+        public static double getNeutralZoneMinX() {
+            return Units.inchesToMeters(HUB_CENTER_FROM_ALLIANCE_WALL_INCHES);
+        }
+
+        public static double getNeutralZoneMaxX() {
+            return Units.inchesToMeters(FIELD_LENGTH_INCHES - HUB_CENTER_FROM_ALLIANCE_WALL_INCHES);
+        }
+
+        public static boolean isInNeutralZone(double xMeters) {
+            return xMeters >= (getNeutralZoneMinX() - neutralZoneEpsilonMeters)
+                    && xMeters <= (getNeutralZoneMaxX() + neutralZoneEpsilonMeters);
+        }
+
+        public static Translation2d getOwnHubForAlliance(Alliance alliance) {
+            return alliance == Alliance.Red
+                    ? HUB_CENTER_RED.getTranslation()
+                    : HUB_CENTER_BLUE.getTranslation();
+        }
+
+        public static Translation2d getOpponentHubForAlliance(Alliance alliance) {
+            return alliance == Alliance.Red
+                    ? HUB_CENTER_BLUE.getTranslation()
+                    : HUB_CENTER_RED.getTranslation();
+        }
+
+        public static Translation2d getOwnPassTargetForAlliance(Alliance alliance) {
+            return alliance == Alliance.Red ? PASS_TARGET_RED : PASS_TARGET_BLUE;
+        }
     }
 
     public static final class Joystick {
@@ -207,6 +246,11 @@ public class Constants {
         public static final double maxRobotOmegaRadPerSecForShot = Math.toRadians(120.0);
         public static final double minShotDistanceMeters = 1.2;
         public static final double maxShotDistanceMeters = 7.0;
+
+        // Targeting mode:
+        // - In neutral zone: do not shoot any hub; use own pass target.
+        // - Outside neutral zone: use own alliance hub.
+        public static final boolean useOwnPassTargetInNeutralZone = true;
 
         // Set to the active alliance hub in Robot init (defaults to blue before alliance is known).
         public static Translation2d hubPositionField = Field.HUB_CENTER_BLUE.getTranslation();

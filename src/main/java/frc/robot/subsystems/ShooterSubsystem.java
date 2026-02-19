@@ -16,6 +16,8 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -130,6 +132,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private double lastSimFireTimestampSec = -1.0;
     private double lastSimFireMuzzleSpeedMps = 0.0;
     private double lastTargetDistanceMeters = Double.NaN;
+    private Translation2d lastTargetPointField = Constants.Shooter.hubPositionField;
     private ShotBlockReason lastShotBlockReason = ShotBlockReason.NONE;
 
     public ShooterSubsystem() {
@@ -251,10 +254,12 @@ public class ShooterSubsystem extends SubsystemBase {
      * 2) vector lead compensation for robot motion while the ball is in flight.
      */
     public ShotCommand calculateShotCommand(Pose2d robotPoseField, Translation2d robotVelocityFieldMps) {
+        Translation2d selectedTarget = selectTargetPointForPose(robotPoseField);
+        lastTargetPointField = selectedTarget;
         return calculateShotCommand(
                 robotPoseField,
                 robotVelocityFieldMps,
-                Constants.Shooter.hubPositionField,
+                selectedTarget,
                 Constants.Shooter.shooterOffsetRobot,
                 getActiveTurretZeroOffsetRad());
     }
@@ -415,6 +420,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public double getLastTargetDistanceMeters() {
         return lastTargetDistanceMeters;
+    }
+
+    public Translation2d getTargetPointForPose(Pose2d robotPoseField) {
+        return selectTargetPointForPose(robotPoseField);
     }
 
     public ShotBlockReason getLastShotBlockReason() {
@@ -691,7 +700,25 @@ public class ShooterSubsystem extends SubsystemBase {
     private double computeDistanceToHubMeters(Pose2d robotPoseField) {
         Translation2d shooterPositionField = robotPoseField.getTranslation().plus(
                 Constants.Shooter.shooterOffsetRobot.rotateBy(robotPoseField.getRotation()));
-        return Constants.Shooter.hubPositionField.minus(shooterPositionField).getNorm();
+        Translation2d targetPoint = selectTargetPointForPose(robotPoseField);
+        lastTargetPointField = targetPoint;
+        return targetPoint.minus(shooterPositionField).getNorm();
+    }
+
+    private Translation2d selectTargetPointForPose(Pose2d robotPoseField) {
+        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        Translation2d ownHub = Constants.Field.getOwnHubForAlliance(alliance);
+        Translation2d ownPassTarget = Constants.Field.getOwnPassTargetForAlliance(alliance);
+
+        // Manual rule handling:
+        // In neutral zone we do not target any hub; we pass toward our own side.
+        if (Constants.Shooter.useOwnPassTargetInNeutralZone
+                && Constants.Field.isInNeutralZone(robotPoseField.getX())) {
+            return ownPassTarget;
+        }
+
+        // Outside neutral zone we stay on own alliance hub target.
+        return ownHub;
     }
 
     @Override
@@ -725,6 +752,11 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter/SimHitRate", shooterTurretSimulator.getHitRate());
         SmartDashboard.putNumber("Shooter/PendingShotTraces", pendingCompletedShotTraces.size());
         SmartDashboard.putNumber("Shooter/TargetDistanceM", lastTargetDistanceMeters);
+        SmartDashboard.putNumber("Shooter/TargetPointX", lastTargetPointField.getX());
+        SmartDashboard.putNumber("Shooter/TargetPointY", lastTargetPointField.getY());
+        SmartDashboard.putBoolean(
+                "Shooter/InNeutralZone",
+                Constants.Field.isInNeutralZone(simRobotPoseField.getX()));
         SmartDashboard.putBoolean("Shooter/DistanceInRange", isDistanceInRange());
         SmartDashboard.putString("Shooter/SolveStatus", lastSolveStatus.name());
         SmartDashboard.putBoolean("Shooter/RpmSaturated", lastCommandRpmSaturated);
