@@ -17,6 +17,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.diagnostics.DiagnosticReport;
+import frc.robot.diagnostics.IntakeDiagnostic;
+import frc.robot.diagnostics.SwerveDriveDiagnostic;
+import frc.robot.diagnostics.SwerveSteerDiagnostic;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -159,6 +164,13 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   public void testInit() {
     LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
     CommandScheduler.getInstance().cancelAll();
+
+    DiagnosticReport report = new DiagnosticReport();
+    CommandScheduler.getInstance().schedule(new SequentialCommandGroup(
+        new SwerveDriveDiagnostic(RobotContainer.drive, report),
+        new SwerveSteerDiagnostic(RobotContainer.drive, report),
+        new IntakeDiagnostic(RobotContainer.intake, report)
+    ));
   }
 
   /** This function is called periodically during test mode. */
