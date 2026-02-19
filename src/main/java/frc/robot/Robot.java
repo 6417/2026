@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.diagnostics.ClimberDiagnostic;
 import frc.robot.diagnostics.DiagnosticReport;
 import frc.robot.diagnostics.IntakeDiagnostic;
 import frc.robot.diagnostics.SwerveDriveDiagnostic;
@@ -179,6 +180,9 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     }
     if (Constants.Diagnostics.enableIntakeTest) {
       diagnosticChecks.add(new IntakeDiagnostic(RobotContainer.intake, report));
+    }
+    if (Constants.Diagnostics.enableClimberTest) {
+      diagnosticChecks.add(new ClimberDiagnostic(RobotContainer.climber, report));
     }
 
     if (!diagnosticChecks.isEmpty()) {

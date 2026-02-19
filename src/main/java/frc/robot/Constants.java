@@ -166,8 +166,9 @@ public class Constants {
 
     public static final class Diagnostics {
         // Toggle individual diagnostics executed in Robot.testInit().
-        public static final boolean enableSwerveDriveTest = true;
-        public static final boolean enableSwerveSteerTest = true;
+        public static final boolean enableSwerveDriveTest = false;
+        public static final boolean enableSwerveSteerTest = false;
         public static final boolean enableIntakeTest = false;
+        public static final boolean enableClimberTest = false;
     }
 }

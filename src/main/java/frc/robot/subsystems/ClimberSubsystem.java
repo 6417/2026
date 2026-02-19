@@ -103,6 +103,10 @@ public class ClimberSubsystem extends SubsystemBase {
         return climberMotor.asTalonFX().getStatorCurrent().getValueAsDouble();
     }
 
+    public double getPositionTicks() {
+        return climberMotor.getEncoderTicks();
+    }
+
     public void setPositionTop() {
         // Use slot 0 for extend (out) with outward motion constraints.
         applyMotionMagicConfig(motionMagicOut);
