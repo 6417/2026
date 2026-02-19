@@ -8,6 +8,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
@@ -16,6 +17,7 @@ public class RobotContainer {
     public static final SwerveSubsystem drive;
     public static final TurretSubsystem turret;
     public static final VisionSubsystem vision;
+    public static final ClimberSubsystem climber;
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
@@ -24,6 +26,7 @@ public class RobotContainer {
         vision = new VisionSubsystem(true, true);
         drive = new SwerveSubsystem();
         turret = new TurretSubsystem();
+        climber = new ClimberSubsystem();
         controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");

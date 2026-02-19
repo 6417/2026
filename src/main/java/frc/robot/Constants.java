@@ -12,6 +12,7 @@ import frc.fridowpi.motors.utils.PidValues;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -133,5 +134,33 @@ public class Constants {
         public static final double maxAngleDeg = 60.0;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
+    public static final class Climber {
+        public static final int motorId = 30;
+        public static final boolean motorInverted = false;
+        public static final IdleMode idleMode = IdleMode.kBrake;
+
+        public static final double resetEncoderPosition = 0.0;
+        public static final double zeroingSpeed = -0.1;
+        public static final double zeroingTimeoutSec = 0.5;
+        public static final double zeroingCurrentThreshold = 0.045;
+
+        public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
+        public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
+        public static final Optional<Double> kG = Optional.of(0.0);
+
+        public static double allowedClosedLoopErrorOut = 0.5;
+        public static double maxAccelerationOut = 30000;
+        public static double maxVelocityOut = 3000;
+
+        public static double allowedClosedLoopErrorIn = 0.5;
+        public static double maxAccelerationIn = 60000;
+        public static double maxVelocityIn = 6000;
+
+        public static final double lowPosition = 70.0;
+        public static final double midPosition = 180.0;
+        public static final double highPosition = 224.0;
+        public static final double positionTolerance = 1.0;
     }
 }

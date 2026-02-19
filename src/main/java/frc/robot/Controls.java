@@ -12,7 +12,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
+import frc.robot.commands.Climber.ClimberCommand;
+import frc.robot.commands.Climber.ManualClimberControl;
 import frc.robot.commands.turret.TurretControlled;
+import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 /**
  * Holds the data concerning input, which should be available
@@ -124,6 +127,12 @@ public class Controls implements Sendable {
                 RobotContainer.intake.isIntakeOn = false;
             }
             ));
+
+        // Climber presets and manual jog controls.
+        aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
+        bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
+        pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
+        rbButtonOperator.whileTrue(new ManualClimberControl(() -> -operatorJoystick.getLeftY()));
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
