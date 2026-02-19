@@ -49,4 +49,14 @@ public class IntakeSubsystem extends SubsystemBase {
     public void stop() {
         intakeMotor.stopMotor();;
     }
+
+    /** Current drawn by the intake motor in amps. */
+    public double getMotorCurrentAmps() {
+        return intakeMotor.getOutputCurrent();
+    }
+
+    /** Intake motor velocity in RPM (positive = intake direction). */
+    public double getMotorRPM() {
+        return intakeMotor.getEncoderVelocity();
+    }
 }
