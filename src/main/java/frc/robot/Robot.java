@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -166,11 +169,24 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     CommandScheduler.getInstance().cancelAll();
 
     DiagnosticReport report = new DiagnosticReport();
-    CommandScheduler.getInstance().schedule(new SequentialCommandGroup(
-        new SwerveDriveDiagnostic(RobotContainer.drive, report),
-        new SwerveSteerDiagnostic(RobotContainer.drive, report),
-        new IntakeDiagnostic(RobotContainer.intake, report)
-    ));
+    List<Command> diagnosticChecks = new ArrayList<>();
+
+    if (Constants.Diagnostics.enableSwerveDriveTest) {
+      diagnosticChecks.add(new SwerveDriveDiagnostic(RobotContainer.drive, report));
+    }
+    if (Constants.Diagnostics.enableSwerveSteerTest) {
+      diagnosticChecks.add(new SwerveSteerDiagnostic(RobotContainer.drive, report));
+    }
+    if (Constants.Diagnostics.enableIntakeTest) {
+      diagnosticChecks.add(new IntakeDiagnostic(RobotContainer.intake, report));
+    }
+
+    if (!diagnosticChecks.isEmpty()) {
+      CommandScheduler.getInstance().schedule(
+          new SequentialCommandGroup(diagnosticChecks.toArray(new Command[0])));
+    } else {
+      Logger.recordOutput("Diagnostics/Overall", "SKIPPED");
+    }
   }
 
   /** This function is called periodically during test mode. */

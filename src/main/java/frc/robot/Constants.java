@@ -163,4 +163,11 @@ public class Constants {
         public static final double highPosition = 224.0;
         public static final double positionTolerance = 1.0;
     }
+
+    public static final class Diagnostics {
+        // Toggle individual diagnostics executed in Robot.testInit().
+        public static final boolean enableSwerveDriveTest = true;
+        public static final boolean enableSwerveSteerTest = true;
+        public static final boolean enableIntakeTest = false;
+    }
 }

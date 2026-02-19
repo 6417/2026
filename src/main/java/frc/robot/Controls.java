@@ -10,10 +10,10 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.climber.ManualClimberControl;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
-import frc.robot.commands.Climber.ClimberCommand;
-import frc.robot.commands.Climber.ManualClimberControl;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
