@@ -1,8 +1,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.Climber.ClimberCommand;
-import frc.robot.commands.Climber.ManualClimberControl;
+import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.climber.ManualClimberControl;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 public class Controls {
