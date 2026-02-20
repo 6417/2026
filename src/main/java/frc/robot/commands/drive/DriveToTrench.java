@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.drive;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,8 +26,8 @@ public class DriveToTrench extends Command {
         blueTrenchYhigh = new Pose2d(4.625, 7.4, new Rotation2d(0));
         redTrenchYlow = new Pose2d(11.925, 0.6, new Rotation2d(Math.PI));
         redTrenchYhigh = new Pose2d(11.925, 7.4, new Rotation2d(Math.PI));
-        targetXOffsetBeforeTrench = 0.75;
-        targetYOffsetBeforeTrench = 0.1;
+        targetXOffsetBeforeTrench = 1.25;
+        targetYOffsetBeforeTrench = 0.0;
         this.drive = drive;
     }
 

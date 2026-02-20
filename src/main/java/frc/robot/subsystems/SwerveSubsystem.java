@@ -19,7 +19,6 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -29,9 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -47,18 +44,16 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
-    private VisionSubsystem vision;
     private boolean driveIsAutomated;
 
     private boolean blueAlliance;
     private boolean intakeMode;
 
     public SwerveSubsystem() {
-        vision = new VisionSubsystem(true);
+        blueAlliance = getAlliance() == Alliance.Blue;
         driveIsAutomated = false;
         intakeMode = false;
-        Constants.Limelight.useVision = vision.isLimelightConnected();
-        
+
         Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1), // not very accurate -> gets
                                                                                        // corrected by limelight anyways
                 Meter.of(4)),
@@ -94,64 +89,22 @@ public class SwerveSubsystem extends SubsystemBase {
 
         }
         setupPathPlanner();
-        // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
     }
 
     @Override
     public void periodic() {
-        // manually update odometry if using vision
-        if(vision.isLimelightConnected()){
-            Constants.Limelight.useVision = true;
-        } else{
-            Constants.Limelight.useVision = false;
-        }
-
         blueAlliance = getAlliance() == Alliance.Blue;
-
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odomerty", drive.getPose());
-
-        double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
-        if (!driveIsAutomated) {
-            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
-            if (Constants.SwerveSubsystem.oldTurnSystem) {
-                if (intakeMode) {
-                    driveCommand(
-                            () -> (i * -joystickAxes[1]),
-                            () -> (i * -joystickAxes[0]),
-                            () -> (i * joystickAxes[0] * 100),
-                            () -> (i * joystickAxes[1] * 100)).schedule();
-                } else {
-                    driveCommand(
-                            () -> (i * -joystickAxes[1]),
-                            () -> (i * -joystickAxes[0]),
-                            () -> (-joystickAxes[2])).schedule();
-                }
-            } else {
-                if (intakeMode) {
-                    driveCommand(
-                            () -> i * -joystickAxes[1],
-                            () -> i * -joystickAxes[0],
-                            () -> i * joystickAxes[0] * 100,
-                            () -> i * joystickAxes[1] * 100).schedule();
-                } else {
-                    driveCommand(
-                            () -> i * -joystickAxes[1],
-                            () -> i * -joystickAxes[0],
-                            () -> i * -joystickAxes[2],
-                            () -> i * -joystickAxes[3]).schedule();
-                }
-            }
-        }
+        driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If you remove this, you wont be able to control the robot with the joysticks anymore.
     }
 
     private void updateOdometry() {
         drive.updateOdometry();
         if (Constants.Limelight.useVision) {
-            vision.updateOdometry();
+            RobotContainer.vision.updateOdometry();
         }
-        ;
     };
 
     public void resetOdometry(Pose2d pose) {
@@ -159,8 +112,6 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void setupPathPlanner() {
-        // Load the RobotConfig from the GUI settings. You should probably
-        // store this in your Constants file
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
@@ -225,6 +176,41 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public Command getAutonomousCommand(String pathName) {
         return new PathPlannerAuto(pathName);
+    }
+
+    public void driveWithJoysticks() {
+        double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
+        if (!driveIsAutomated) {
+            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
+            if (Constants.SwerveSubsystem.oldTurnSystem) {
+                if (intakeMode) {
+                    driveCommand(
+                            () -> (i * -joystickAxes[1]),
+                            () -> (i * -joystickAxes[0]),
+                            () -> (i * joystickAxes[0] * 100),
+                            () -> (i * joystickAxes[1] * 100)).schedule();
+                } else {
+                    driveCommand(
+                            () -> (i * -joystickAxes[1]),
+                            () -> (i * -joystickAxes[0]),
+                            () -> (-joystickAxes[2])).schedule();
+                }
+            } else {
+                if (intakeMode) {
+                    driveCommand(
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
+                            () -> i * joystickAxes[0] * 100,
+                            () -> i * joystickAxes[1] * 100).schedule();
+                } else {
+                    driveCommand(
+                            () -> i * -joystickAxes[1],
+                            () -> i * -joystickAxes[0],
+                            () -> i * -joystickAxes[2],
+                            () -> i * -joystickAxes[3]).schedule();
+                }
+            }
+        }
     }
 
     /**
