@@ -86,8 +86,8 @@ public class Constants {
 
     public static final class SwerveSubsystem {
         public static final double maxSpeed = 4.9; // TODO: for testing
-        public static final double moduleXoffset = 0.267;
-        public static final double moduleYoffset = 0.267;
+        public static final double moduleXoffset = 0.262;
+        public static final double moduleYoffset = 0.262;
         public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
                                                      // (Math.PI *
                                                      // 2); // rps
