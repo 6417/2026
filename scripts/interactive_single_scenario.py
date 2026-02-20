@@ -7,6 +7,10 @@ from matplotlib.patches import Circle
 import numpy as np
 from sys import platform
 
+###
+### Important: If you want to change the robot heading, adjust self.heading_deg
+### This will affect the turret pos and so the shooting trajectory
+###
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_JSON = REPO_ROOT / "build" / "shot_plots" / "single_scenario_output.json"
