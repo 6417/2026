@@ -5,12 +5,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
+from sys import platform
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_JSON = REPO_ROOT / "build" / "shot_plots" / "single_scenario_output.json"
-GRADLEW = REPO_ROOT / "gradlew.bat"
 
+if (platform == "win32"):
+    GRADLEW = REPO_ROOT / "gradlew.bat"
+else:
+    GRADLEW = "gradle"
 
 class ScenarioUI:
     def __init__(self):
@@ -113,6 +117,7 @@ class ScenarioUI:
     @staticmethod
     def _quadratic_bezier_tangent(p0, p1, p2, t):
         return (2.0 * (1.0 - t) * (p1 - p0)) + (2.0 * t * (p2 - p1))
+        
 
     def _compute_curve_control(self, p0, p2):
         seg = p2 - p0

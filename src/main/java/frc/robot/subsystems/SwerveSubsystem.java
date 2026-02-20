@@ -373,7 +373,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     private Alliance getAlliance() {
-        return edu.wpi.first.wpilibj.DriverStation.getAlliance().get();
+        Alliance all =  (edu.wpi.first.wpilibj.DriverStation.getAlliance().orElse(Alliance.Blue));
+        return all;
     }
 
     public Pose2d getPose() {
