@@ -65,7 +65,7 @@ public class SwerveSubsystem extends SubsystemBase {
                         Meter.of(4)),
                         Rotation2d.fromDegrees(180));
 
-        SwerveDriveTelemetry.verbosity = TelemetryVerbosity.INFO;
+        SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
         try {
             drive = new SwerveParser(new File(Filesystem.getDeployDirectory(), "swerve"))
                     .createSwerveDrive(Constants.SwerveSubsystem.maxSpeed, startingPose);
