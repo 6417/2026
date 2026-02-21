@@ -6,7 +6,7 @@
   "absoluteEncoderOffset": -43.59,
   "drive": {
     "type": "krakenx60",
-    "id": 1,
+    "id": 21,
     "canbus": "rio"
   },
   "angle": {
