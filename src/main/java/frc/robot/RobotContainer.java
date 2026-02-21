@@ -9,5 +9,6 @@ public class RobotContainer {
     static {
         climber = new ClimberSubsystem();
         controls = new Controls();
+        
     }
 }
