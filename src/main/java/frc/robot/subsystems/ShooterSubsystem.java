@@ -1,44 +1,64 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.FeedForwardConfig;
+import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 
 public class ShooterSubsystem extends SubsystemBase {
     // Top and bottom shooter motors.
-    private final FridolinsMotor topMotor;
-    private final FridolinsMotor bottomMotor;
-
-    // PID controllers for RPM control (one per motor).
-    private final PIDController topPid;
-    private final PIDController bottomPid;
-    // Feedforward for basic motor model (kS + kV).
-    private final SimpleMotorFeedforward feedforward;
+    private final FridoSparkFlex topMotor;
+    private final FridoSparkFlex bottomMotor;
 
     // Cached targets for debugging/telemetry.
     private double targetTopRpm = 0.0;
     private double targetBottomRpm = 0.0;
 
-    public ShooterSubsystem() {
-        topMotor = new FridoSparkMax(Constants.Shooter.topMotorId);
-        bottomMotor = new FridoSparkMax(Constants.Shooter.bottomMotorId);
+    SparkFlexConfig motorConfigTop;
+    SparkFlexConfig motorConfigBottom;
 
-        // TODO: Verify which motor needs inversion so both wheels feed the ball forward.
-        topMotor.setInverted(Constants.Shooter.topMotorInverted);
-        bottomMotor.setInverted(Constants.Shooter.bottomMotorInverted);
+    public ShooterSubsystem() {
+        topMotor = new FridoSparkFlex(Constants.Shooter.topMotorId);
+        bottomMotor = new FridoSparkFlex(Constants.Shooter.bottomMotorId);
 
         topMotor.setIdleMode(Constants.Shooter.idleMode);
         bottomMotor.setIdleMode(Constants.Shooter.idleMode);
 
-        // Same gains for both motors for now; split if needed later.
-        topPid = new PIDController(Constants.Shooter.kP, Constants.Shooter.kI, Constants.Shooter.kD);
-        bottomPid = new PIDController(Constants.Shooter.kP, Constants.Shooter.kI, Constants.Shooter.kD);
-        // Feedforward is shared because the model is the same for both wheels.
-        feedforward = new SimpleMotorFeedforward(Constants.Shooter.kS, Constants.Shooter.kV);
+        motorConfigTop = new SparkFlexConfig();
+        motorConfigBottom = new SparkFlexConfig();
+
+        motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
+            .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+
+        motorConfigBottom.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
+            .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+            
+        FeedForwardConfig ffConfig = new FeedForwardConfig();
+        ffConfig.kS(Constants.Shooter.ffTop.kS);
+        ffConfig.kV(Constants.Shooter.ffTop.kV);
+        motorConfigTop.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
+
+        FeedForwardConfig ffConfigBottom = new FeedForwardConfig();
+        ffConfigBottom.kS(Constants.Shooter.ffBottom.kS);
+        ffConfigBottom.kV(Constants.Shooter.ffBottom.kV);
+        motorConfigBottom.closedLoop.feedForward.apply(ffConfigBottom); // for custom feedforward values
+
+        topMotor.asSparkFlex().configure(motorConfigTop, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        bottomMotor.asSparkFlex().configure(motorConfigBottom, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void stop() {
@@ -54,27 +74,12 @@ public class ShooterSubsystem extends SubsystemBase {
         bottomMotor.set(bottom);
     }
 
-    /**
-     * Run the shooter using closed-loop RPM control.
-     *
-     * This sets the same RPM for both wheels and then:
-     * 1) clamps the target RPM (if a max is configured),
-     * 2) computes PID + feedforward output,
-     * 3) sends the final percent output to the motors.
-    */
-    private void run(double topRpm, double bottomRpm) {
-            // Clamp target RPMs if a max RPM is configured.
-            targetTopRpm = clampRpm(topRpm);
-            targetBottomRpm = clampRpm(bottomRpm);
-
-            // Spark Max encoder velocity is RPM by default.
-            double topOutput = calculateOutput(topPid, topMotor.getEncoderVelocity(), targetTopRpm);
-            double bottomOutput = calculateOutput(bottomPid, bottomMotor.getEncoderVelocity(), targetBottomRpm);
-
-            // PID + FF output is still a percent (-1..1) to send to the motor.
-            topMotor.set(topOutput);
-            bottomMotor.set(bottomOutput);
-        
+    public void run(double topRpm, double bottomRpm) {
+        topRpm = clampRpm(topRpm);
+        bottomRpm = clampRpm(bottomRpm);
+        // velocity control takes RPS as input
+        topMotor.asSparkFlex().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
+        bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
     }
 
     /**
@@ -105,23 +110,5 @@ public class ShooterSubsystem extends SubsystemBase {
             rpm = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);
         }
         return rpm;
-    }
-
-    private double calculateOutput(PIDController pid, double currentRpm, double targetRpm) {
-        /**
-         * Compute motor output from RPM error.
-         *
-         * PID handles error correction, feedforward provides the base output
-         * needed to maintain the target RPM. The result is clamped to a safe
-         * output range before sending to the motor.
-         */
-        // PID does the error correction, FF gives a baseline voltage for the target speed.
-        double outputPid = pid.calculate(currentRpm, targetRpm);
-        double outputFf = feedforward.calculate(targetRpm);
-        double output = outputPid + outputFf;
-
-
-        // Final safety clamp to motor input range.
-        return MathUtil.clamp(output, -1.0, 1.0);
     }
 }

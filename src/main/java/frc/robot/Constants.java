@@ -2,9 +2,13 @@ package frc.robot;
 
 import java.awt.geom.Point2D;
 
+import org.opencv.features2d.FlannBasedMatcher;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import frc.fridowpi.motors.utils.FeedForwardValues;
+import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.utils.LinearInterpolationTable;
 
 public class Constants {
@@ -58,21 +62,22 @@ public class Constants {
         public static final int topMotorId = 20;
         public static final int bottomMotorId = 21;
 
-        public static final boolean topMotorInverted = true;
+        public static final boolean topMotorInverted = false;
         public static final boolean bottomMotorInverted = false;
 
-        // TODO: Tune shooter PID/FF (RPM-based, Spark Max velocity is RPM).
-        public static final double kP = 0.00007;
+        
+        public static final double kP = 0.0001;
         public static final double kI = 0.0;
-        public static final double kD = 0.0;
-        public static final double kS = 0.0;
-        public static final double kV = 0.0001575;
-        public static final double maxRpm = 0.0;
-        public static final double maxNegPower = -0.30;
+        public static final double kD = 0.0045;
+        public static final double kS_Top = 0.02;
+        public static final double kV_Top = 0.001772;
+        public static final double kS_Bottom = 0.036;
+        public static final double kV_Bottom = 0.0017415;
+        public static final double maxRpm = 6000.0;
 
-        // Safe defaults used until the distance->RPM model is tuned.
-        public static final double defaultTopRpm = 0.0;
-        public static final double defaultBottomRpm = 0.0;
+        public static final PidValues pidBoth = new PidValues(kP, kI, kD);
+        public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
+        public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
 
         public static final double motorTolerance = 20;
 
