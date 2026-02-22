@@ -53,7 +53,7 @@ public class Controls implements Sendable {
 
 
     public Controls() {
-        rtButtonDrive.toggleOnTrue(new ShootCommand(RobotContainer.shooter));
+        rtButtonDrive.toggleOnTrue(new ShootCommand());
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }

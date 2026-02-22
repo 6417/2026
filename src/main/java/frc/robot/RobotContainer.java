@@ -11,8 +11,9 @@ public class RobotContainer {
     public static final Controls controls;
     public static final ShooterSubsystem shooter;
     static {
-        controls = new Controls();
+
         shooter = new ShooterSubsystem();
+        controls = new Controls();
     }
 
 }

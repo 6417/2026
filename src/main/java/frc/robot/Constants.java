@@ -59,8 +59,8 @@ public class Constants {
 
     public static final class Shooter {
         // TODO: Verify these IDs/inversions on the real robot.
-        public static final int topMotorId = 20;
-        public static final int bottomMotorId = 21;
+        public static final int topMotorId = 41;
+        public static final int bottomMotorId = 40;
 
         public static final boolean topMotorInverted = false;
         public static final boolean bottomMotorInverted = false;

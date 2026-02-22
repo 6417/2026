@@ -38,6 +38,9 @@ public class ShooterSubsystem extends SubsystemBase {
         topMotor.setIdleMode(Constants.Shooter.idleMode);
         bottomMotor.setIdleMode(Constants.Shooter.idleMode);
 
+        topMotor.setInverted(false);
+        bottomMotor.setInverted(false);
+        
         motorConfigTop = new SparkFlexConfig();
         motorConfigBottom = new SparkFlexConfig();
 
