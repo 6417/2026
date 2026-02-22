@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.opencv.features2d.FlannBasedMatcher;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -115,23 +117,53 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
+    public static final class Indexer {
+        public static int motorID = 31;
+        public static IdleMode mode = IdleMode.kCoast;
+
+        public static boolean motorInverted = true;
+
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+    }
+
     public static final class Shooter {
+        // TODO: Verify these IDs/inversions on the real robot.
         public static final int topMotorId = 41;
         public static final int bottomMotorId = 40;
+        
+        public static final double kP = 0.0001;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0045;
+        public static final double kS_Top = 0.02;
+        public static final double kV_Top = 0.001772;
+        public static final double kS_Bottom = 0.036;
+        public static final double kV_Bottom = 0.0017415;
+        public static final double maxRpm = 6000.0;
+        public static final boolean bottomMotorInverted = false;
+        public static final boolean topMotorInverted = true;
 
-        public static final boolean topMotorInverted = false;
-        public static final boolean bottomMotorInverted = true;
+        public static final PidValues pidBoth = new PidValues(kP, kI, kD);
+        public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
+        public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
 
-        public static final double defaultShootPercent = 0.7;
+        public static final double motorTolerance = 20;
 
-        // Spin ratio = top / bottom
-        public static final double defaultSpinRatio = 1.0;
-        public static final double minSpinRatio = 0.6;
-        public static final double maxSpinRatio = 1.4;
+        // Distance (m) -> RPM tables
+        // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
+        // then replace these points and/or add more for better curve fitting.
+        private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
 
-        // Angle mapping (degrees). This is a simple linear placeholder.
-        public static final double minAngleDeg = 15.0;
-        public static final double maxAngleDeg = 60.0;
+        private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
+
+        public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
+        public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }

@@ -4,6 +4,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
@@ -13,12 +14,14 @@ import frc.robot.subsystems.ClimberSubsystem;
 public class RobotContainer {
     public static final Pigeon2 gyro;
     // public static final IntakeSubsystem intake;
-    public static final Controls controls;
     public static final SwerveSubsystem drive;
     // public static final TurretSubsystem turret;
     public static final VisionSubsystem vision;
     // public static final ClimberSubsystem climber;
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
+
+    public static final IndexerSubsystem indexer;
+    public static final Controls controls;
 
     static {
         // intake = new IntakeSubsystem();
@@ -27,7 +30,6 @@ public class RobotContainer {
         drive = new SwerveSubsystem();
         // turret = new TurretSubsystem();
         // climber = new ClimberSubsystem();
-        controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
         autoChooser.addOption("Second Auto", "Second Auto");
@@ -39,5 +41,7 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         return drive.getAutonomousCommand(autoChooser.getSelected());
+        indexer = new IndexerSubsystem();
+        controls = new Controls();
     }
 }
