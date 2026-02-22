@@ -27,12 +27,12 @@ public class IndexerSubsystem extends SubsystemBase {
 
     public IndexerSubsystem() {
         indexerMotor = new FridoSparkMax(Constants.Indexer.motorID);
+        
+        motorConfig = new SparkMaxConfig();
 
         indexerMotor.setIdleMode(Constants.Indexer.mode);
         
-        indexerMotor.setInverted(false);
-        
-        motorConfig = new SparkMaxConfig();
+        indexerMotor.setInverted(Constants.Indexer.motorInverted);
 
         motorConfig.closedLoop.p(Constants.Indexer.pid.kP, ClosedLoopSlot.kSlot0).i(Constants.Indexer.pid.kI, ClosedLoopSlot.kSlot0)
             .d(Constants.Indexer.pid.kD, ClosedLoopSlot.kSlot0);

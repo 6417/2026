@@ -10,6 +10,7 @@ import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -31,15 +32,14 @@ public class ShooterSubsystem extends SubsystemBase {
         topMotor = new FridoSparkFlex(Constants.Shooter.topMotorId);
         bottomMotor = new FridoSparkFlex(Constants.Shooter.bottomMotorId);
 
-        topMotor.setIdleMode(Constants.Shooter.idleMode);
-        bottomMotor.setIdleMode(Constants.Shooter.idleMode);
-
-        topMotor.setInverted(false);
-        bottomMotor.setInverted(false);
-
         motorConfigTop = new SparkFlexConfig();
         motorConfigBottom = new SparkFlexConfig();
 
+        topMotor.setIdleMode(Constants.Shooter.idleMode);
+        bottomMotor.setIdleMode(Constants.Shooter.idleMode);
+
+        motorConfigBottom.inverted(Constants.Shooter.bottomMotorInverted);
+        motorConfigTop.inverted(Constants.Shooter.topMotorInverted);
 
         motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
             .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
@@ -59,6 +59,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         topMotor.asSparkFlex().configure(motorConfigTop, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
         bottomMotor.asSparkFlex().configure(motorConfigBottom, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
     }
 
     public void stop() {

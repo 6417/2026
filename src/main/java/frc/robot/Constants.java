@@ -61,8 +61,10 @@ public class Constants {
         public static int motorID = 31;
         public static IdleMode mode = IdleMode.kCoast;
 
+        public static boolean motorInverted = true;
+
         public static PidValues pid = new PidValues(0, 0, 0);
-        public static FeedForwardValues ff = new FeedForwardValues(0, 0); 
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
     }
 
     public static final class Shooter {
@@ -78,6 +80,8 @@ public class Constants {
         public static final double kS_Bottom = 0.036;
         public static final double kV_Bottom = 0.0017415;
         public static final double maxRpm = 6000.0;
+        public static final boolean bottomMotorInverted = false;
+        public static final boolean topMotorInverted = true;
 
         public static final PidValues pidBoth = new PidValues(kP, kI, kD);
         public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
