@@ -24,10 +24,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private final FridoSparkFlex topMotor;
     private final FridoSparkFlex bottomMotor;
 
-    // Cached targets for debugging/telemetry.
-    private double targetTopRpm = 0.0;
-    private double targetBottomRpm = 0.0;
-
     SparkFlexConfig motorConfigTop;
     SparkFlexConfig motorConfigBottom;
 
@@ -40,9 +36,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
         topMotor.setInverted(false);
         bottomMotor.setInverted(false);
-        
+
         motorConfigTop = new SparkFlexConfig();
         motorConfigBottom = new SparkFlexConfig();
+
 
         motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
             .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
@@ -80,7 +77,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void run(double topRpm, double bottomRpm) {
         topRpm = clampRpm(topRpm);
         bottomRpm = clampRpm(bottomRpm);
-        // velocity control takes RPS as input
+        // velocity control takes RPM as input
         topMotor.asSparkFlex().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
         bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
     }
@@ -96,10 +93,6 @@ public class ShooterSubsystem extends SubsystemBase {
         double topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
         double bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
         run(topRpm, bottomRpm);
-    }
-
-    public boolean isShooterReady() {
-        return Math.abs(targetBottomRpm - bottomMotor.getEncoderVelocity()) > Constants.Shooter.motorTolerance && Math.abs(targetTopRpm - topMotor.getEncoderVelocity()) > Constants.Shooter.motorTolerance;
     }
 
     private double clampRpm(double rpm) {

@@ -1,5 +1,7 @@
 package frc.robot.commands.shooter;
 
+import java.awt.Robot;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -16,16 +18,14 @@ import frc.robot.subsystems.ShooterSubsystem;
 public class ShootCommand extends Command {
     
     public ShootCommand() {
-       
-        // Command implementation goes here
-         
-        addRequirements(RobotContainer.shooter); // don't add drive
+        addRequirements(RobotContainer.shooter, RobotContainer.indexer); 
     }
 
     @Override
     public void initialize() {
         int rpm = 3000;
         RobotContainer.shooter.run(rpm, rpm);
+        RobotContainer.indexer.run(1000);
     }
     
     @Override
@@ -36,6 +36,7 @@ public class ShootCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         RobotContainer.shooter.stop();
+        RobotContainer.indexer.stop();
     }
 
     @Override
