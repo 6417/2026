@@ -9,19 +9,22 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
     // public static final IntakeSubsystem intake;
     public static final SwerveSubsystem drive;
-    // public static final TurretSubsystem turret;
     public static final VisionSubsystem vision;
     // public static final ClimberSubsystem climber;
-    private static final SendableChooser<String> autoChooser = new SendableChooser<>();
-
+    // public static final TurretSubsystem turret;
     public static final IndexerSubsystem indexer;
+    public static final ShooterSubsystem shooter;
+
     public static final Controls controls;
+
+    private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
         // intake = new IntakeSubsystem();
@@ -30,18 +33,18 @@ public class RobotContainer {
         drive = new SwerveSubsystem();
         // turret = new TurretSubsystem();
         // climber = new ClimberSubsystem();
+        shooter = new ShooterSubsystem();
+        indexer = new IndexerSubsystem();
+        controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
         autoChooser.addOption("Second Auto", "Second Auto");
         autoChooser.addOption("None", null);
         autoChooser.setDefaultOption("Example Auto", "Example Auto");
         SmartDashboard.putData("Auto Selector", autoChooser);
-
     }
 
     public Command getAutonomousCommand() {
         return drive.getAutonomousCommand(autoChooser.getSelected());
-        indexer = new IndexerSubsystem();
-        controls = new Controls();
     }
 }

@@ -9,7 +9,9 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
+import frc.robot.utils.LinearInterpolationTable;
 
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
