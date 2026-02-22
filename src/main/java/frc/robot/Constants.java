@@ -61,8 +61,8 @@ public class Constants {
         public static int motorID = 31;
         public static IdleMode mode = IdleMode.kCoast;
 
-        public static PidValues pid = new PidValues(motorID, motorID, motorID);
-        public static FeedForwardValues ff = new FeedForwardValues(motorID, motorID); 
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0, 0); 
     }
 
     public static final class Shooter {
@@ -85,7 +85,7 @@ public class Constants {
 
         public static final double motorTolerance = 20;
 
-        // Distance (m) -> RPM tables.
+        // Distance (m) -> RPM tables
         // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
         // then replace these points and/or add more for better curve fitting.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
