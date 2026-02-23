@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkMaxConfigAccessor;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
@@ -21,13 +22,14 @@ import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 
 public class IndexerSubsystem extends SubsystemBase {
-    FridoSparkMax indexerMotor;
 
+    private final DigitalInput beamBreak;
+    FridoSparkMax indexerMotor;
     SparkMaxConfig motorConfig;
 
     public IndexerSubsystem() {
         indexerMotor = new FridoSparkMax(Constants.Indexer.motorID);
-        
+        beamBreak = new DigitalInput(Constants.Indexer.beamBreakDio);
         motorConfig = new SparkMaxConfig();
 
         indexerMotor.setIdleMode(Constants.Indexer.mode);
@@ -57,5 +59,14 @@ public class IndexerSubsystem extends SubsystemBase {
     public void run(double topRpm) {
         // velocity control takes RPM as input
         indexerMotor.asSparkMax().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
+    }
+    
+    public boolean isBallDetected() {
+        boolean raw = beamBreak.get();
+        // active-low: sensor returns false when beam is broken (common for beam breaks).
+        // active-high: sensor returns true when beam is broken.
+        // beamBreakInverted = true means the sensor is active-high, so we should not invert.
+        boolean beamBlocked = Constants.Indexer.beamBreakInverted ? raw : !raw;
+        return beamBlocked;
     }
 }
