@@ -66,6 +66,10 @@ public class Constants {
 
         public static final double feederSpeed = 0.6;
         public static final double indexingRpm = 2000;
+        // Allowed error band for "ready to shoot" indexer speed checks.
+        public static final double indexerRpmTolerance = 120.0;
+        // Feeder percent used when handing off from indexer into shooter.
+        public static final double shooterHandoffFeederPercent = 0.35;
         public static final double outtakeFeederSpeed = -0.6;
         public static final double outtakeIndexerSpeed = -0.6;
 

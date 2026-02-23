@@ -12,6 +12,7 @@ public class IndexerSubsystem extends SubsystemBase {
     private final FridolinsMotor indexerMotor;
     // Beam break sensor wired to a roboRIO DIO (digital input) port.
     private final DigitalInput beamBreak;
+    private double targetIndexerRpm = 0.0;
 
     public IndexerSubsystem() {
         feederMotor = new FridoSparkMax(Constants.Indexer.feederMotorId);
@@ -55,7 +56,20 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void setIndexerVelocityRpm(double velocityRpm) {
+        targetIndexerRpm = velocityRpm;
         indexerMotor.setVelocity(velocityRpm);
+    }
+
+    public double getIndexerVelocityRpm() {
+        return indexerMotor.getEncoderVelocity();
+    }
+
+    public double getTargetIndexerRpm() {
+        return targetIndexerRpm;
+    }
+
+    public boolean isIndexerAtTargetRpm(double toleranceRpm) {
+        return Math.abs(getIndexerVelocityRpm() - targetIndexerRpm) <= toleranceRpm;
     }
 
     public void feed() {
@@ -76,6 +90,7 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void stopIndexer() {
+        targetIndexerRpm = 0.0;
         indexerMotor.stopMotor();
     }
     public void stopFeeder() {
