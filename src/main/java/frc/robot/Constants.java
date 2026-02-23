@@ -57,6 +57,14 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
+    public static final class Feeder {
+        public static final int motorId = 60;
+
+        public static final boolean motorInverted = false;
+
+        public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
     public static final class Indexer {
         public static int motorID = 31;
         public static IdleMode mode = IdleMode.kCoast;
@@ -65,10 +73,13 @@ public class Constants {
 
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+
+        //TODO: Set correct port for the beamBreak
+        public static final int beamBreakDio = 0;
+        public static final boolean beamBreakInverted = false;
     }
 
     public static final class Shooter {
-        // TODO: Verify these IDs/inversions on the real robot.
         public static final int topMotorId = 41;
         public static final int bottomMotorId = 40;
         
