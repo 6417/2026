@@ -23,7 +23,7 @@ public class ShootCommand extends Command {
 
     @Override
     public void initialize() {
-        int rpm = 3000;
+        double rpm = RobotContainer.calculationSubsystem.getRPMShooter();
         RobotContainer.shooter.run(rpm, rpm);
         RobotContainer.indexer.run(1000);
     }

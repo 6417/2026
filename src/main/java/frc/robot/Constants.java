@@ -68,7 +68,7 @@ public class Constants {
     }
 
     public static final class TurretSubsystem { //TODO: set constants
-        public static final int ID = 999;
+        public static final int ID = 42;
 
         public static final double pitchMotorForwardLimit = 0;
         public static final double pitchMotorReverseLimit = 0;
@@ -81,9 +81,13 @@ public class Constants {
 
         public static final PidValues pidValuesRotation = new PidValues(0, 0, 0);
 
-        public static final int kGearRatio = 0;
+        public static final int kGearRatio = 145 / 26;
 
         public static final double angularOffset = 0;
+
+        public static final double resetEncoderPosition = 0;
+ 
+        public static final double conversionFactorDegreesToTicks = 0 / 360.0; // TODO: max encoder ticks
 
         public static FeedForwardValues kFeedForward = new FeedForwardValues(0, 0, 0);
     }
@@ -148,6 +152,8 @@ public class Constants {
         public static final PidValues pidBoth = new PidValues(kP, kI, kD);
         public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
         public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
+
+        public static final double defaultRPM = 3000;
 
         public static final double motorTolerance = 20;
 

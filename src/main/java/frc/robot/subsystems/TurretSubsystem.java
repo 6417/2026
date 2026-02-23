@@ -1,7 +1,16 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
+import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -23,7 +32,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     private double distanceHubTurret = 0;
 
-    public TurretSubsystem() {/*
+    public TurretSubsystem() {
         turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set ID
         turretMotor.setIdleMode(IdleMode.kBrake);
 
@@ -61,9 +70,9 @@ public class TurretSubsystem extends SubsystemBase {
 
         turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
-        resetRotationEncoder();*/
+        resetRotationEncoder();
 
-        setDefaultCommand(new SmartTurret(this, RobotContainer.drive));
+        setDefaultCommand(new SmartTurret(this));
 
         Shuffleboard.getTab("Turret").add(this);
     }
@@ -72,39 +81,31 @@ public class TurretSubsystem extends SubsystemBase {
     public void periodic() {
     }
 
-    public double getDistanceHubTurret() {
-        return distanceHubTurret;
-    }
-
     public Rotation2d getRotationToHub() {
         return new Rotation2d(Math.toRadians(desiredPosition));
     }
 
     public void resetRotationEncoder() {
-        //turretMotor.setEncoderPosition(getAbsoluteRotation() * Constants.TurretSubsystem.kGearRatio);
+        turretMotor.setEncoderPosition(Constants.TurretSubsystem.resetEncoderPosition);
     }
 
     public void stopRotationMotor() {
-        //turretMotor.stopMotor();
+        turretMotor.stopMotor();
     }
 
     private double getAbsoluteRotation() {
-        return 0;
-        /* 
         double angle = turretMotor.asSparkMax().getAbsoluteEncoder().getPosition();
         
-        return angle - Constants.TurretSubsystem.angularOffset;*/
+        return angle - Constants.TurretSubsystem.angularOffset;
     }
 
     // get the current angle in degrees
     public double getCurrentAngle() {
-        return 0;
-        //return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
+        return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
     }
 
     public boolean isAtSetpoint() {
-        return false;
-       // return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
+        return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
     }
 
     public void setDistanceHubTurret(double distance) {
@@ -112,22 +113,37 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     // set desired rotation (in degrees!)
-    public void setDesiredRotation(double pos) {
+    public void setDesiredRotation(Rotation2d rotation) {
         //TODO: Convert Degrees to encoder ticks
+        double pos = rotation.getDegrees();
+        pos = clamp(pos, -90, 90); // clamp the position to the limits of the turret; here in degrees
+        pos += 90; // shift the range from [-90, 90] to [0, 180] for easier calculations
+        // convert degrees to rotations
+        pos *= Constants.TurretSubsystem.conversionFactorDegreesToTicks; // convert degrees to encoder ticks
+                
         desiredPosition = pos;
-
-        //turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kMAXMotionPositionControl);
+        
+        turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kMAXMotionPositionControl);
     }
-
-    // set percent output for manual control.
+        
+    private double clamp(double pos, double pitchmotorreverselimit, double pitchmotorforwardlimit) {
+        if (pos < pitchmotorreverselimit) {
+            return pitchmotorreverselimit;
+        } else if (pos > pitchmotorforwardlimit) {
+            return pitchmotorforwardlimit;
+        }
+        return pos;
+    }
+        
+            // set percent output for manual control.
     public void setPercent(double percent) {
-        //turretMotor.set(percent);
+        turretMotor.set(percent);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Abs Encoder Turret", () -> getAbsoluteRotation() * 360, null);
-        //builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
+        builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);

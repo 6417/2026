@@ -10,6 +10,7 @@ import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.CalculationSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
@@ -21,6 +22,7 @@ public class RobotContainer {
     // public static final TurretSubsystem turret;
     public static final IndexerSubsystem indexer;
     public static final ShooterSubsystem shooter;
+    public static final CalculationSubsystem calculationSubsystem;
 
     public static final Controls controls;
 
@@ -35,6 +37,7 @@ public class RobotContainer {
         // climber = new ClimberSubsystem();
         shooter = new ShooterSubsystem();
         indexer = new IndexerSubsystem();
+        calculationSubsystem = new CalculationSubsystem();
         controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
