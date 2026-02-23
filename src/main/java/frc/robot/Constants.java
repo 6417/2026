@@ -43,45 +43,45 @@ public class Constants {
 
     public static final class Intake {
         public static final int intakeMotorId = 10;
-        public static final int singulatorMotorId = 11;
+        public static final int feederMotorId = 11;
 
         public static final boolean intakeMotorInverted = false;
-        public static final boolean singulatorMotorInverted = false;
+        public static final boolean feederMotorInverted = false;
 
         public static final double intakeSpeed = 0.6;
-        public static final double singulatorSpeed = 0.6;
+        public static final double feederSpeed = 0.6;
         public static final double outtakeSpeed = -0.6;
-        public static final double outtakeSingulatorSpeed = -0.6;
+        public static final double outtakeFeederSpeed = -0.6;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
-    public static final class Feeder {
+    public static final class Indexer {
         // TODO: Verify these IDs/inversions on the real robot.
-        public static final int singulatorMotorId = 20;
-        public static final int feederMotorId = 21;
+        public static final int feederMotorId = 20;
+        public static final int indexerMotorId = 21;
 
-        public static final boolean singulatorMotorInverted = false;
         public static final boolean feederMotorInverted = false;
+        public static final boolean indexerMotorInverted = false;
 
-        public static final double singulatorSpeed = 0.6;
-        public static final double feedingRpm = 2000;
-        public static final double outtakeSingulatorSpeed = -0.6;
+        public static final double feederSpeed = 0.6;
+        public static final double indexingRpm = 2000;
         public static final double outtakeFeederSpeed = -0.6;
+        public static final double outtakeIndexerSpeed = -0.6;
 
         // Beam break on a roboRIO DIO (Digital I/O) port.
         // Set beamBreakInverted true if the sensor is active-high (true when beam is broken).
         public static final int beamBreakDio = 0;
         public static final boolean beamBreakInverted = false;
 
-        // TODO: Tune feeder velocity PID (Spark Max velocity uses RPM).
-        public static final PidValues feederVelocityPid = new PidValues(0.0, 0.0, 0.0);
-        public static final FeedForwardValues feederFeedForward = new FeedForwardValues(0, 0);
+        // TODO: Tune indexer velocity PID (Spark Max velocity uses RPM).
+        public static final PidValues indexerVelocityPid = new PidValues(0.0, 0.0, 0.0);
+        public static final FeedForwardValues indexerFeedForward = new FeedForwardValues(0, 0);
 
-        // Singulator stall protection. TODO: Tune these values on the real robot.
-        // If current exceeds this (A) and RPM is below threshold, stop the singulator.
-        public static final double singulatorStallCurrentAmps = 80;
-        public static final double singulatorStallRpmThreshold = 200;
+        // Feeder stall protection. TODO: Tune these values on the real robot.
+        // If current exceeds this (A) and RPM is below threshold, stop the feeder.
+        public static final double feederStallCurrentAmps = 80;
+        public static final double feederStallRpmThreshold = 200;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
