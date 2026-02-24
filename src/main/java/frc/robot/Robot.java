@@ -50,8 +50,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
                     // be added.
-    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight,0);
-    LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.driveLimelight, 0.001);
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight,0);
+    LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.underTurretLimelight, 0.001);
     robotContainer = new RobotContainer();
   }
 
@@ -100,7 +100,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
 
-    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
     RobotContainer.drive.setAutomatedControl();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -131,8 +132,9 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
       Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
     }
 
-    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
-    LimelightHelpers.SetRobotOrientation(Constants.Limelight.driveLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     RobotContainer.drive.setOpeatorControl();
 
   }
@@ -145,19 +147,21 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {
-    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 200); // Sort of disable Limelight, so there is less thermal production
+    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 200); // Sort of disable Limelight, so there is less thermal production
+    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 200); // Sort of disable Limelight, so there is less thermal production
   }
 
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    LimelightHelpers.SetIMUMode(Constants.Limelight.driveLimelight, 1); //Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); //Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
-    LimelightHelpers.SetThrottle(Constants.Limelight.driveLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
+    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
     CommandScheduler.getInstance().cancelAll();
   }
 

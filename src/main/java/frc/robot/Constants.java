@@ -4,6 +4,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -58,8 +60,10 @@ public class Constants {
 
     public static final class Limelight {
         public static boolean useVision = true;
-        public static final String driveLimelight = "limelight-drive";
-        public static final String limelight2 = "limelight-2";
+        public static final String underTurretLimelight = "limelight-undturr";
+        public static final String onTurretLimelight = "limelight-onturr";
+        public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0, 0, 0,  new Rotation3d());
+
         public static Vector<N3> standardDevs = VecBuilder.fill(0.3, 0.3, 9999999);
     }
 
