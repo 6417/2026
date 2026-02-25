@@ -51,6 +51,7 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT_ROTATION:
                 calculateMOVEMENT_ROTATION();
                 break;
+            
         }
     }
 
@@ -117,14 +118,14 @@ public class CalculationSubsystem extends SubsystemBase {
         return desiredShooterRPM;
     }
 
-    public Rotation2d getTurretAngle() {
+    public Rotation2d getDesiredTurretAngle() {
         return desiredTurretAngle;
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Desired Shooter RPM", () -> getRPMShooter(), null);
-        builder.addDoubleProperty("Desired Turret Angle", () -> getTurretAngle().getDegrees(), null);
+        builder.addDoubleProperty("Desired Turret Angle", () -> getDesiredTurretAngle().getDegrees(), null);
         builder.addDoubleProperty("Distance Hub Turret", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }

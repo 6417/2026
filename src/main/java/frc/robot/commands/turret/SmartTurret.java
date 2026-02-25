@@ -27,7 +27,7 @@ public class SmartTurret extends Command {
     
     @Override
     public void execute() {
-        Rotation2d desiredAngle = RobotContainer.calculationSubsystem.getTurretAngle();
+        Rotation2d desiredAngle = RobotContainer.calculationSubsystem.getDesiredTurretAngle();
         turret.setDesiredRotation(desiredAngle);
     }
 
