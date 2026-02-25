@@ -14,6 +14,7 @@ import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.climber.ManualClimberControl;
+import frc.robot.commands.shooter.ShooterRpmTuningCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
@@ -133,6 +134,7 @@ public class Controls implements Sendable {
         bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
         pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
         rbButtonOperator.whileTrue(new ManualClimberControl(() -> -operatorJoystick.getLeftY()));
+        yButtonOperator.whileTrue(new ShooterRpmTuningCommand());
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }

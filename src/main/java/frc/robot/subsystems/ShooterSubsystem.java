@@ -24,6 +24,8 @@ public class ShooterSubsystem extends SubsystemBase {
     // Top and bottom shooter motors.
     private final FridoSparkFlex topMotor;
     private final FridoSparkFlex bottomMotor;
+    private double targetTopRpm = Constants.Shooter.defaultRPM;
+    private double targetBottomRpm = Constants.Shooter.defaultRPM;
 
     SparkFlexConfig motorConfigTop;
     SparkFlexConfig motorConfigBottom;
@@ -81,6 +83,31 @@ public class ShooterSubsystem extends SubsystemBase {
         // velocity control takes RPM as input
         topMotor.asSparkFlex().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
         bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
+    }
+
+    public void setTargetTopRpm(double rpm) {
+        targetTopRpm = clampRpm(rpm);
+    }
+
+    public void setTargetBottomRpm(double rpm) {
+        targetBottomRpm = clampRpm(rpm);
+    }
+
+    public void setTargetRpms(double topRpm, double bottomRpm) {
+        setTargetTopRpm(topRpm);
+        setTargetBottomRpm(bottomRpm);
+    }
+
+    public double getTargetTopRpm() {
+        return targetTopRpm;
+    }
+
+    public double getTargetBottomRpm() {
+        return targetBottomRpm;
+    }
+
+    public void applyTargetRpms() {
+        run(targetTopRpm, targetBottomRpm);
     }
 
     /**

@@ -161,6 +161,8 @@ public class Constants {
         // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
         // then replace these points and/or add more for better curve fitting.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
+                //x: distance in m
+                //y: rpm
                 new Point2D.Double(0.0, 0.0),
                 new Point2D.Double(0.0, 0.0)
         };
