@@ -85,8 +85,8 @@ public class Constants {
  
         public static final double[] tickRange = {-8.643, 8.81};
 
-        public static final double pitchMotorForwardLimit = tickRange[1];
-        public static final double pitchMotorReverseLimit = tickRange[0];
+        public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
+        public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
         public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
     }
