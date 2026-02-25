@@ -81,7 +81,7 @@ public class VisionSubsystem extends SubsystemBase {
                     RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
             LimelightHelpers.SetRobotOrientation(limelightUnderTurretName,
                     RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
-            
+
             LimelightHelpers.PoseEstimate mt2UnderTurret = getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace();
             LimelightHelpers.PoseEstimate mt2OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
             if (Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity()
@@ -96,10 +96,11 @@ public class VisionSubsystem extends SubsystemBase {
             if (!doRejectUpdate) {
                 RobotContainer.drive.getSwerveDrive()
                         .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2UnderTurret.avgTagDist));
-                RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose, mt2UnderTurret.timestampSeconds);
-                Logger.recordOutput("UnderTurretPose", mt2UnderTurret.pose);
-                Logger.recordOutput("OnTurretPose", mt2OnTurret.pose);
+                RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose,
+                        mt2UnderTurret.timestampSeconds);
             }
+            Logger.recordOutput("Swerve/UnderTurretPose", mt2UnderTurret.pose);
+            Logger.recordOutput("Swerve/OnTurretPose", mt2OnTurret.pose);
         }
     }
 }
