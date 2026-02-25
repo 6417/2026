@@ -70,26 +70,25 @@ public class Constants {
     public static final class TurretSubsystem { //TODO: set constants
         public static final int ID = 42;
 
-        public static final double pitchMotorForwardLimit = 0;
-        public static final double pitchMotorReverseLimit = 0;
-
         public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
 
         public static final double kMaxVelocity = 0;
         public static final double kMaxAcceleration = 0;
-        public static final double kAllowedClosedLoopError = 0;
+        public static final double kAllowedClosedLoopError = 0.15;
 
-        public static final PidValues pidValuesRotation = new PidValues(0, 0, 0);
+        public static final PidValues pidValuesRotation = new PidValues(0.09, 0.0001, 0.001);
+        public static final double iZone = 4;
 
         public static final int kGearRatio = 145 / 26;
 
-        public static final double angularOffset = 0;
-
         public static final double resetEncoderPosition = 0;
  
-        public static final double conversionFactorDegreesToTicks = 0 / 360.0; // TODO: max encoder ticks
+        public static final double[] tickRange = {-8.643, 8.81};
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0, 0, 0);
+        public static final double pitchMotorForwardLimit = tickRange[1];
+        public static final double pitchMotorReverseLimit = tickRange[0];
+
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
     }
 
     public static final class SwerveSubsystem {

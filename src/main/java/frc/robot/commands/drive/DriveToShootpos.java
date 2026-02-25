@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class DriveToShootpos extends Command {
     private double radius = Constants.Field.RADIUS_TO_HUB;
@@ -46,7 +47,7 @@ public class DriveToShootpos extends Command {
         toPos = new Translation2d(toHub.getNorm() - radius, toHub.getAngle());
 
         // calculate Pose2d: nearest Spot from robot, radius(m) from Hub away
-        Pose2d sweetSpot = new Pose2d(robotPose.getTranslation().plus(toPos), robotPose.getRotation().plus(turret.getRotationToHub()));
+        Pose2d sweetSpot = new Pose2d(robotPose.getTranslation().plus(toPos), robotPose.getRotation().plus(RobotContainer.calculationSubsystem.getDesiredTurretAngle()));
 
         pathCommand = drive.driveToPose(
             sweetSpot

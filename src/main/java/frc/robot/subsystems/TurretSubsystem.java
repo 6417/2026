@@ -30,8 +30,6 @@ public class TurretSubsystem extends SubsystemBase {
 
     private double desiredPosition = 0;
 
-    private double distanceHubTurret = 0;
-
     public TurretSubsystem() {
         turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set ID
         turretMotor.setIdleMode(IdleMode.kBrake);
@@ -57,8 +55,7 @@ public class TurretSubsystem extends SubsystemBase {
         motorConfig.closedLoop.p(pidValues.kP, ClosedLoopSlot.kSlot0).i(pidValues.kI, ClosedLoopSlot.kSlot0)
             .d(pidValues.kD, ClosedLoopSlot.kSlot0)
             .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
-        
-
+        motorConfig.closedLoop.iZone(Constants.TurretSubsystem.iZone, ClosedLoopSlot.kSlot0);
 
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.TurretSubsystem.kFeedForward.kS);
@@ -81,10 +78,6 @@ public class TurretSubsystem extends SubsystemBase {
     public void periodic() {
     }
 
-    public Rotation2d getRotationToHub() {
-        return new Rotation2d(Math.toRadians(desiredPosition));
-    }
-
     public void resetRotationEncoder() {
         turretMotor.setEncoderPosition(Constants.TurretSubsystem.resetEncoderPosition);
     }
@@ -93,23 +86,17 @@ public class TurretSubsystem extends SubsystemBase {
         turretMotor.stopMotor();
     }
 
-    private double getAbsoluteRotation() {
-        double angle = turretMotor.asSparkMax().getAbsoluteEncoder().getPosition();
-        
-        return angle - Constants.TurretSubsystem.angularOffset;
-    }
-
     // get the current angle in degrees
     public double getCurrentAngle() {
-        return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
+        double degs = turretMotor.getEncoderTicks() - Constants.TurretSubsystem.tickRange[0]; // shift to start at 0
+        degs /= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]); // scale to range [0, 1]
+        degs *= 180; // scale to range [0, 180]
+        degs -= 90; // shift to range [-90, 90]
+        return degs;
     }
 
     public boolean isAtSetpoint() {
         return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
-    }
-
-    public void setDistanceHubTurret(double distance) {
-        this.distanceHubTurret = distance;
     }
 
     // set desired rotation (in degrees!)
@@ -117,13 +104,20 @@ public class TurretSubsystem extends SubsystemBase {
         //TODO: Convert Degrees to encoder ticks
         double pos = rotation.getDegrees();
         pos = clamp(pos, -90, 90); // clamp the position to the limits of the turret; here in degrees
-        pos += 90; // shift the range from [-90, 90] to [0, 180] for easier calculations
-        // convert degrees to rotations
-        pos *= Constants.TurretSubsystem.conversionFactorDegreesToTicks; // convert degrees to encoder ticks
+        pos = degreesToEncoderTicks(pos);
                 
         desiredPosition = pos;
         
-        turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kMAXMotionPositionControl);
+        turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kPosition);
+    }
+
+    private double degreesToEncoderTicks(double degrees) {
+        double ticks = degrees / 90; // convert to range [-1, 1]
+        ticks += 1; // convert to range [0, 2]
+        ticks *= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]) / 2; // scale to range [0, tickRange]
+        ticks += Constants.TurretSubsystem.tickRange[0]; // shift to start at tickRange[0]
+
+        return ticks;
     }
         
     private double clamp(double pos, double pitchmotorreverselimit, double pitchmotorforwardlimit) {
@@ -142,13 +136,10 @@ public class TurretSubsystem extends SubsystemBase {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("Abs Encoder Turret", () -> getAbsoluteRotation() * 360, null);
         builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);
-        builder.addDoubleProperty("absolute Rotation", () -> getAbsoluteRotation(), null);
-        builder.addDoubleProperty("distance turret desiredPos", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }
 }
