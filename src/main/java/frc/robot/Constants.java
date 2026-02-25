@@ -144,6 +144,16 @@ public class Constants {
         //TODO: Set correct port for the beamBreak
         public static final int beamBreakDio = 0;
         public static final boolean beamBreakInverted = false;
+
+        // Default closed-loop speeds for indexer feed and unjam.
+        public static final double feedRpm = 1200.0;
+        public static final double unjamReverseRpm = -800.0;
+
+        // Jam detection (sensor-based) and auto-reverse timings.
+        // If the beam break state does not change for this time while feeding,
+        // we treat it as a likely jam and reverse shortly.
+        public static final double jamNoTransitionTimeoutSec = 0.75;
+        public static final double unjamReverseDurationSec = 1.5;
     }
 
     public static final class Shooter {
