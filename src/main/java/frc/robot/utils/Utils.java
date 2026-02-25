@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.utils;
 
 public class Utils {
     public static double normalizeAngleRad(double angle) {

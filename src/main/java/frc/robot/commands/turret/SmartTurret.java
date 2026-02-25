@@ -8,16 +8,13 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class SmartTurret extends Command {
     private final TurretSubsystem turret;
-    private final SwerveSubsystem drive;
 
-    public SmartTurret(TurretSubsystem turret, SwerveSubsystem drive) {
-       
-        // Command implementation goes here
-        this.drive = drive;
+    public SmartTurret(TurretSubsystem turret) {
         this.turret = turret;
          
         addRequirements(turret); // don't add drive
@@ -30,35 +27,8 @@ public class SmartTurret extends Command {
     
     @Override
     public void execute() {
-        Translation2d turretPose = drive.getPose().getTranslation().plus(Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(drive.getPose().getRotation()));
-        Pose2d robotPose = drive.getPose();
-
-        Translation2d poseToTrack = null;
-
-        boolean toHub = false;
-        // first check if is in neutral zone or team zone
-        if ((DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
-            (DriverStation.getAlliance().get() == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
-            // in team zone, track hub
-            poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
-            toHub = true;
-        } else {
-            // in neutral zone, track edges for shooting balls in the back to team zone
-            poseToTrack = Constants.Field.EDGE.getTranslation();
-        }
-        
-        // translation from robot to hub
-        Translation2d turretToHub = poseToTrack.minus(turretPose);
-
-        if (toHub) {
-            // calculate distance to hub
-            double distance = turretToHub.getNorm();
-            turret.setDistanceHubTurret(distance);
-        }
-
-        Rotation2d angle = turretToHub.getAngle().minus(drive.getPose().getRotation());
-
-        turret.setDesiredRotation(angle.getDegrees());
+        Rotation2d desiredAngle = RobotContainer.calculationSubsystem.getDesiredTurretAngle();
+        turret.setDesiredRotation(desiredAngle);
     }
 
     @Override

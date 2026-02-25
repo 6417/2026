@@ -1,11 +1,16 @@
 package frc.robot.subsystems;
 
-import org.opencv.core.Mat;
-
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
+import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -28,62 +33,46 @@ public class TurretSubsystem extends SubsystemBase {
 
     private double desiredPosition = 0;
 
-    private double distanceHubTurret = 0;
+    public TurretSubsystem() {
+        turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set ID
+        turretMotor.setIdleMode(IdleMode.kBrake);
 
-    public TurretSubsystem() {/*
-                               * turretMotor = new FridoSparkMax(Constants.TurretSubsystem.ID); // Todo: set
-                               * ID
-                               * turretMotor.setIdleMode(IdleMode.kBrake);
-                               * 
-                               * motorConfig = new SparkMaxConfig();
-                               * smartMotionConfig = new MAXMotionConfig();
-                               * 
-                               * SparkMaxConfig limitConfig = new SparkMaxConfig();
-                               * limitConfig.softLimit
-                               * .forwardSoftLimit(Constants.TurretSubsystem.pitchMotorForwardLimit).
-                               * forwardSoftLimitEnabled(true);
-                               * limitConfig.softLimit
-                               * .reverseSoftLimit(Constants.TurretSubsystem.pitchMotorReverseLimit).
-                               * reverseSoftLimitEnabled(true);
-                               * 
-                               * turretMotor.asSparkMax().configure(limitConfig,
-                               * ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-                               * 
-                               * smartMotionConfig.allowedProfileError(Constants.TurretSubsystem.
-                               * kAllowedClosedLoopError, ClosedLoopSlot.kSlot0);
-                               * smartMotionConfig.maxAcceleration(Constants.TurretSubsystem.kMaxAcceleration,
-                               * ClosedLoopSlot.kSlot0);
-                               * smartMotionConfig.cruiseVelocity(Constants.TurretSubsystem.kMaxVelocity,
-                               * ClosedLoopSlot.kSlot0);
-                               * smartMotionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal,
-                               * ClosedLoopSlot.kSlot0);
-                               * 
-                               * motorConfig.closedLoop.maxMotion.apply(smartMotionConfig);
-                               * 
-                               * motorConfig.closedLoop.p(pidValues.kP, ClosedLoopSlot.kSlot0).i(pidValues.kI,
-                               * ClosedLoopSlot.kSlot0)
-                               * .d(pidValues.kD, ClosedLoopSlot.kSlot0)
-                               * .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward,
-                               * ClosedLoopSlot.kSlot0);
-                               * 
-                               * 
-                               * 
-                               * FeedForwardConfig ffConfig = new FeedForwardConfig();
-                               * ffConfig.kS(Constants.TurretSubsystem.kFeedForward.kS);
-                               * ffConfig.kV(Constants.TurretSubsystem.kFeedForward.kV);
-                               * ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
-                               * motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward
-                               * values
-                               * 
-                               * motorConfig.smartCurrentLimit(0, 30);
-                               * 
-                               * turretMotor.asSparkMax().configure(motorConfig,
-                               * ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-                               * 
-                               * resetRotationEncoder();
-                               */
+        motorConfig = new SparkMaxConfig();
+        smartMotionConfig = new MAXMotionConfig();
 
-        setDefaultCommand(new SmartTurret(this, RobotContainer.drive));
+        SparkMaxConfig limitConfig = new SparkMaxConfig();
+        limitConfig.softLimit
+        .forwardSoftLimit(Constants.TurretSubsystem.pitchMotorForwardLimit).forwardSoftLimitEnabled(true);
+        limitConfig.softLimit
+        .reverseSoftLimit(Constants.TurretSubsystem.pitchMotorReverseLimit).reverseSoftLimitEnabled(true);
+
+        turretMotor.asSparkMax().configure(limitConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
+        smartMotionConfig.allowedProfileError(Constants.TurretSubsystem.kAllowedClosedLoopError, ClosedLoopSlot.kSlot0);
+        smartMotionConfig.maxAcceleration(Constants.TurretSubsystem.kMaxAcceleration, ClosedLoopSlot.kSlot0);
+        smartMotionConfig.cruiseVelocity(Constants.TurretSubsystem.kMaxVelocity, ClosedLoopSlot.kSlot0);
+        smartMotionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, ClosedLoopSlot.kSlot0);
+
+        motorConfig.closedLoop.maxMotion.apply(smartMotionConfig);
+
+        motorConfig.closedLoop.p(pidValues.kP, ClosedLoopSlot.kSlot0).i(pidValues.kI, ClosedLoopSlot.kSlot0)
+            .d(pidValues.kD, ClosedLoopSlot.kSlot0)
+            .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
+        motorConfig.closedLoop.iZone(Constants.TurretSubsystem.iZone, ClosedLoopSlot.kSlot0);
+
+        FeedForwardConfig ffConfig = new FeedForwardConfig();
+        ffConfig.kS(Constants.TurretSubsystem.kFeedForward.kS);
+        ffConfig.kV(Constants.TurretSubsystem.kFeedForward.kV);
+        ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
+        motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
+        
+        motorConfig.smartCurrentLimit(0, 30);
+
+        turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
+        resetRotationEncoder();
+
+        setDefaultCommand(new SmartTurret(this));
 
         Shuffleboard.getTab("Turret").add(this);
     }
@@ -92,92 +81,68 @@ public class TurretSubsystem extends SubsystemBase {
     public void periodic() {
     }
 
-    public double getDistanceHubTurret() {
-        return distanceHubTurret;
-    }
-
-    public Rotation2d getRotationToHub() {
-        return new Rotation2d(Math.toRadians(desiredPosition));
-    }
-
     public void resetRotationEncoder() {
-        // turretMotor.setEncoderPosition(getAbsoluteRotation() *
-        // Constants.TurretSubsystem.kGearRatio);
+        turretMotor.setEncoderPosition(Constants.TurretSubsystem.resetEncoderPosition);
     }
 
     public void stopRotationMotor() {
-        // turretMotor.stopMotor();
-    }
-
-    private double getAbsoluteRotation() {
-        return 0;
-        /*
-         * double angle = turretMotor.asSparkMax().getAbsoluteEncoder().getPosition();
-         * 
-         * return angle - Constants.TurretSubsystem.angularOffset;
-         */
+        turretMotor.stopMotor();
     }
 
     // get the current angle in degrees
     public double getCurrentAngle() {
-        return 0;
-        // return turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio;
+        double degs = turretMotor.getEncoderTicks() - Constants.TurretSubsystem.tickRange[0]; // shift to start at 0
+        degs /= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]); // scale to range [0, 1]
+        degs *= 180; // scale to range [0, 180]
+        degs -= 90; // shift to range [-90, 90]
+        return degs;
     }
 
     public boolean isAtSetpoint() {
-        return false;
-        // return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <=
-        // Constants.TurretSubsystem.kAllowedClosedLoopError;
+        return Math.abs(turretMotor.getEncoderTicks() - desiredPosition) <= Constants.TurretSubsystem.kAllowedClosedLoopError;
     }
 
-    public void setDistanceHubTurret(double distance) {
-        this.distanceHubTurret = distance;
-    }
-
-    /** Set desired rotation (in degrees!) */
-    public void setDesiredRotation(double pos) {
-        // TODO: Convert Degrees to encoder ticks
+    // set desired rotation (in degrees!)
+    public void setDesiredRotation(Rotation2d rotation) {
+        //TODO: Convert Degrees to encoder ticks
+        double pos = rotation.getDegrees();
+        pos = clamp(pos, -90, 90); // clamp the position to the limits of the turret; here in degrees
+        pos = degreesToEncoderTicks(pos);
+                
         desiredPosition = pos;
+        
+        turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos, ControlType.kPosition);
+    }
 
-        if (Constants.Limelight.useVision) {
-            resetLimelightOnTurretPose(pos);
+    private double degreesToEncoderTicks(double degrees) {
+        double ticks = degrees / 90; // convert to range [-1, 1]
+        ticks += 1; // convert to range [0, 2]
+        ticks *= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]) / 2; // scale to range [0, tickRange]
+        ticks += Constants.TurretSubsystem.tickRange[0]; // shift to start at tickRange[0]
+
+        return ticks;
+    }
+        
+    private double clamp(double pos, double pitchmotorreverselimit, double pitchmotorforwardlimit) {
+        if (pos < pitchmotorreverselimit) {
+            return pitchmotorreverselimit;
+        } else if (pos > pitchmotorforwardlimit) {
+            return pitchmotorforwardlimit;
         }
-        // turretMotor.asSparkMax().getClosedLoopController().setSetpoint(pos,
-        // ControlType.kMAXMotionPositionControl);
+        return pos;
     }
-
-    // set percent output for manual control.
+        
+            // set percent output for manual control.
     public void setPercent(double percent) {
-        // turretMotor.set(percent);
-    }
-
-    public void resetLimelightOnTurretPose(double turretAngleDegrees) {
-        Pose3d standardLimelightPose = Constants.Limelight.zeroDegreesTurretLimelightOnTurret;
-        Pose3d turretRotationMiddlePose = new Pose3d(Constants.TurretSubsystem.TURRET_OFFSET.getX(),
-                Constants.TurretSubsystem.TURRET_OFFSET.getY(), standardLimelightPose.getZ(), new Rotation3d());
-        Translation2d turretRotationMiddlePoseToLimelight = new Translation2d(0.089837, 0.054311)
-                .rotateBy(new Rotation2d(Math.toRadians(turretAngleDegrees)));
-        double desiredX = turretRotationMiddlePose.getX() + (turretRotationMiddlePoseToLimelight.getX());
-        double desiredY = turretRotationMiddlePose.getY() + (turretRotationMiddlePoseToLimelight.getY());
-        double desiredZ = standardLimelightPose.getZ();
-        double desiredRoll = -90;
-        double desiredPitch = 28.1;
-        double desiredYaw = -turretAngleDegrees; // negate because of how the limelight is mounted, so positive turret
-                                                 // rotation results in negative yaw rotation of the limelight
-        LimelightHelpers.setCameraPose_RobotSpace(Constants.Limelight.onTurretLimelight, desiredX, desiredY, desiredZ,
-                desiredRoll, desiredPitch, desiredYaw);
+        turretMotor.set(percent);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("Abs Encoder Turret", () -> getAbsoluteRotation() * 360, null);
-        // builder.addDoubleProperty("Motor Encoder Turret", () ->
-        // turretMotor.getEncoderTicks(), null);
+        builder.addDoubleProperty("Motor Encoder Turret", () -> turretMotor.getEncoderTicks(), null);
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);
-        builder.addDoubleProperty("absolute Rotation", () -> getAbsoluteRotation(), null);
-        builder.addDoubleProperty("distance turret desiredPos", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }
 }

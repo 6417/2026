@@ -11,10 +11,14 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
+import frc.robot.utils.LinearInterpolationTable;
 
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import org.opencv.features2d.FlannBasedMatcher;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -68,24 +72,27 @@ public class Constants {
     }
 
     public static final class TurretSubsystem { //TODO: set constants
-        public static final int ID = 999;
-
-        public static final double pitchMotorForwardLimit = 0;
-        public static final double pitchMotorReverseLimit = 0;
+        public static final int ID = 42;
 
         public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
 
         public static final double kMaxVelocity = 0;
         public static final double kMaxAcceleration = 0;
-        public static final double kAllowedClosedLoopError = 0;
+        public static final double kAllowedClosedLoopError = 0.15;
 
-        public static final PidValues pidValuesRotation = new PidValues(0, 0, 0);
+        public static final PidValues pidValuesRotation = new PidValues(0.09, 0.0001, 0.001);
+        public static final double iZone = 4;
 
-        public static final int kGearRatio = 0;
+        public static final int kGearRatio = 145 / 26;
 
-        public static final double angularOffset = 0;
+        public static final double resetEncoderPosition = 0;
+ 
+        public static final double[] tickRange = {-8.643, 8.81};
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0, 0, 0);
+        public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
+        public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
+
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
     }
 
     public static final class SwerveSubsystem {
@@ -119,23 +126,55 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
+    public static final class Indexer {
+        public static int motorID = 31;
+        public static IdleMode mode = IdleMode.kCoast;
+
+        public static boolean motorInverted = true;
+
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+    }
+
     public static final class Shooter {
+        // TODO: Verify these IDs/inversions on the real robot.
         public static final int topMotorId = 41;
         public static final int bottomMotorId = 40;
+        
+        public static final double kP = 0.0001;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0045;
+        public static final double kS_Top = 0.02;
+        public static final double kV_Top = 0.001772;
+        public static final double kS_Bottom = 0.036;
+        public static final double kV_Bottom = 0.0017415;
+        public static final double maxRpm = 6000.0;
+        public static final boolean bottomMotorInverted = false;
+        public static final boolean topMotorInverted = true;
 
-        public static final boolean topMotorInverted = false;
-        public static final boolean bottomMotorInverted = true;
+        public static final PidValues pidBoth = new PidValues(kP, kI, kD);
+        public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
+        public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
 
-        public static final double defaultShootPercent = 0.7;
+        public static final double defaultRPM = 3000;
 
-        // Spin ratio = top / bottom
-        public static final double defaultSpinRatio = 1.0;
-        public static final double minSpinRatio = 0.6;
-        public static final double maxSpinRatio = 1.4;
+        public static final double motorTolerance = 20;
 
-        // Angle mapping (degrees). This is a simple linear placeholder.
-        public static final double minAngleDeg = 15.0;
-        public static final double maxAngleDeg = 60.0;
+        // Distance (m) -> RPM tables
+        // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
+        // then replace these points and/or add more for better curve fitting.
+        private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
+
+        private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(0.0, 0.0),
+                new Point2D.Double(0.0, 0.0)
+        };
+
+        public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
+        public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
