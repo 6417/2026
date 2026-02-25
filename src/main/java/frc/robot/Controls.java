@@ -113,20 +113,20 @@ public class Controls implements Sendable {
         rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
         .onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
 
-        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+        // lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
-        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
+        // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        xButtonOperator.whileTrue(Commands.startEnd(
-            () -> {
-                RobotContainer.intake.isIntakeOn = true;
-                RobotContainer.intake.run = true;
-            },
-            () -> {
-                RobotContainer.intake.isIntakeOn = false;
-            }
-            ));
+        // xButtonOperator.whileTrue(Commands.startEnd(
+        //     () -> {
+        //         RobotContainer.intake.isIntakeOn = true;
+        //         RobotContainer.intake.run = true;
+        //     },
+        //     () -> {
+        //         RobotContainer.intake.isIntakeOn = false;
+        //     }
+        //     ));
 
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));

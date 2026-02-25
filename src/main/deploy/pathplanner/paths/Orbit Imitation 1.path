@@ -3,32 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.07,
-        "y": 3.7035961538461537
+        "x": 3.0039657631954344,
+        "y": 0.832681883024252
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0699999999999994,
-        "y": 3.7035961538461537
+        "x": 4.039058487874465,
+        "y": 0.2245649072753213
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.0,
-        "y": 3.7035961538461537
+        "x": 7.791269614835947,
+        "y": 1.1690870185449365
       },
       "prevControl": {
-        "x": -1.0000000000000002,
-        "y": 3.7035961538461537
+        "x": 6.911440798858774,
+        "y": 1.0397004279600564
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Orbit Imitation 1 End"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.149253731343283,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 0.5501066098080977,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +51,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Orbits Autonomous Imitation",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 63.527810620887436
   },
   "useDefaultConstraints": true
 }

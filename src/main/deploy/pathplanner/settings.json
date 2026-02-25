@@ -1,9 +1,11 @@
 {
-  "robotWidth": 0.9,
-  "robotLength": 0.9,
+  "robotWidth": 0.86,
+  "robotLength": 0.86,
   "holonomicMode": true,
   "pathFolders": [
     "Example Auto Paths",
+    "2 Cycle right",
+    "Orbits Autonomous Imitation",
     "Second Auto Paths"
   ],
   "autoFolders": [],

@@ -10,13 +10,13 @@ public class ClimberCommand extends Command {
     public ClimberCommand(ClimberState targetState) {
         // Stateless command: just set the target state and finish.
         this.targetState = targetState;
-        addRequirements(RobotContainer.climber);
+        // addRequirements(RobotContainer.climber);
     }
 
     @Override
     public void initialize() {
         // Triggers the Motion Magic move inside the subsystem.
-        RobotContainer.climber.setTargetState(targetState);
+        // RobotContainer.climber.setTargetState(targetState);
     }
 
     @Override

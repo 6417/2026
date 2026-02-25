@@ -12,21 +12,21 @@ import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
-    public static final IntakeSubsystem intake;
+    // public static final IntakeSubsystem intake;
     public static final Controls controls;
     public static final SwerveSubsystem drive;
-    public static final TurretSubsystem turret;
+    // public static final TurretSubsystem turret;
     public static final VisionSubsystem vision;
-    public static final ClimberSubsystem climber;
+    // public static final ClimberSubsystem climber;
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
-        intake = new IntakeSubsystem();
+        // intake = new IntakeSubsystem();
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
-        vision = new VisionSubsystem(true, true);
+        vision = new VisionSubsystem(true, true, true);
         drive = new SwerveSubsystem();
-        turret = new TurretSubsystem();
-        climber = new ClimberSubsystem();
+        // turret = new TurretSubsystem();
+        // climber = new ClimberSubsystem();
         controls = new Controls();
 
         autoChooser.addOption("Example Auto", "Example Auto");
