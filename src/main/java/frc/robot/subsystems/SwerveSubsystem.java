@@ -35,7 +35,6 @@ import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.Limelight;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import swervelib.SwerveController;
 import swervelib.SwerveModule;
@@ -103,12 +102,12 @@ public class SwerveSubsystem extends SubsystemBase {
                     talonFX.optimizeBusUtilization(); // disables all other unused signals
                 }
             }
-            try (Pigeon2 pigeon = new Pigeon2(Constants.Gyro.PIGEON_ID)) {
-                pigeon.getYaw().setUpdateFrequency(50);
-                pigeon.getPitch().setUpdateFrequency(50);
-                pigeon.getRoll().setUpdateFrequency(50);
-                pigeon.optimizeBusUtilization();
-            }
+            
+            RobotContainer.gyro.getYaw().setUpdateFrequency(50);
+            RobotContainer.gyro.getPitch().setUpdateFrequency(50);
+            RobotContainer.gyro.getRoll().setUpdateFrequency(50);
+            RobotContainer.gyro.optimizeBusUtilization();
+            
         }
         setupPathPlanner();
     }
