@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -54,6 +55,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    // Servo latch should be ignored in auto.
+    RobotContainer.climber.setServoLatched(false);
     
     if (autonomousCommand != null) {
 
@@ -68,11 +71,21 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    // Start teleop unlocked, latch is handled when MID climb is reached.
+    RobotContainer.climber.setServoLatched(false);
+  }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    // Teleop-only latch behavior:
+    // when climber is commanded to MID and has reached the target, engage latch.
+    if (RobotContainer.climber.getTargetState() == ClimberState.MID
+        && RobotContainer.climber.atTargetState()) {
+      RobotContainer.climber.setServoLatched(true);
+    }
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override

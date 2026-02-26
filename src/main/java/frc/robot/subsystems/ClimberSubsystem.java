@@ -7,6 +7,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoFalcon500v6;
 import frc.robot.Constants;
@@ -19,16 +20,20 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     private final FridoFalcon500v6 climberMotor;
+    private final Servo climberLatchServo;
     private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0.0);
     private final MotionMagicConfigs motionMagicOut = new MotionMagicConfigs();
     private final MotionMagicConfigs motionMagicIn = new MotionMagicConfigs();
     private ClimberState targetState = ClimberState.LOW;
+    private boolean servoLatched = false;
 
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
         climberMotor = new FridoFalcon500v6(Constants.Climber.motorId);
         climberMotor.setInverted(Constants.Climber.motorInverted);
         climberMotor.setIdleMode(Constants.Climber.idleMode);
+        climberLatchServo = new Servo(Constants.Climber.servoPwmChannel);
+        setServoLatched(false);
 
         // Configure Motion Magic and PID slots (extend/retract).
         reconfigure();
@@ -44,6 +49,11 @@ public class ClimberSubsystem extends SubsystemBase {
     public void setTargetState(ClimberState state) {
         // Update target and immediately command Motion Magic to the new setpoint.
         targetState = state;
+
+        // If we leave MID, release the latch immediately.
+        if (state != ClimberState.MID) {
+            setServoLatched(false);
+        }
         
         switch (state) {
             case LOW:
@@ -96,6 +106,16 @@ public class ClimberSubsystem extends SubsystemBase {
     public void resetEncoder() {
         // Reset encoder position to the configured zero.
         climberMotor.setEncoderPosition(Constants.Climber.resetEncoderPosition);
+    }
+
+    public void setServoLatched(boolean latched) {
+        servoLatched = latched;
+        climberLatchServo.set(
+                latched ? Constants.Climber.servoLatchedPosition : Constants.Climber.servoReleasedPosition);
+    }
+
+    public boolean isServoLatched() {
+        return servoLatched;
     }
 
     public double getAmperage() {

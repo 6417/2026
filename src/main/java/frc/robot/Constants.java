@@ -16,6 +16,7 @@ public class Constants {
         public static final int motorId = 30;
         public static final boolean motorInverted = false;
         public static final IdleMode idleMode = IdleMode.kBrake;
+        public static final int servoPwmChannel = 0;
 
         // Encoder zeroing parameters (used by ClimberEncoderZero).
         public static final double resetEncoderPosition = 0.0;
@@ -47,5 +48,10 @@ public class Constants {
         public static final double midPosition = 180.0;
         public static final double highPosition = 224.0;
         public static final double positionTolerance = 1.0;
+
+        // Servo latch positions:
+        // releasedPosition = unlocked, latchedPosition = mechanical lock engaged.
+        public static final double servoReleasedPosition = 0.0;
+        public static final double servoLatchedPosition = 1.0;
     }
 }
