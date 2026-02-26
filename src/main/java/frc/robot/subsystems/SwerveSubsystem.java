@@ -429,13 +429,22 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyroWithAlliance() {
-        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
-        LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0);
         if (blueAlliance) {
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(0)));
+            if (RobotContainer.vision.isUnderTurretLimelightConnected() && Constants.Limelight.useVisionUnderTurret) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, 0, 0, 0, 0, 0, 0);
+            }
+            if (RobotContainer.vision.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, 0, 0, 0, 0, 0, 0);
+            }
         } else {
-            // drive.setGyro(new Rotation3d(Rotation2d.fromDegrees(180)));
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
+            if (RobotContainer.vision.isUnderTurretLimelightConnected() && Constants.Limelight.useVisionUnderTurret) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, 180, 0, 0, 0, 0, 0);
+            }
+            if (RobotContainer.vision.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
+                LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, 180, 0, 0, 0, 0, 0);
+            }
         }
     }
 

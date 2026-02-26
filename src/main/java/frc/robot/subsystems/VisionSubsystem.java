@@ -27,6 +27,16 @@ public class VisionSubsystem extends SubsystemBase {
         this.mt2 = megaTag2;
         Constants.Limelight.useVisionUnderTurret = this.isUnderTurretLimelightConnected();
         Constants.Limelight.useVisionOnTurret = this.isOnTurretLimelightConnected();
+        if (megaTag2) {
+            // Mode 2: use external yaw (SetRobotOrientation) as full override so MegaTag2
+            // uses the robot's Pigeon2 heading instead of the Limelight's internal IMU.
+            if (underTurretVision) {
+                LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 2);
+            }
+            if (onTurretVision) {
+                LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 2);
+            }
+        }
     }
 
     public void changeMegaTag(boolean megaTag2) {
