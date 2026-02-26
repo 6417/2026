@@ -1,9 +1,10 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.climber.ClimberCommand;
-import frc.robot.commands.climber.ManualClimberControl;
 import frc.robot.commands.climber.ClimberZeroCommand;
+import frc.robot.commands.climber.ManualClimberControl;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 public class Controls {
@@ -22,5 +23,10 @@ public class Controls {
 
         // Zero routine: drive into hard-stop until current threshold, then set encoder zero.
         operatorController.x().onTrue(new ClimberZeroCommand());
+
+        // Temporary manual servo test controls (for tuning constants):
+        // START -> latch servo, BACK -> release servo.
+        operatorController.start().onTrue(new InstantCommand(() -> RobotContainer.climber.setServoLatched(true)));
+        operatorController.back().onTrue(new InstantCommand(() -> RobotContainer.climber.setServoLatched(false)));
     }
 }
