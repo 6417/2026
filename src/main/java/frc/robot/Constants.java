@@ -40,8 +40,8 @@ public class Constants {
                 null);
 
         public static final Pose2d HUB_CENTER_RED = new Pose2d(
-                Units.inchesToMeters(Field.FIELD_LENGTH_INCHES - (23.5 + 158.6)),
-                Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2),
+                Units.inchesToMeters(Field.FIELD_LENGTH_INCHES - (23.5 + 158.6)), // X= 11.915 meters
+                Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2), // Y= 4.032 meters
                 null);
 
         public static final double RADIUS_TO_HUB = 3.0; // in meters
@@ -63,10 +63,11 @@ public class Constants {
     }
 
     public static final class Limelight {
-        public static boolean useVision = true;
+        public static boolean useVisionUnderTurret = true;
+        public static boolean useVisionOnTurret= false;
         public static final String underTurretLimelight = "limelight-undturr";
         public static final String onTurretLimelight = "limelight-onturr";
-        public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0, 0, 0,  new Rotation3d());
+        public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,  new Rotation3d());
 
         public static Vector<N3> standardDevs = VecBuilder.fill(0.3, 0.3, 9999999);
     }

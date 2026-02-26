@@ -33,6 +33,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
+import frc.robot.Constants.Limelight;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import swervelib.SwerveController;
@@ -87,7 +89,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
-        if (Constants.Limelight.useVision) {
+        if (true) {
             drive.stopOdometryThread();
 
             // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
@@ -117,14 +119,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odomerty", drive.getPose());
-        driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If you remove this, you wont be able to control the robot with the joysticks anymore.
+        driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If
+                              // you remove this, you wont be able to control the robot with the joysticks
+                              // anymore.
     }
 
     private void updateOdometry() {
         drive.updateOdometry();
-        if (Constants.Limelight.useVision) {
-            RobotContainer.vision.updateOdometry();
-        }
     };
 
     public void resetOdometry(Pose2d pose) {
@@ -419,13 +420,17 @@ public class SwerveSubsystem extends SubsystemBase {
      */
     public void zeroGyro() {
         drive.zeroGyro();
-        if (Constants.Limelight.useVision) {
+        if (RobotContainer.vision.isUnderTurretLimelightConnected() && Constants.Limelight.useVisionUnderTurret) {
             LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, 0, 0, 0, 0, 0, 0);
+        }
+        if (RobotContainer.vision.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
+            LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, 0, 0, 0, 0, 0, 0);
         }
     }
 
     public void zeroGyroWithAlliance() {
         LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
+        LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0);
         if (blueAlliance) {
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(0)));
         } else {

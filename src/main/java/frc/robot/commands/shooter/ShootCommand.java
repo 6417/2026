@@ -18,13 +18,13 @@ import frc.robot.subsystems.ShooterSubsystem;
 public class ShootCommand extends Command {
     
     public ShootCommand() {
-        addRequirements(RobotContainer.shooter, RobotContainer.indexer); 
+        // addRequirements(RobotContainer.shooter, RobotContainer.indexer); 
     }
 
     @Override
     public void initialize() {
         double rpm = RobotContainer.calculationSubsystem.getRPMShooter();
-        RobotContainer.shooter.run(rpm, rpm);
+        // RobotContainer.shooter.run(rpm, rpm);
         RobotContainer.indexer.run(1000);
     }
     
@@ -35,7 +35,7 @@ public class ShootCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        RobotContainer.shooter.stop();
+        // RobotContainer.shooter.stop();
         RobotContainer.indexer.stop();
     }
 

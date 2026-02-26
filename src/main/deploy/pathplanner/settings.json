@@ -3,8 +3,9 @@
   "robotLength": 0.86,
   "holonomicMode": true,
   "pathFolders": [
-    "Example Auto Paths",
     "2 Cycle right",
+    "Example Auto Paths",
+    "Alliance Shoot Right",
     "Orbits Autonomous Imitation",
     "Second Auto Paths"
   ],

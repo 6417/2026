@@ -21,7 +21,7 @@ public class RobotContainer {
     // public static final ClimberSubsystem climber;
     // public static final TurretSubsystem turret;
     public static final IndexerSubsystem indexer;
-    public static final ShooterSubsystem shooter;
+    // public static final ShooterSubsystem shooter;
     public static final CalculationSubsystem calculationSubsystem;
 
     public static final Controls controls;
@@ -35,7 +35,7 @@ public class RobotContainer {
         drive = new SwerveSubsystem();
         // turret = new TurretSubsystem();
         // climber = new ClimberSubsystem();
-        shooter = new ShooterSubsystem();
+        // shooter = new ShooterSubsystem();
         indexer = new IndexerSubsystem();
         calculationSubsystem = new CalculationSubsystem();
         controls = new Controls();
