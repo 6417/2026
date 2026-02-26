@@ -171,6 +171,9 @@ public class VisionSubsystem extends SubsystemBase {
             {
                 doRejectUpdate = true;
             }
+            if (mt2OnTurret.tagCount == 0) {
+                doRejectUpdate = true;
+            }
             if (!doRejectUpdate) {
                 RobotContainer.drive.getSwerveDrive()
                         .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2OnTurret.avgTagDist));
