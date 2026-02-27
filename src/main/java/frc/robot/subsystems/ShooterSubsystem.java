@@ -20,6 +20,7 @@ import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
+import frc.robot.utils.LoggedTunableNumber;
 
 public class ShooterSubsystem extends SubsystemBase {
     // Top and bottom shooter motors.
@@ -28,6 +29,16 @@ public class ShooterSubsystem extends SubsystemBase {
 
     SparkFlexConfig motorConfigTop;
     SparkFlexConfig motorConfigBottom;
+
+    // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
+    private final LoggedTunableNumber tuneTopRpm =
+        new LoggedTunableNumber("Shooter/TuneTopRPM", Constants.Shooter.defaultRPM);
+    private final LoggedTunableNumber tuneBottomRpm =
+        new LoggedTunableNumber("Shooter/TuneBottomRPM", Constants.Shooter.defaultRPM);
+
+    // Last commanded setpoints, logged every periodic cycle.
+    private double topRpmSetpoint = 0;
+    private double bottomRpmSetpoint = 0;
 
     public ShooterSubsystem() {
         topMotor = new FridoSparkFlex(Constants.Shooter.topMotorId);
@@ -79,6 +90,8 @@ public class ShooterSubsystem extends SubsystemBase {
     public void run(double topRpm, double bottomRpm) {
         topRpm = clampRpm(topRpm);
         bottomRpm = clampRpm(bottomRpm);
+        topRpmSetpoint = topRpm;
+        bottomRpmSetpoint = bottomRpm;
         // velocity control takes RPM as input
         topMotor.asSparkFlex().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
         bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
@@ -91,9 +104,15 @@ public class ShooterSubsystem extends SubsystemBase {
      * (or interpolation) to map distance -> (top RPM, bottom RPM).
      */
     public void shootFromDistance(double distanceMeters) {
-        // Use interpolation tables to map distance -> RPMs.
-        double topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
-        double bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
+        double topRpm, bottomRpm;
+        if (Constants.TUNING_MODE) {
+            // Read live from dashboard — adjust without redeploying.
+            topRpm = tuneTopRpm.get();
+            bottomRpm = tuneBottomRpm.get();
+        } else {
+            topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
+            bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
+        }
         run(topRpm, bottomRpm);
     }
 
@@ -101,6 +120,9 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         Logger.recordOutput("Shooter/TopRPM", topMotor.asSparkFlex().getEncoder().getVelocity());
         Logger.recordOutput("Shooter/BottomRPM", bottomMotor.asSparkFlex().getEncoder().getVelocity());
+        Logger.recordOutput("Shooter/TopRPMSetpoint", topRpmSetpoint);
+        Logger.recordOutput("Shooter/BottomRPMSetpoint", bottomRpmSetpoint);
+        Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
     }
 
     private double clampRpm(double rpm) {
