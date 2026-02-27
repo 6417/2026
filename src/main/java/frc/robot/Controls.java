@@ -118,12 +118,6 @@ public class Controls implements Sendable {
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        // xButtonOperator.whileTrue(Commands.startEnd(
-        //     () -> RobotContainer.intake.setPercent(Constants.Intake.intakeSpeed * 0.5),
-        //     () -> RobotContainer.intake.stop(),
-        //     RobotContainer.intake
-        //     ));
-
         rtButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsIn(),
             () -> RobotContainer.intake.stop(),
