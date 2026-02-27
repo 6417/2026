@@ -239,7 +239,7 @@ public class VisionSubsystem extends SubsystemBase {
             }
 
             // Reject if tag is too far away — pose jumps wildly at long range
-            if (mt2UnderTurret.avgTagDist > 4.0) {
+            if (mt2UnderTurret.avgTagDist > 6.0) {
                 doRejectUpdate = true;
             }
 
