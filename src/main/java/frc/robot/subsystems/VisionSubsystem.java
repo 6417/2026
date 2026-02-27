@@ -202,7 +202,6 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     private void updateOdometryWithUnderTurretLimelight() {
-        // System.out.println("alo");
         boolean doRejectUpdate = false;
         if (mt2 == false) {
             LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace();

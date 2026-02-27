@@ -88,27 +88,24 @@ public class SwerveSubsystem extends SubsystemBase {
 
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
-        if (true) {
-            drive.stopOdometryThread();
+        drive.stopOdometryThread();
 
-            // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
-            // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
-            // after stopping that thread those devices still transmit at 250 Hz,
-            // which saturates the CAN bus even at idle.
-            for (SwerveModule module : drive.getModules()) {
-                if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
-                    talonFX.getPosition().setUpdateFrequency(50);
-                    talonFX.getVelocity().setUpdateFrequency(50);
-                    talonFX.optimizeBusUtilization(); // disables all other unused signals
-                }
+        // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
+        // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
+        // after stopping that thread those devices still transmit at 250 Hz,
+        // which saturates the CAN bus even at idle.
+        for (SwerveModule module : drive.getModules()) {
+            if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
+                talonFX.getPosition().setUpdateFrequency(50);
+                talonFX.getVelocity().setUpdateFrequency(50);
+                talonFX.optimizeBusUtilization(); // disables all other unused signals
             }
-            
-            RobotContainer.gyro.getYaw().setUpdateFrequency(50);
-            RobotContainer.gyro.getPitch().setUpdateFrequency(50);
-            RobotContainer.gyro.getRoll().setUpdateFrequency(50);
-            RobotContainer.gyro.optimizeBusUtilization();
-            
         }
+
+        RobotContainer.gyro.getYaw().setUpdateFrequency(50);
+        RobotContainer.gyro.getPitch().setUpdateFrequency(50);
+        RobotContainer.gyro.getRoll().setUpdateFrequency(50);
+        RobotContainer.gyro.optimizeBusUtilization();
         setupPathPlanner();
     }
 
@@ -125,7 +122,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private void updateOdometry() {
         drive.updateOdometry();
-    };
+    }
 
     public void resetOdometry(Pose2d pose) {
         drive.resetOdometry(pose);
