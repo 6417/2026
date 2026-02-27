@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
@@ -25,6 +28,11 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
+        intakeMotor.setInverted(Constants.Intake.intakeMotorInverted);
+
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.openLoopRampRate(Constants.Intake.openLoopRampRate);
+        intakeMotor.asSparkMax().configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
         setDefaultCommand(new IntakeCommand(this));
     }
