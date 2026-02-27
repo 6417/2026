@@ -249,12 +249,7 @@ public class VisionSubsystem extends SubsystemBase {
                 doRejectUpdate = true;
             }
 
-            // Reject if vision pose is implausibly far from current odometry
-            if (mt2UnderTurret.pose.getTranslation()
-                    .getDistance(RobotContainer.drive.getPose().getTranslation()) > 1.0) {
-                doRejectUpdate = true;
-            }
-
+            
             if (!doRejectUpdate) {
                 // Clamp minimum distance to prevent near-zero stdDevs at close range
                 double clampedDist = Math.max(mt2UnderTurret.avgTagDist, 0.5);
