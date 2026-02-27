@@ -15,6 +15,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DigitalOutput;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
@@ -23,12 +25,15 @@ import frc.robot.Constants;
 
 public class IndexerSubsystem extends SubsystemBase {
 
+    private final DigitalOutput beamBreakSender;
     private final DigitalInput beamBreak;
     FridoSparkMax indexerMotor;
     SparkMaxConfig motorConfig;
 
     public IndexerSubsystem() {
         indexerMotor = new FridoSparkMax(Constants.Indexer.motorID);
+        beamBreakSender = new DigitalOutput(Constants.Indexer.beamBreakSenderDio);
+        beamBreakSender.set(true);
         beamBreak = new DigitalInput(Constants.Indexer.beamBreakDio);
         motorConfig = new SparkMaxConfig();
 
@@ -44,6 +49,12 @@ public class IndexerSubsystem extends SubsystemBase {
         ffConfig.kV(Constants.Indexer.ff.kV);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         indexerMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Indexer/BeamBreak", isBallDetected());
+        Logger.recordOutput("Indexer/BeamBreakRaw", beamBreak.get());
     }
 
     public void stop() {

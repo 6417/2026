@@ -150,9 +150,11 @@ public class Constants {
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
 
-        //TODO: Set correct port for the beamBreak
-        public static final int beamBreakDio = 0;
+        public static final int beamBreakSenderDio = 2; // DIO 2 = light sender
+        public static final int beamBreakDio = 1;       // DIO 1 = light receiver
         public static final boolean beamBreakInverted = false;
+
+        public static final double defaultRPM = 1200;
     }
 
     public static final class Shooter {
