@@ -59,6 +59,7 @@ public class TurretSubsystem extends SubsystemBase {
             .d(pidValues.kD, ClosedLoopSlot.kSlot0)
             .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
         motorConfig.closedLoop.iZone(Constants.TurretSubsystem.iZone, ClosedLoopSlot.kSlot0);
+        motorConfig.closedLoop.iMaxAccum(Constants.TurretSubsystem.iMaxAccum, ClosedLoopSlot.kSlot0);
 
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.TurretSubsystem.kFeedForward.kS);
@@ -66,7 +67,7 @@ public class TurretSubsystem extends SubsystemBase {
         ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         
-        motorConfig.smartCurrentLimit(0, 30);
+        motorConfig.smartCurrentLimit(30, 30);
 
         turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -77,12 +78,17 @@ public class TurretSubsystem extends SubsystemBase {
         Shuffleboard.getTab("Turret").add(this);
     }
 
+    public static double degs = 0;
+
     @Override
     public void periodic() {
+        setDesiredRotation(Rotation2d.fromDegrees(degs));
     }
 
     public void resetRotationEncoder() {
-        turretMotor.setEncoderPosition(Constants.TurretSubsystem.resetEncoderPosition);
+        turretMotor.setEncoderPosition(
+            this.degreesToEncoderTicks(Constants.TurretSubsystem.resetEncoderPositionDegrees)
+        );
     }
 
     public void stopRotationMotor() {
@@ -91,10 +97,9 @@ public class TurretSubsystem extends SubsystemBase {
 
     // get the current angle in degrees
     public double getCurrentAngle() {
-        double degs = turretMotor.getEncoderTicks() - Constants.TurretSubsystem.tickRange[0]; // shift to start at 0
-        degs /= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]); // scale to range [0, 1]
-        degs *= 180; // scale to range [0, 180]
-        degs -= 90; // shift to range [-90, 90]
+        double degs = turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio; // shift to start at 0
+        degs *= Constants.TurretSubsystem.kConversationRatio;
+        degs *= 360;
         return degs;
     }
 
@@ -115,11 +120,10 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     private double degreesToEncoderTicks(double degrees) {
-        double ticks = degrees / 90; // convert to range [-1, 1]
-        ticks += 1; // convert to range [0, 2]
-        ticks *= (Constants.TurretSubsystem.tickRange[1] - Constants.TurretSubsystem.tickRange[0]) / 2; // scale to range [0, tickRange]
-        ticks += Constants.TurretSubsystem.tickRange[0]; // shift to start at tickRange[0]
+        double ticks = degrees / 360.0;
 
+        ticks /= Constants.TurretSubsystem.kConversationRatio;
+        ticks *= Constants.TurretSubsystem.kGearRatio;
         return ticks;
     }
         
@@ -143,6 +147,7 @@ public class TurretSubsystem extends SubsystemBase {
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);
+        builder.addDoubleProperty("degrees", () -> degs, (double d) -> degs = d);
         super.initSendable(builder);
     }
 }

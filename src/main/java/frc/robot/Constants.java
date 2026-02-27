@@ -84,23 +84,25 @@ public class Constants {
 
         public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
 
-        public static final double kMaxVelocity = 0;
-        public static final double kMaxAcceleration = 0;
-        public static final double kAllowedClosedLoopError = 0.15;
+        public static final double kMaxVelocity = 1600;
+        public static final double kMaxAcceleration = 6000;
+        public static final double kAllowedClosedLoopError = 0;
 
-        public static final PidValues pidValuesRotation = new PidValues(0.09, 0.0001, 0.001);
-        public static final double iZone = 4;
+        public static final PidValues pidValuesRotation = new PidValues(0.3, 0.00001, 0.03);
+        public static final double iZone = 1;
+        public static final double iMaxAccum = 10;
 
-        public static final int kGearRatio = 145 / 26;
+        public static final double kConversationRatio = 26.0/145.0;
+        public static final double kGearRatio = 5.0;
 
-        public static final double resetEncoderPosition = 0;
+        public static final double resetEncoderPositionDegrees = 112;
  
         public static final double[] tickRange = {-8.643, 8.81};
 
         public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
         public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.05, 0, 0);
     }
 
     public static final class SwerveSubsystem {
@@ -142,7 +144,7 @@ public class Constants {
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
 
-        public static final double defaultRPM = 1800;
+        public static final double defaultRPM = 3500;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
