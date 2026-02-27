@@ -54,6 +54,7 @@ public class CalculationSubsystem extends SubsystemBase {
 
         }
 
+        updateDistanceToHub();
         Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
         Logger.recordOutput("Shooter/DesiredRPM", desiredShooterRPM);
     }
@@ -82,6 +83,13 @@ public class CalculationSubsystem extends SubsystemBase {
 
     private void calculateMOVEMENT_ROTATION() {
 
+    }
+
+    private void updateDistanceToHub() {
+        if (Constants.Field.HUB_CENTER == null) return;
+        Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
+            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
+        distanceHubTurret = Constants.Field.HUB_CENTER.getTranslation().minus(turretPose).getNorm();
     }
 
     private Translation2d getTurretToDesiredpos() {
@@ -119,6 +127,10 @@ public class CalculationSubsystem extends SubsystemBase {
 
     public double getRPMShooter() {
         return desiredShooterRPM;
+    }
+
+    public double getDistanceToHub() {
+        return distanceHubTurret;
     }
 
     public Rotation2d getDesiredTurretAngle() {
