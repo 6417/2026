@@ -2,6 +2,8 @@ package frc.robot.utils;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class Utils {
     public static double normalizeAngleRad(double angle) {
@@ -15,7 +17,7 @@ public class Utils {
     /** If there is no Alliance, returns false */
     public static boolean isRobotInNeutralZone() {
         var alliance = DriverStation.getAlliance();
-        if (alliance.isPresent()) {
+        if (alliance.isEmpty()) {
             return false;
         }
         return (alliance.get() == Alliance.Blue
