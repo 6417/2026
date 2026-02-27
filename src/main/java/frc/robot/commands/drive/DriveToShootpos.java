@@ -9,7 +9,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.Utils;
+import frc.robot.utils.Utils;
 
 public class DriveToShootpos extends Command {
     private double radius = Constants.Field.RADIUS_TO_HUB;
