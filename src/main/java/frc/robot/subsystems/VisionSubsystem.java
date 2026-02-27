@@ -86,6 +86,23 @@ public class VisionSubsystem extends SubsystemBase {
                 desiredRoll, desiredPitch, desiredYaw);
     }
 
+    /**
+     * Feeds the raw Pigeon 2 yaw AND yaw rate into the Limelight so that MegaTag2
+     * can compensate for the camera-processing latency during rotation.
+     *
+     * Two bugs this fixes:
+     *   1. yawRate was hardcoded to 0 — MegaTag2 applied no latency compensation
+     *      for rotation, causing ΔX_error ≈ distance × sin(ω × latency).
+     *   2. Heading was sourced from the Kalman-filtered pose instead of raw gyro —
+     *      a corrupt vision update could feed a bad heading back in, creating a
+     *      diverging feedback loop.
+     */
+    private void setRobotOrientationFromRawGyro(String limelightName) {
+        double rawYawDeg = RobotContainer.gyro.getYaw().getValue().in(Units.Degrees);
+        double yawRateDegPerSec = RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond);
+        LimelightHelpers.SetRobotOrientation(limelightName, rawYawDeg, yawRateDegPerSec, 0, 0, 0, 0);
+    }
+
     public void updateOdometry() {
         updateOdometryWithUnderTurretLimelight();
         // updateOdometryOnTurretLimelight();
@@ -161,14 +178,14 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
             }
         } else {
-            LimelightHelpers.SetRobotOrientation(limelightOnTurretName,
-                    RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
+            setRobotOrientationFromRawGyro(limelightOnTurretName);
 
             LimelightHelpers.PoseEstimate mt2OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
-            if (Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity()
-                    .abs(Units.DegreesPerSecond)) > 720) // if our angular velocity is greater than 720 degrees per
-                                                         // second, ignore vision updates
-            {
+            // Reject if spinning too fast — rolling shutter distorts tag geometry and
+            // latency compensation becomes unreliable even with yaw rate provided.
+            double onTurretOmegaDeg = Math.abs(
+                    RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
+            if (onTurretOmegaDeg > 45.0) {
                 doRejectUpdate = true;
             }
             if (mt2OnTurret.tagCount == 0) {
@@ -205,22 +222,45 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
             }
         } else {
-            LimelightHelpers.SetRobotOrientation(limelightUnderTurretName,
-                    RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
+            setRobotOrientationFromRawGyro(limelightUnderTurretName);
 
             LimelightHelpers.PoseEstimate mt2UnderTurret = getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace();
-            if (Math.abs(RobotContainer.drive.getSwerveDrive().getGyro().getYawAngularVelocity()
-                    .abs(Units.DegreesPerSecond)) > 720) // if our angular velocity is greater than 720 degrees per
-                                                         // second, ignore vision updates
-            {
+
+            // Reject if spinning too fast — rolling shutter distorts tag geometry and
+            // latency compensation becomes unreliable even with yaw rate provided.
+            double underTurretOmegaDeg = Math.abs(
+                    RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
+            if (underTurretOmegaDeg > 45.0) {
                 doRejectUpdate = true;
             }
+
+            // Reject if no tags visible
             if (mt2UnderTurret.tagCount == 0) {
                 doRejectUpdate = true;
             }
+
+            // Reject if tag is too far away — pose jumps wildly at long range
+            if (mt2UnderTurret.avgTagDist > 4.0) {
+                doRejectUpdate = true;
+            }
+
+            // Reject if linear speed is too high — latency causes stale pose estimates
+            edu.wpi.first.math.kinematics.ChassisSpeeds speeds = RobotContainer.drive.getRobotVelocity();
+            if (Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) > 1.5) {
+                doRejectUpdate = true;
+            }
+
+            // Reject if vision pose is implausibly far from current odometry
+            if (mt2UnderTurret.pose.getTranslation()
+                    .getDistance(RobotContainer.drive.getPose().getTranslation()) > 1.0) {
+                doRejectUpdate = true;
+            }
+
             if (!doRejectUpdate) {
+                // Clamp minimum distance to prevent near-zero stdDevs at close range
+                double clampedDist = Math.max(mt2UnderTurret.avgTagDist, 0.5);
                 RobotContainer.drive.getSwerveDrive()
-                        .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(mt2UnderTurret.avgTagDist));
+                        .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist));
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose,
                         mt2UnderTurret.timestampSeconds);
             }

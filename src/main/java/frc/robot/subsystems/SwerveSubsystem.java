@@ -428,8 +428,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyroWithAlliance() {
-        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
-        LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0);
+        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); // Reseed internal IMU with new heading
+        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 4); // Return to internal IMU + external assist
         if (blueAlliance) {
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(0)));
         } else {
