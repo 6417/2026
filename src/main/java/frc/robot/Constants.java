@@ -28,6 +28,10 @@ import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 
 public class Constants {
+    // Set to true during tuning sessions; false for competition.
+    // When true, shooter RPMs are read live from the dashboard instead of interpolation tables.
+    public static final boolean TUNING_MODE = false;
+
     public static final class Field {
         public static final double FIELD_LENGTH_METERS = 16.540988;
         public static final double FIELD_WIDTH_METERS = 8.069326;
@@ -131,6 +135,18 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
+    public static final class Feeder {
+        public static final int motorId = 60;
+        public static final boolean motorInverted = true;
+
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+
+        public static final double defaultRPM = 1800;
+
+        public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
     public static final class Indexer {
         public static int motorID = 31;
         public static IdleMode mode = IdleMode.kCoast;
@@ -139,10 +155,15 @@ public class Constants {
 
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+
+        public static final int beamBreakSenderDio = 2; // DIO 2 = light sender
+        public static final int beamBreakDio = 1;       // DIO 1 = light receiver
+        public static final boolean beamBreakInverted = false;
+
+        public static final double defaultRPM = 1200;
     }
 
     public static final class Shooter {
-        // TODO: Verify these IDs/inversions on the real robot.
         public static final int topMotorId = 41;
         public static final int bottomMotorId = 40;
         
@@ -166,16 +187,16 @@ public class Constants {
         public static final double motorTolerance = 20;
 
         // Distance (m) -> RPM tables
-        // TODO: Place robot at known distances, tune top/bottom RPMs for best shot,
-        // then replace these points and/or add more for better curve fitting.
+        // Measured data points: (distance_meters, rpm)
+        // Add more points between/beyond these for a better curve.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(0.0, 0.0),
-                new Point2D.Double(0.0, 0.0)
+                new Point2D.Double(1.8, 2400),
+                new Point2D.Double(4.2, 2900)
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(0.0, 0.0),
-                new Point2D.Double(0.0, 0.0)
+                new Point2D.Double(1.8, 2400),
+                new Point2D.Double(4.2, 2900)
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);

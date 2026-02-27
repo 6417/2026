@@ -7,11 +7,11 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
-import java.util.AbstractMap.SimpleEntry;
 
 public class CalculationSubsystem extends SubsystemBase {
     private Rotation2d desiredTurretAngle;
@@ -51,8 +51,12 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT_ROTATION:
                 calculateMOVEMENT_ROTATION();
                 break;
-            
+
         }
+
+        updateDistanceToHub();
+        Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
+        Logger.recordOutput("Shooter/DesiredRPM", desiredShooterRPM);
     }
 
     private void calculateFIXED() {
@@ -79,6 +83,13 @@ public class CalculationSubsystem extends SubsystemBase {
 
     private void calculateMOVEMENT_ROTATION() {
 
+    }
+
+    private void updateDistanceToHub() {
+        if (Constants.Field.HUB_CENTER == null) return;
+        Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
+            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
+        distanceHubTurret = Constants.Field.HUB_CENTER.getTranslation().minus(turretPose).getNorm();
     }
 
     private Translation2d getTurretToDesiredpos() {
@@ -116,6 +127,10 @@ public class CalculationSubsystem extends SubsystemBase {
 
     public double getRPMShooter() {
         return desiredShooterRPM;
+    }
+
+    public double getDistanceToHub() {
+        return distanceHubTurret;
     }
 
     public Rotation2d getDesiredTurretAngle() {
