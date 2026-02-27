@@ -14,6 +14,7 @@ import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
@@ -94,6 +95,12 @@ public class ShooterSubsystem extends SubsystemBase {
         double topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
         double bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
         run(topRpm, bottomRpm);
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Shooter/TopRPM", topMotor.asSparkFlex().getEncoder().getVelocity());
+        Logger.recordOutput("Shooter/BottomRPM", bottomMotor.asSparkFlex().getEncoder().getVelocity());
     }
 
     private double clampRpm(double rpm) {

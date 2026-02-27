@@ -7,11 +7,11 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
-import java.util.AbstractMap.SimpleEntry;
 
 public class CalculationSubsystem extends SubsystemBase {
     private Rotation2d desiredTurretAngle;
@@ -51,8 +51,11 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT_ROTATION:
                 calculateMOVEMENT_ROTATION();
                 break;
-            
+
         }
+
+        Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
+        Logger.recordOutput("Shooter/DesiredRPM", desiredShooterRPM);
     }
 
     private void calculateFIXED() {
