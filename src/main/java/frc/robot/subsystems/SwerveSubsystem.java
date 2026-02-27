@@ -117,7 +117,7 @@ public class SwerveSubsystem extends SubsystemBase {
         blueAlliance = getAlliance() == Alliance.Blue;
 
         updateOdometry();
-        Logger.recordOutput("Swerve/Odomerty", drive.getPose());
+        Logger.recordOutput("Swerve/Odometry", drive.getPose());
         driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If
                               // you remove this, you wont be able to control the robot with the joysticks
                               // anymore.
@@ -451,7 +451,7 @@ public class SwerveSubsystem extends SubsystemBase {
         driveIsAutomated = true;
     }
 
-    public void setOpeatorControl() {
+    public void setOperatorControl() {
         // Set the last angle input of the swerve controller to current angle to prevent
         // further rotation
         this.getSwerveController().lastAngleScalar = getHeading().getRadians();

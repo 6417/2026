@@ -137,7 +137,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 4); // Use internal IMU + external assist
-    RobotContainer.drive.setOpeatorControl();
+    RobotContainer.drive.setOperatorControl();
 
   }
 
