@@ -19,7 +19,7 @@ public class RobotContainer {
     public static final SwerveSubsystem drive;
     public static final VisionSubsystem vision;
     // public static final ClimberSubsystem climber;
-    // public static final TurretSubsystem turret;
+    public static final TurretSubsystem turret;
     public static final IndexerSubsystem indexer;
     // public static final ShooterSubsystem shooter;
     public static final CalculationSubsystem calculationSubsystem;
@@ -33,7 +33,7 @@ public class RobotContainer {
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         vision = new VisionSubsystem(true, true, true);
         drive = new SwerveSubsystem();
-        // turret = new TurretSubsystem();
+        turret = new TurretSubsystem();
         // climber = new ClimberSubsystem();
         // shooter = new ShooterSubsystem();
         indexer = new IndexerSubsystem();

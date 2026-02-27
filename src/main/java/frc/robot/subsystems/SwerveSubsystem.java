@@ -35,7 +35,6 @@ import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.Limelight;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import swervelib.SwerveController;
 import swervelib.SwerveModule;
@@ -89,27 +88,24 @@ public class SwerveSubsystem extends SubsystemBase {
 
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
-        if (true) {
-            drive.stopOdometryThread();
+        drive.stopOdometryThread();
 
-            // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
-            // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
-            // after stopping that thread those devices still transmit at 250 Hz,
-            // which saturates the CAN bus even at idle.
-            for (SwerveModule module : drive.getModules()) {
-                if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
-                    talonFX.getPosition().setUpdateFrequency(50);
-                    talonFX.getVelocity().setUpdateFrequency(50);
-                    talonFX.optimizeBusUtilization(); // disables all other unused signals
-                }
-            }
-            try (Pigeon2 pigeon = new Pigeon2(Constants.Gyro.PIGEON_ID)) {
-                pigeon.getYaw().setUpdateFrequency(50);
-                pigeon.getPitch().setUpdateFrequency(50);
-                pigeon.getRoll().setUpdateFrequency(50);
-                pigeon.optimizeBusUtilization();
+        // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
+        // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
+        // after stopping that thread those devices still transmit at 250 Hz,
+        // which saturates the CAN bus even at idle.
+        for (SwerveModule module : drive.getModules()) {
+            if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
+                talonFX.getPosition().setUpdateFrequency(50);
+                talonFX.getVelocity().setUpdateFrequency(50);
+                talonFX.optimizeBusUtilization(); // disables all other unused signals
             }
         }
+
+        RobotContainer.gyro.getYaw().setUpdateFrequency(50);
+        RobotContainer.gyro.getPitch().setUpdateFrequency(50);
+        RobotContainer.gyro.getRoll().setUpdateFrequency(50);
+        RobotContainer.gyro.optimizeBusUtilization();
         setupPathPlanner();
     }
 
@@ -118,7 +114,7 @@ public class SwerveSubsystem extends SubsystemBase {
         blueAlliance = getAlliance() == Alliance.Blue;
 
         updateOdometry();
-        Logger.recordOutput("Swerve/Odomerty", drive.getPose());
+        Logger.recordOutput("Swerve/Odometry", drive.getPose());
         driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If
                               // you remove this, you wont be able to control the robot with the joysticks
                               // anymore.
@@ -126,7 +122,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private void updateOdometry() {
         drive.updateOdometry();
-    };
+    }
 
     public void resetOdometry(Pose2d pose) {
         drive.resetOdometry(pose);
@@ -429,8 +425,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyroWithAlliance() {
-        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
-        LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0);
+        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); // Reseed internal IMU with new heading
+        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 4); // Return to internal IMU + external assist
         if (blueAlliance) {
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(0)));
         } else {
@@ -452,7 +448,7 @@ public class SwerveSubsystem extends SubsystemBase {
         driveIsAutomated = true;
     }
 
-    public void setOpeatorControl() {
+    public void setOperatorControl() {
         // Set the last angle input of the swerve controller to current angle to prevent
         // further rotation
         this.getSwerveController().lastAngleScalar = getHeading().getRadians();

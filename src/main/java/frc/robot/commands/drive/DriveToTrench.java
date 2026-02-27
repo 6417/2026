@@ -53,7 +53,7 @@ public class DriveToTrench extends Command {
         if (pathCommand != null) {
             pathCommand.end(interrupted);
         }
-        drive.setOpeatorControl();
+        drive.setOperatorControl();
     }
 
     @Override

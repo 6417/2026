@@ -68,7 +68,7 @@ public class DriveToShootpos extends Command {
             pathCommand.end(interrupted);
         }
 
-        drive.setOpeatorControl();
+        drive.setOperatorControl();
     }
 
     @Override
