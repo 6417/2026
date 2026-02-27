@@ -15,7 +15,7 @@ import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
-    // public static final IntakeSubsystem intake;
+    public static final IntakeSubsystem intake;
     public static final SwerveSubsystem drive;
     public static final VisionSubsystem vision;
     // public static final ClimberSubsystem climber;
@@ -29,7 +29,7 @@ public class RobotContainer {
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
-        // intake = new IntakeSubsystem();
+        intake = new IntakeSubsystem();
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
         vision = new VisionSubsystem(true, true, true);
         drive = new SwerveSubsystem();
