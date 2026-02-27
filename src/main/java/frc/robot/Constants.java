@@ -133,10 +133,12 @@ public class Constants {
 
     public static final class Feeder {
         public static final int motorId = 60;
-        public static final boolean motorInverted = false;
+        public static final boolean motorInverted = true;
 
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+
+        public static final double defaultRPM = 1500;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
