@@ -36,7 +36,7 @@ public class Controls implements Sendable {
     Trigger windowsButtonDrive = driveJoystick.back();
     Trigger burgerButtonDrive = driveJoystick.start();
     Trigger pov0Drive = driveJoystick.povUp();
-    Trigger speedKnopf = driveJoystick.leftStick();
+    Trigger speedButton = driveJoystick.leftStick();
 
     Trigger ltButtonOperator = operatorJoystick.leftTrigger();
     Trigger rtButtonOperator = operatorJoystick.rightTrigger();
@@ -98,7 +98,7 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        speedKnopf.whileTrue(Commands.startEnd(
+        speedButton.whileTrue(Commands.startEnd(
                 () -> {
                     setActiveSpeedFactor(DriveSpeed.SLOW);
                 },
@@ -118,15 +118,17 @@ public class Controls implements Sendable {
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        // xButtonOperator.whileTrue(Commands.startEnd(
-        //     () -> {
-        //         RobotContainer.intake.isIntakeOn = true;
-        //         RobotContainer.intake.run = true;
-        //     },
-        //     () -> {
-        //         RobotContainer.intake.isIntakeOn = false;
-        //     }
-        //     ));
+        rtButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.intake.ballsIn(),
+            () -> RobotContainer.intake.stop(),
+            RobotContainer.intake
+        ));
+
+        ltButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.intake.ballsOut(),
+            () -> RobotContainer.intake.stop(),
+            RobotContainer.intake
+        ));
 
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));

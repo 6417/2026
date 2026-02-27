@@ -119,10 +119,11 @@ public class Constants {
     public static final class Intake {
         public static final int intakeMotorId = 10;
 
-        public static final boolean intakeMotorInverted = false;
+        public static final boolean intakeMotorInverted = true;
 
-        public static final double intakeSpeed = 0.6;
-        public static final double outtakeSpeed = -0.6;
+        public static final double intakeSpeed = 0.3;
+        public static final double outtakeSpeed = -0.3;
+        public static final double openLoopRampRate = 0.4;
 
         public static final double intakeStallCurrentAmps = 80;
         public static final double intakeStallRpmThreshold = 200;

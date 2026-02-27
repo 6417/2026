@@ -1,25 +1,38 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
-import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
 import frc.robot.commands.intake.IntakeCommand;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final FridoSparkMax intakeMotor;
 
-    public boolean isIntakeOn;
+    /** Whether the intake is currently on.
+     */
+    public boolean isIntakeOn = false;
 
-    public boolean run = true;
+    /** Whether the intake motor is currently blocked e.g. by a ball.
+     */
+    public boolean motorIsBlocked = false;
+
+    /** Whether the operator is currently controlling the intake.
+     */
+    public boolean operatorIsControlling = false;
 
     public IntakeSubsystem() {
         intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
-        isIntakeOn = false;
-        run = true;
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
+        intakeMotor.setInverted(Constants.Intake.intakeMotorInverted);
+
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.openLoopRampRate(Constants.Intake.openLoopRampRate);
+        intakeMotor.asSparkMax().configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
         setDefaultCommand(new IntakeCommand(this));
     }
@@ -29,16 +42,20 @@ public class IntakeSubsystem extends SubsystemBase {
         double currentAmps = intakeMotor.getOutputCurrent();
         double rpms = intakeMotor.getEncoderVelocity();
         if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpms < Constants.Intake.intakeStallRpmThreshold) {
-            run = false;
+            motorIsBlocked = true;
+            operatorIsControlling = true;
+            stop();
         }
     }
 
-    public void intake() {
+    public void ballsIn() {
         setPercent(Constants.Intake.intakeSpeed);
+        isIntakeOn = true;
     }
 
-    public void outtake() {
+    public void ballsOut() {
         setPercent(Constants.Intake.outtakeSpeed);
+        isIntakeOn = true;
     }
 
     public void setPercent(double percent) {
@@ -47,6 +64,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public void stop() {
-        intakeMotor.stopMotor();;
+        intakeMotor.stopMotor();
+        isIntakeOn = false;
     }
 }
