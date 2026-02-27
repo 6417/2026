@@ -13,9 +13,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.climber.ClimberCommand;
-import frc.robot.commands.climber.ManualClimberControl;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
+import frc.robot.Constants;
 
 /**
  * Holds the data concerning input, which should be available
@@ -119,22 +119,40 @@ public class Controls implements Sendable {
         // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
         rtButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.shooter.run(Constants.Shooter.defaultRPM, Constants.Shooter.defaultRPM),
+            () -> RobotContainer.shooter.stop(),
+            RobotContainer.shooter
+        ));
+
+        ltButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM),
+            () -> RobotContainer.indexer.stop(),
+            RobotContainer.indexer
+        ));
+
+        rbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsIn(),
             () -> RobotContainer.intake.stop(),
             RobotContainer.intake
         ));
 
-        ltButtonOperator.whileTrue(Commands.startEnd(
+        lbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsOut(),
             () -> RobotContainer.intake.stop(),
             RobotContainer.intake
+        ));
+
+        xButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
+            () -> RobotContainer.feeder.stop(),
+            RobotContainer.feeder
         ));
 
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
         bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
         pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
-        rbButtonOperator.whileTrue(new ManualClimberControl(() -> -operatorJoystick.getLeftY()));
+        // rbButtonOperator was repurposed for intake — ManualClimberControl removed
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }
