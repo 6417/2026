@@ -52,6 +52,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
         motorConfigBottom.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
             .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+
+        motorConfigBottom.closedLoop.allowedClosedLoopError(Constants.Shooter.motorTolerance, ClosedLoopSlot.kSlot0);
+        motorConfigTop.closedLoop.allowedClosedLoopError(Constants.Shooter.motorTolerance, ClosedLoopSlot.kSlot0);
             
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.Shooter.ffTop.kS);
@@ -69,7 +72,8 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isAtSetpoint() {
-        return topMotor.asSparkFlex().getClosedLoopController().isAtSetpoint() && bottomMotor.asSparkFlex().getClosedLoopController().isAtSetpoint();
+        return Math.abs(topMotor.getEncoderVelocity() - topRpmSetpoint) <= 50 && 
+        Math.abs(bottomMotor.getEncoderVelocity() - bottomRpmSetpoint) <= 50 ;
     }
 
     public void stop() {

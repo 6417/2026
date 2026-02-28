@@ -81,7 +81,7 @@ public class TurretSubsystem extends SubsystemBase {
     public static double degs = 0;
 
     @Override
-    public void periodic(){ 
+    public void periodic(){
     }
 
     public void resetRotationEncoder() {

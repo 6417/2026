@@ -189,7 +189,7 @@ public class Constants {
 
         public static final double defaultRPM = 3000;
 
-        public static final double motorTolerance = 20;
+        public static final double motorTolerance = 0;
 
         // Distance (m) -> RPM tables
         // Measured data points: (distance_meters, rpm)
