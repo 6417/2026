@@ -8,6 +8,7 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -16,6 +17,7 @@ import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
+import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.turret.TurretControlled;
@@ -132,7 +134,7 @@ public class Controls implements Sendable {
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        ltButtonDrive.whileTrue(new ShootCommand().alongWith(new PulseFeederCommand().repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
+        ltButtonDrive.whileTrue(new ShootCommand().alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
 
         lbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsOut(),

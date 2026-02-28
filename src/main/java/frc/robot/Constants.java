@@ -96,6 +96,7 @@ public class Constants {
         public static final double kGearRatio = 5.0;
 
         public static final double resetEncoderPositionDegrees = 112;
+        public static final double zeroingSpeedPercentage = 0.2;
  
         public static final double[] tickRange = {-8.643, 8.81};
 
@@ -198,13 +199,17 @@ public class Constants {
         // Measured data points: (distance_meters, rpm)
         // Add more points between/beyond these for a better curve.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.8, 2400),
-                new Point2D.Double(4.2, 2900)
+                new Point2D.Double(2.08, 4000),
+                new Point2D.Double(2.61, 2340),
+                new Point2D.Double(3.62, 2500),
+                new Point2D.Double(4.76, 3200),
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(1.8, 2400),
-                new Point2D.Double(4.2, 2900)
+                new Point2D.Double(2.08, 600),
+                new Point2D.Double(2.61, 2440),
+                new Point2D.Double(3.62, 2700),
+                new Point2D.Double(4.76, 3200),
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);

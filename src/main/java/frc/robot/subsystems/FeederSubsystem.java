@@ -8,14 +8,18 @@ import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.fridowpi.motors.FridoServoMotor;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.robot.Constants;
 
 public class FeederSubsystem extends SubsystemBase {
     private FridoSparkMax feederMotor;
     private SparkMaxConfig motorConfig;
+    private final Servo servoFeeder;
     public FeederSubsystem() {
+        servoFeeder = new FridoServoMotor(9);
         feederMotor = new FridoSparkMax(Constants.Feeder.motorId);
 
         // TODO: Check if motor is inverted.
@@ -33,7 +37,9 @@ public class FeederSubsystem extends SubsystemBase {
         ffConfig.kV(Constants.Feeder.ff.kV);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         feederMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        servoFeeder.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
+
 
     @Override
     public void periodic() {
@@ -50,5 +56,13 @@ public class FeederSubsystem extends SubsystemBase {
 
     public void stop() {
         feederMotor.stopMotor();
+    }
+
+    public void enableServoHatchet(){
+        servoFeeder.setAngle(115);
+    }
+
+    public void disableServoHatchet(){
+        servoFeeder.setAngle(45);
     }
 }
