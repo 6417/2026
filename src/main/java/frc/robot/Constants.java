@@ -1,15 +1,60 @@
 package frc.robot;
 
-import java.util.Arrays;
-import java.util.List;
-
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
-import frc.robot.swerve.ModuleConfig;
+import frc.robot.utils.LinearInterpolationTable;
+
+import java.awt.geom.Point2D;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.opencv.features2d.FlannBasedMatcher;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import frc.fridowpi.motors.utils.FeedForwardValues;
+import frc.fridowpi.motors.utils.PidValues;
 
 public class Constants {
+    // Set to true during tuning sessions; false for competition.
+    // When true, shooter RPMs are read live from the dashboard instead of interpolation tables.
+    public static final boolean TUNING_MODE = false;
+
+    public static final class Field {
+        public static final double FIELD_LENGTH_METERS = 16.540988;
+        public static final double FIELD_WIDTH_METERS = 8.069326;
+        public static final double FIELD_WIDTH_INCHES = 317.69;
+        public static final double FIELD_LENGTH_INCHES = 651.22;
+
+        public static final Pose2d HUB_CENTER_BLUE = new Pose2d(
+                Units.inchesToMeters(23.5 + 158.6),
+                Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2),
+                null);
+
+        public static final Pose2d HUB_CENTER_RED = new Pose2d(
+                Units.inchesToMeters(Field.FIELD_LENGTH_INCHES - (23.5 + 158.6)), // X= 11.915 meters
+                Units.inchesToMeters(Field.FIELD_WIDTH_INCHES / 2), // Y= 4.032 meters
+                null);
+
+        public static final double RADIUS_TO_HUB = 3.0; // in meters
+
+        // to be set in Robot.java based on alliance
+        public static Pose2d EDGE;
+        public static Pose2d HUB_CENTER;
+        public static double neutralZoneStartX;       
+    }
     public static final class Joystick {
         public static final int driveJoystickId = 0;
         public static final int operatorJoystickId = 1;
@@ -22,94 +67,182 @@ public class Constants {
     }
 
     public static final class Limelight {
-        public static final String limelightID = "limelight-vier";
+        public static boolean useVisionUnderTurret = true;
+        public static boolean useVisionOnTurret= false;
+        public static final String underTurretLimelight = "limelight-undturr";
+        public static final String onTurretLimelight = "limelight-onturr";
+        public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,  new Rotation3d());
 
-        public static final List<Double> aprilTagsForOuttakeStateTeamIsRed = Arrays.asList(17.0, 18.0, 19.0, 20.0, 21.0,
-                22.0);
-        public static final List<Double> aprilTagsForIntakeStateTeamIsRed = Arrays.asList(1.0, 2.0);
-
-        public static final List<Double> aprilTagsForOuttakeStateTeamIsBlue = Arrays.asList(6.0, 7.0, 8.0, 9.0, 10.0,
-                11.0);
-        public static final List<Double> aprilTagsForIntakeStateTeamIsBlue = Arrays.asList(12.0, 13.0);
+        public static Vector<N3> standardDevs = VecBuilder.fill(0.3, 0.3, 9999999);
+        // Higher base uncertainty for on-turret: turret encoder error and mechanical
+        // compliance add position uncertainty beyond pure MegaTag2 tag-distance noise.
+        public static Vector<N3> onTurretStdDevs = VecBuilder.fill(0.5, 0.5, 9999999);
     }
 
-    public static final class SwerveDrive {
-        public static ModuleConfig[] configs = new ModuleConfig[4];
-        public static boolean isGyroInverted = false;
+    public static final class TurretSubsystem { //TODO: set constants
+        public static final int ID = 42;
 
+        public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
+
+        public static final double kMaxVelocity = 1600;
+        public static final double kMaxAcceleration = 6000;
+        public static final double kAllowedClosedLoopError = 0;
+
+        public static final PidValues pidValuesRotation = new PidValues(0.3, 0.001, 0.03);
+        public static final double iZone = 1;
+        public static final double iMaxAccum = 100;
+
+        public static final double kConversationRatio = 26.0/145.0;
+        public static final double kGearRatio = 5.0;
+
+        public static final double resetEncoderPositionDegrees = 112;
+        public static final double zeroingSpeedPercentage = 0.2;
+ 
+        public static final double[] tickRange = {-8.643, 8.81};
+
+        public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
+        public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
+
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.1, 0, 0);
+        
+        public static final int stallCurrentLimit = 30;
+        public static final int freeCurrentLimit = 30;
+    }
+
+    public static final class SwerveSubsystem {
         public static final double maxSpeed = 4.9; // TODO: for testing
-        public static ModuleConfig defaultModuleConfig2024 = new ModuleConfig();
-        public static final double moduleXoffset = 0.267;
-        public static final double moduleYoffset = 0.267;
+        public static final double moduleXoffset = 0.262;
+        public static final double moduleYoffset = 0.262;
         public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
                                                      // (Math.PI *
                                                      // 2); // rps
+        public static final boolean oldTurnSystem = true;
+        public static final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.15, 2.2, 0);
 
-        static {
-            defaultModuleConfig2024.maxSpeed = maxSpeed;
-            defaultModuleConfig2024.wheelCircumference = Units.inchesToMeters(4) * Math.PI * 0.977 * 1.058376;
+    }
+    public static final class Controls {
+        public static final double deadBandDrive = 0.08;
+        public static final double deadBandTurn = 0.08;
+    }
+    
 
-            defaultModuleConfig2024.driveGearboxRatio = 6.181;
-            defaultModuleConfig2024.driveMotorStallCurrentLimit = 70;
-            defaultModuleConfig2024.driveMotorFreeCurrentLimit = 40;
-            defaultModuleConfig2024.drivePidValues = new PidValues(1.1926E-05, 0.00, 0);
-            // defaultModuleConfig2024.driveFFValues = new FeedForwardValues(0.13271 / 12,
-            // 2.1395 / 12, 0.15313 / 12);
-            defaultModuleConfig2024.driveFFValues = new FeedForwardValues(0.057, 0.1177, 0.05);
+    public static final class Intake {
+        public static final int intakeMotorId = 10;
 
-            defaultModuleConfig2024.angleGearboxRatio = 7.44;
-            defaultModuleConfig2024.angleMotorStallCurrentLimit = 35;
-            defaultModuleConfig2024.angleMotorFreeCurrentLimit = 20;
-            defaultModuleConfig2024.angleMotorIzone = 0.1;
-            defaultModuleConfig2024.anglePidValues = new PidValues(0.4, 0.0, 0.05);
+        public static final boolean intakeMotorInverted = true;
 
-            defaultModuleConfig2024.encoderThicksToRotationFalcon = 1;
-            defaultModuleConfig2024.encoderVelocityToRPSFalcon = 1;
-            defaultModuleConfig2024.encoderThicksToRotationNEO = 1;
-            defaultModuleConfig2024.encoderVelocityToRPSNEO = 1;
+        public static final double intakeSpeed = 0.3;
+        public static final double outtakeSpeed = -0.3;
+        public static final double openLoopRampRate = 0.4;
 
-            final int LOC_FL = frc.robot.swerve.SwerveDrive.LOC_FL;
-            final int LOC_FR = frc.robot.swerve.SwerveDrive.LOC_FR;
-            final int LOC_RL = frc.robot.swerve.SwerveDrive.LOC_RL;
-            final int LOC_RR = frc.robot.swerve.SwerveDrive.LOC_RR;
+        public static final double intakeStallCurrentAmps = 80;
+        public static final double intakeStallRpmThreshold = 200;
 
-            configs[LOC_FL] = defaultModuleConfig2024.clone();
-            configs[LOC_FR] = defaultModuleConfig2024.clone();
-            configs[LOC_RL] = defaultModuleConfig2024.clone();
-            configs[LOC_RR] = defaultModuleConfig2024.clone();
+        public static final IdleMode idleMode = IdleMode.kCoast;
+    }
 
-            //Front is on the Batterys side if you use the (Test) Swerve Chassis from 2026
-            configs[LOC_FL].driveMotorID = 1;
-            configs[LOC_FL].angleMotorID = 11;
-            configs[LOC_FL].driveMotorInverted = false;
-            configs[LOC_FL].angleMotorInverted = true;
-            configs[LOC_FL].moduleOffset = new Translation2d(moduleXoffset, moduleYoffset);
-            configs[LOC_FL].encoderChannel = 0;
-            configs[LOC_FL].absEncoderOffset = 0.753;
+    public static final class Feeder {
+        public static final int motorId = 60;
+        public static final boolean motorInverted = true;
 
-            configs[LOC_FR].driveMotorID = 2;
-            configs[LOC_FR].angleMotorID = 12;
-            configs[LOC_FR].driveMotorInverted = false;
-            configs[LOC_FR].angleMotorInverted = true;
-            configs[LOC_FR].moduleOffset = new Translation2d(moduleXoffset, -moduleYoffset);
-            configs[LOC_FR].encoderChannel = 1;
-            configs[LOC_FR].absEncoderOffset = 0.195;
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
 
-            configs[LOC_RL].driveMotorID = 3;
-            configs[LOC_RL].angleMotorID = 13;
-            configs[LOC_RL].driveMotorInverted = false;
-            configs[LOC_RL].angleMotorInverted = true;
-            configs[LOC_RL].moduleOffset = new Translation2d(-moduleXoffset, moduleYoffset);
-            configs[LOC_RL].encoderChannel = 2;
-            configs[LOC_RL].absEncoderOffset = 0.301;
+        public static final double defaultRPM = 3000;
 
-            configs[LOC_RR].driveMotorID = 4;
-            configs[LOC_RR].angleMotorID = 14;
-            configs[LOC_RR].driveMotorInverted = false;
-            configs[LOC_RR].angleMotorInverted = true;
-            configs[LOC_RR].moduleOffset = new Translation2d(-moduleXoffset, -moduleYoffset);
-            configs[LOC_RR].encoderChannel = 3;
-            configs[LOC_RR].absEncoderOffset = 0.829;
-        }
+        public static final IdleMode idleMode = IdleMode.kCoast;
+
+        public static final double pulseForwardDuration = 0.9;
+        public static final double pulseReverseDuration = 0.15;
+    }
+
+    public static final class Indexer {
+        public static int motorID = 31;
+        public static IdleMode mode = IdleMode.kCoast;
+
+        public static boolean motorInverted = true;
+
+        public static PidValues pid = new PidValues(0, 0, 0);
+        public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
+
+        public static final int beamBreakSenderDio = 2; // DIO 2 = light sender
+        public static final int beamBreakDio = 1;       // DIO 1 = light receiver
+        public static final boolean beamBreakInverted = false;
+
+        public static final double defaultRPM = 1200;
+    }
+
+    public static final class Shooter {
+        public static final int topMotorId = 41;
+        public static final int bottomMotorId = 40;
+        
+        public static final double kP = 0.0001;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0045;
+        public static final double kS_Top = 0.02;
+        public static final double kV_Top = 0.001772;
+        public static final double kS_Bottom = 0.036;
+        public static final double kV_Bottom = 0.0017415;
+        public static final double maxRpm = 6000.0;
+        public static final boolean bottomMotorInverted = false;
+        public static final boolean topMotorInverted = true;
+
+        public static final PidValues pidBoth = new PidValues(kP, kI, kD);
+        public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
+        public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
+
+        public static final double defaultRPM = 3000;
+
+        public static final double motorTolerance = 0;
+
+        // Distance (m) -> RPM tables
+        // Measured data points: (distance_meters, rpm)
+        // Add more points between/beyond these for a better curve.
+        private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(2.08, 4000),
+                new Point2D.Double(2.61, 2340),
+                new Point2D.Double(3.62, 2500),
+                new Point2D.Double(4.76, 3200),
+        };
+
+        private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
+                new Point2D.Double(2.08, 600),
+                new Point2D.Double(2.61, 2440),
+                new Point2D.Double(3.62, 2700),
+                new Point2D.Double(4.76, 3200),
+        };
+
+        public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
+        public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
+
+        public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
+    public static final class Climber {
+        public static final int motorId = 30;
+        public static final boolean motorInverted = false;
+        public static final IdleMode idleMode = IdleMode.kBrake;
+
+        public static final double resetEncoderPosition = 0.0;
+        public static final double zeroingSpeed = -0.1;
+        public static final double zeroingTimeoutSec = 0.5;
+        public static final double zeroingCurrentThreshold = 0.045;
+
+        public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
+        public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
+        public static final Optional<Double> kG = Optional.of(0.0);
+
+        public static double allowedClosedLoopErrorOut = 0.5;
+        public static double maxAccelerationOut = 30000;
+        public static double maxVelocityOut = 3000;
+
+        public static double allowedClosedLoopErrorIn = 0.5;
+        public static double maxAccelerationIn = 60000;
+        public static double maxVelocityIn = 6000;
+
+        public static final double lowPosition = 70.0;
+        public static final double midPosition = 180.0;
+        public static final double highPosition = 224.0;
+        public static final double positionTolerance = 1.0;
     }
 }

@@ -3,13 +3,26 @@ package frc.robot;
 import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Commands;
-
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.drive.DriveToShootpos;
+import frc.robot.commands.drive.DriveToTrench;
+import frc.robot.commands.intake.IntakeCommand;
+import frc.robot.commands.shooter.PulseFeederCommand;
+import frc.robot.commands.shooter.ServoCommand;
+import frc.robot.commands.shooter.ShootCommand;
+import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.turret.TurretControlled;
+import frc.robot.subsystems.ClimberSubsystem.ClimberState;
+import frc.robot.Constants;
 
 /**
  * Holds the data concerning input, which should be available
@@ -17,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class Controls implements Sendable {
     public CommandXboxController driveJoystick = new CommandXboxController(Constants.Joystick.driveJoystickId);
+    public CommandXboxController operatorJoystick = new CommandXboxController(Constants.Joystick.operatorJoystickId);
 
     Trigger ltButtonDrive = driveJoystick.leftTrigger();
     Trigger rtButtonDrive = driveJoystick.rightTrigger();
@@ -29,6 +43,21 @@ public class Controls implements Sendable {
     Trigger windowsButtonDrive = driveJoystick.back();
     Trigger burgerButtonDrive = driveJoystick.start();
     Trigger pov0Drive = driveJoystick.povUp();
+    Trigger speedButton = driveJoystick.leftStick();
+
+    Trigger ltButtonOperator = operatorJoystick.leftTrigger();
+    Trigger rtButtonOperator = operatorJoystick.rightTrigger();
+    Trigger lbButtonOperator = operatorJoystick.leftBumper();
+    Trigger rbButtonOperator = operatorJoystick.rightBumper();
+    Trigger aButtonOperator = operatorJoystick.a();
+    Trigger bButtonOperator = operatorJoystick.b();
+    Trigger xButtonOperator = operatorJoystick.x();
+    Trigger yButtonOperator = operatorJoystick.y();
+    Trigger windowsButtonOperator = operatorJoystick.back();
+    Trigger burgerButtonOperator = operatorJoystick.start();
+    Trigger pov0Operator = operatorJoystick.povUp();
+
+    private boolean automatedTurret = true;
 
     public enum DriveSpeed {
         DEFAULT_SPEED,
@@ -43,7 +72,7 @@ public class Controls implements Sendable {
     public Map<DriveSpeed, Double> speedFactors = Map.of(
             DriveSpeed.DEFAULT_SPEED, 1.0,
             DriveSpeed.FAST, 0.9,
-            DriveSpeed.SLOW, 0.1);
+            DriveSpeed.SLOW, 0.3);
     private DriveSpeed activeSpeedFactor = DriveSpeed.DEFAULT_SPEED;
     private double accelerationSensitivity = speedFactors.get(activeSpeedFactor);
 
@@ -56,7 +85,7 @@ public class Controls implements Sendable {
 
     public double turnSensitivity = 0.08;
 
-    public DriveOrientation driveOrientation = DriveOrientation.FieldOriented;
+    public DriveOrientation driveOrientation = DriveOrientation.Forwards;
 
     public void setActiveSpeedFactor(DriveSpeed speedFactor) {
         activeSpeedFactor = speedFactor;
@@ -71,23 +100,80 @@ public class Controls implements Sendable {
         return accelerationSensitivity;
     }
 
-    public Controls() {
-        // rbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        // Constants.OffsetsToAprilTags.offsetToAprilTagRight));
-        // lbButtonDrive.whileTrue(new ChaseTagCommand(RobotContainer.drive,
-        // Constants.OffsetsToAprilTags.offsetToAprilTagLeft));
+    public boolean isTurretAutomated() {
+        return automatedTurret;
+    }
 
-        rtButtonDrive.whileTrue(Commands.startEnd(
+    public Controls() {
+        speedButton.whileTrue(Commands.startEnd(
                 () -> {
-                    activeSpeedFactor = DriveSpeed.SLOW;
+                    setActiveSpeedFactor(DriveSpeed.SLOW);
                 },
                 () -> {
-                    activeSpeedFactor = DriveSpeed.DEFAULT_SPEED;
+                    setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.gyro.reset()));
+        burgerButtonDrive.onTrue(new InstantCommand(() -> {
+            RobotContainer.drive.zeroGyroWithAlliance();
+        }));
+        rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
+        // rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(true);
+        //     // RobotContainer.intake.isIntakeOn = true;
+
+        // }))
+        // .onFalse(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(false);
+        //     // RobotContainer.intake.isIntakeOn = false;
+        //     RobotContainer.intake.stop();
+        // }));
+        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+
+        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+
+        xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
+        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
+
+        ltButtonDrive.whileTrue(new ShootCommand().alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
+
+        lbButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.intake.ballsOut(),
+            () -> RobotContainer.intake.stop(),
+            RobotContainer.intake
+        ));
+
+        rbButtonOperator.whileTrue(Commands.startEnd(
+            () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
+            () -> RobotContainer.feeder.stop(),
+            RobotContainer.feeder
+        ));
+
+        xButtonOperator.whileTrue(new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
+        .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
+
+        // Climber presets and manual jog controls.
+        aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
+        bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
+        pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
+        // rbButtonOperator was repurposed for intake — ManualClimberControl removed
 
         Shuffleboard.getTab("Drive").add("Controls", this);
+    }
+
+    public double[] getJoystickAxes() {
+        double[] joystickAxes = {
+                driveJoystick.getLeftX(),
+                driveJoystick.getLeftY(),
+                driveJoystick.getRightX(),
+                driveJoystick.getRightY()
+        };
+        for (int i = 0; i < joystickAxes.length; i++) {
+            if (Math.abs(joystickAxes[i]) < Constants.Controls.deadBandDrive) {
+                joystickAxes[i] = 0.0;
+            }
+            joystickAxes[i] *= getAccelerationSensitivity();
+        }
+        return joystickAxes;
     }
 
     // Shuffleboard

@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.7546444444444442,
+        "y": 1.160388888888889
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.457968417845955,
+        "y": 1.1037056615105096
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.5,
+        "y": 0.663
+      },
+      "prevControl": {
+        "x": 0.8675271898888439,
+        "y": 0.7624084649945889
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Alliance Shoot Right 1 End"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": "Alliance Shoot Right",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 35.340106921557634
+  },
+  "useDefaultConstraints": true
+}
