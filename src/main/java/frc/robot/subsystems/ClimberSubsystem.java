@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.awt.Robot;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -14,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoFalcon500v6;
 import frc.fridowpi.motors.FridoServoMotor;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class ClimberSubsystem extends SubsystemBase {
     public enum ClimberState {
@@ -42,7 +45,6 @@ public class ClimberSubsystem extends SubsystemBase {
         // Start with a known encoder reference.
         climberMotor.setEncoderPosition(Constants.Climber.resetEncoderPosition);
 
-        
         servoHatchet.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
 
@@ -54,7 +56,7 @@ public class ClimberSubsystem extends SubsystemBase {
     public void setTargetState(ClimberState state) {
         // Update target and immediately command Motion Magic to the new setpoint.
         targetState = state;
-        
+
         switch (state) {
             case LOW:
                 setPositionStart();
@@ -129,34 +131,41 @@ public class ClimberSubsystem extends SubsystemBase {
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
-    public void setPositionStart(){
-        // Use slot 0 for retract (in) with outward motion constraints -> no additional weight
+    public void setPositionStart() {
+        // Use slot 0 for retract (in) with outward motion constraints -> no additional
+        // weight
         applyMotionMagicConfig(motionMagicOut);
         motionMagicRequest.Position = Constants.Climber.lowPosition;
         motionMagicRequest.Slot = 0;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
-    
-    public boolean isMotorBlocked(){
-        return (climberMotor.getAppliedAmps()>1);
+
+    public boolean isMotorBlockedDetectionByVelocity(double velocityThreshold) {
+        return (climberMotor.asTalonFX().getVelocity().getValueAsDouble() < velocityThreshold);
     }
 
-    public void startHoming(){
+    public boolean isMotorBlockedDetectionByAmperage(double threshold) {
+        return climberMotor.getAppliedAmps() >= threshold;
+    }
+
+    public void startHoming() {
         climberMotor.set(Constants.Climber.homingSpeed);
     }
 
-    public void endHoming(){
+    public void endHoming() {
         stop();
         climberMotor.asTalonFX().setPosition(0);
     }
 
-    public void enableServoHatchet(){
+    public void enableServoHatchet() {
         servoHatchet.setAngle(85);
     }
-    public void disableServoHatchet(){
+
+    public void disableServoHatchet() {
         servoHatchet.setAngle(115);
     }
-    public void homeRelativeEncoder(){
+
+    public void homeRelativeEncoder() {
         climberMotor.setEncoderPosition(0);
     }
 

@@ -2,13 +2,14 @@ package frc.robot.commands.climber;
 
 import java.util.function.DoubleSupplier;
 
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
-public class RelaseChuchichaestliAndHomeRelativeEncoder extends Command {
+public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Command {
 
-    public RelaseChuchichaestliAndHomeRelativeEncoder() {
-        // Supplier allows live joystick input without storing controller here.
+    public RelaseChuchichaestliAndHomeRelativeEncoderCommand() {
         addRequirements(RobotContainer.climber);
     }
 
@@ -19,13 +20,11 @@ public class RelaseChuchichaestliAndHomeRelativeEncoder extends Command {
 
     @Override
     public void execute() {
-        if (RobotContainer.climber.isMotorBlocked()){
+        if (RobotContainer.climber.isMotorBlockedDetectionByAmperage(Constants.Climber.homingAmpsThreshold)) {
             RobotContainer.climber.endHoming();
             end(false);
         }
 
-        // Pass through manual input each cycle.
-        // RobotContainer.climber.setManualPercent(percentSupplier.getAsDouble());
     }
 
     @Override

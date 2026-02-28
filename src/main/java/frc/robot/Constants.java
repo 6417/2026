@@ -220,8 +220,13 @@ public class Constants {
 
         public static final double resetEncoderPosition = 0.0;
         public static final double homingSpeed = 0.05;
+        public static final double homingAmpsThreshold = 1.0;
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
+
+        public static final double finalClimbSpeed = 0.35;
+        public static final double releaseClimbSpeed = -0.05;
+        public static final double finalClimbVelocityThreshold = 0.05; //TODO: set threshold for final climb motor stall detection
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
