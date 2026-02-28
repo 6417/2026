@@ -174,8 +174,8 @@ public class CalculationSubsystem extends SubsystemBase {
             topRpm = tuneTopRpm.get();
             bottomRpm = tuneBottomRpm.get();
         } else if(inNeutralzone) {
-            topRpm = Constants.Shooter.defaultRPM;
-            bottomRpm = Constants.Shooter.defaultRPM;
+            topRpm = Constants.Shooter.neutralZoneRPM;
+            bottomRpm = Constants.Shooter.neutralZoneRPM;
         }
         else {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret);

@@ -195,6 +195,7 @@ public class Constants {
         public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
 
         public static final double defaultRPM = 3000;
+        public static final double neutralZoneRPM = 2000;
 
         public static final double motorTolerance = 0;
 
