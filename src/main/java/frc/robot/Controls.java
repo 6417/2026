@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.intake.IntakeCommand;
+import frc.robot.commands.shooter.PulseFeederCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.turret.TurretControlled;
@@ -131,7 +132,7 @@ public class Controls implements Sendable {
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        ltButtonDrive.whileTrue(new ShootCommand());
+        ltButtonDrive.whileTrue(new ShootCommand().alongWith(new PulseFeederCommand().repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
 
         lbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsOut(),

@@ -150,6 +150,9 @@ public class Constants {
         public static final double defaultRPM = 3000;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
+
+        public static final double pulseForwardDuration = 0.9;
+        public static final double pulseReverseDuration = 0.15;
     }
 
     public static final class Indexer {

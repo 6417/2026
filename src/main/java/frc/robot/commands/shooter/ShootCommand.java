@@ -35,7 +35,7 @@ public class ShootCommand extends Command {
             RobotContainer.indexer.run(Constants.Indexer.defaultRPM);
         else 
             RobotContainer.indexer.stop();
-        RobotContainer.feeder.run(Constants.Feeder.defaultRPM);
+        // RobotContainer.feeder.run(Constants.Feeder.defaultRPM);
     }
 
     @Override
