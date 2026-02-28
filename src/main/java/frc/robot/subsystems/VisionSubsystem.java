@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Units;
 import frc.robot.LimelightHelpers;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
@@ -87,20 +88,10 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     /**
-     * Feeds the raw Pigeon 2 yaw AND yaw rate into the Limelight so that MegaTag2
-     * can compensate for the camera-processing latency during rotation.
-     *
-     * Two bugs this fixes:
-     *   1. yawRate was hardcoded to 0 — MegaTag2 applied no latency compensation
-     *      for rotation, causing ΔX_error ≈ distance × sin(ω × latency).
-     *   2. Heading was sourced from the Kalman-filtered pose instead of raw gyro —
-     *      a corrupt vision update could feed a bad heading back in, creating a
-     *      diverging feedback loop.
+     * Update limelight yaw with odometry angle to prevent alliance issues when initializing
      */
-    private void setRobotOrientationFromRawGyro(String limelightName) {
-        double rawYawDeg = RobotContainer.gyro.getYaw().getValue().in(Units.Degrees);
-        double yawRateDegPerSec = RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond);
-        LimelightHelpers.SetRobotOrientation(limelightName, rawYawDeg, yawRateDegPerSec, 0, 0, 0, 0);
+    private void updateLimelightYaw(String limelightName) {
+        LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0);
     }
 
     public void updateOdometry() {
@@ -128,7 +119,7 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
             }
         } else {
-            setRobotOrientationFromRawGyro(limelightOnTurretName);
+            updateLimelightYaw(limelightOnTurretName);
 
             LimelightHelpers.PoseEstimate mt2OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
 
@@ -141,8 +132,9 @@ public class VisionSubsystem extends SubsystemBase {
 
             // Reject if turret slewing — camera-pose latency causes XY error proportional
             // to turret angular speed. Differentiate angle across the 20 ms loop period.
+            // TODO : check if angular velocity is in the right direction
             double currentTurretAngle = RobotContainer.turret.getCurrentAngle();
-            double turretSlewDegPerSec = Math.abs(currentTurretAngle - lastTurretAngleDeg) / 0.02;
+            double turretSlewDegPerSec = Math.abs((currentTurretAngle - lastTurretAngleDeg) / 0.02 - RobotContainer.drive.getRobotVelocity().omegaRadiansPerSecond*180/Math.PI);
             lastTurretAngleDeg = currentTurretAngle;
             if (turretSlewDegPerSec > 30.0) {
                 doRejectUpdate = true;
@@ -195,7 +187,7 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
             }
         } else {
-            setRobotOrientationFromRawGyro(limelightUnderTurretName);
+            updateLimelightYaw(limelightUnderTurretName);
 
             LimelightHelpers.PoseEstimate mt2UnderTurret = getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace();
 

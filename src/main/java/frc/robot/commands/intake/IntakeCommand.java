@@ -18,22 +18,18 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        if (intake.operatorIsControlling) {
-            return;
-        }
-        if (intake.motorIsBlocked) {
-            return;
-        }
+        // if (intake.operatorIsControlling) {
+        //     return;
+        // }
+        // if (intake.motorIsBlocked) {
+        //     return;
+        // }
 
-        // If the Robot is in the Alliance-Zone, stop the intake.
-        if (!Utils.isRobotInNeutralZone() && intake.isIntakeOn) {
-            intake.stop();
-            return;
-        }
-
-        // Automatic intake in neutral zone disabled FOR NOW SIMPLE :D. 
-        // if (!intake.isIntakeOn) {
+        intake.ballsIn();
+        // if (intake.isIntakeOn) {
         //     intake.ballsIn();
+        // } else {
+        //     intake.stop();
         // }
     }
 

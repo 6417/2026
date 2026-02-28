@@ -30,12 +30,6 @@ public class ShooterSubsystem extends SubsystemBase {
     SparkFlexConfig motorConfigTop;
     SparkFlexConfig motorConfigBottom;
 
-    // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
-    private final LoggedTunableNumber tuneTopRpm =
-        new LoggedTunableNumber("Shooter/TuneTopRPM", Constants.Shooter.defaultRPM);
-    private final LoggedTunableNumber tuneBottomRpm =
-        new LoggedTunableNumber("Shooter/TuneBottomRPM", Constants.Shooter.defaultRPM);
-
     // Last commanded setpoints, logged every periodic cycle.
     private double topRpmSetpoint = 0;
     private double bottomRpmSetpoint = 0;
@@ -74,6 +68,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
     }
 
+    public boolean isAtSetpoint() {
+        return topMotor.asSparkFlex().getClosedLoopController().isAtSetpoint() && bottomMotor.asSparkFlex().getClosedLoopController().isAtSetpoint();
+    }
+
     public void stop() {
         topMotor.stopMotor();
         bottomMotor.stopMotor();
@@ -95,25 +93,6 @@ public class ShooterSubsystem extends SubsystemBase {
         // velocity control takes RPM as input
         topMotor.asSparkFlex().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
         bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
-    }
-
-    /**
-     * Set the speeds of the shooter motors based on distance to the target.
-     *
-     * The final implementation should use measured data points and curve fitting
-     * (or interpolation) to map distance -> (top RPM, bottom RPM).
-     */
-    public void shootFromDistance(double distanceMeters) {
-        double topRpm, bottomRpm;
-        if (Constants.TUNING_MODE) {
-            // Read live from dashboard — adjust without redeploying.
-            topRpm = tuneTopRpm.get();
-            bottomRpm = tuneBottomRpm.get();
-        } else {
-            topRpm = Constants.Shooter.topRpmTable.getOutput(distanceMeters);
-            bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceMeters);
-        }
-        run(topRpm, bottomRpm);
     }
 
     @Override

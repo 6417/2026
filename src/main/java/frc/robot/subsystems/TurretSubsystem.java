@@ -67,13 +67,13 @@ public class TurretSubsystem extends SubsystemBase {
         ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         
-        motorConfig.smartCurrentLimit(30, 30);
+        motorConfig.smartCurrentLimit(Constants.TurretSubsystem.stallCurrentLimit, Constants.TurretSubsystem.freeCurrentLimit);
 
         turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
         resetRotationEncoder();
 
-        // setDefaultCommand(new SmartTurret(this));
+        setDefaultCommand(new SmartTurret(this));
 
         Shuffleboard.getTab("Turret").add(this);
     }
@@ -81,8 +81,7 @@ public class TurretSubsystem extends SubsystemBase {
     public static double degs = 0;
 
     @Override
-    public void periodic() {
-        setDesiredRotation(Rotation2d.fromDegrees(degs));
+    public void periodic(){ 
     }
 
     public void resetRotationEncoder() {

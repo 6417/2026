@@ -94,18 +94,18 @@ public class SwerveSubsystem extends SubsystemBase {
         // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
         // after stopping that thread those devices still transmit at 250 Hz,
         // which saturates the CAN bus even at idle.
-        for (SwerveModule module : drive.getModules()) {
-            if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
-                talonFX.getPosition().setUpdateFrequency(50);
-                talonFX.getVelocity().setUpdateFrequency(50);
-                talonFX.optimizeBusUtilization(); // disables all other unused signals
-            }
-        }
+        // for (SwerveModule module : drive.getModules()) {
+        //     if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
+        //         talonFX.getPosition().setUpdateFrequency(120);
+        //         talonFX.getVelocity().setUpdateFrequency(120);
+        //         talonFX.optimizeBusUtilization(); // disables all other unused signals
+        //     }
+        // }
 
-        RobotContainer.gyro.getYaw().setUpdateFrequency(50);
-        RobotContainer.gyro.getPitch().setUpdateFrequency(50);
-        RobotContainer.gyro.getRoll().setUpdateFrequency(50);
-        RobotContainer.gyro.optimizeBusUtilization();
+        // RobotContainer.gyro.getYaw().setUpdateFrequency(120);
+        // RobotContainer.gyro.getPitch().setUpdateFrequency(120);
+        // RobotContainer.gyro.getRoll().setUpdateFrequency(120);
+        // RobotContainer.gyro.optimizeBusUtilization();
         setupPathPlanner();
     }
 
@@ -425,8 +425,6 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyroWithAlliance() {
-        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); // Reseed internal IMU with new heading
-        LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 4); // Return to internal IMU + external assist
         if (blueAlliance) {
             resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(0)));
         } else {

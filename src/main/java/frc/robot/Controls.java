@@ -3,15 +3,19 @@ package frc.robot;
 import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
+import frc.robot.commands.intake.IntakeCommand;
+import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
@@ -110,31 +114,24 @@ public class Controls implements Sendable {
             RobotContainer.drive.zeroGyroWithAlliance();
         }));
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-        rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(true)))
-        .onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
+        // rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(true);
+        //     // RobotContainer.intake.isIntakeOn = true;
 
-        // lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+        // }))
+        // .onFalse(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(false);
+        //     // RobotContainer.intake.isIntakeOn = false;
+        //     RobotContainer.intake.stop();
+        // }));
+        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+
+        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
-        // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
+        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
-        rtButtonOperator.whileTrue(Commands.runEnd(
-            () -> RobotContainer.shooter.shootFromDistance(RobotContainer.calculationSubsystem.getDistanceToHub()),
-            () -> RobotContainer.shooter.stop(),
-            RobotContainer.shooter
-        ));
-
-        ltButtonOperator.whileTrue(Commands.startEnd(
-            () -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM),
-            () -> RobotContainer.indexer.stop(),
-            RobotContainer.indexer
-        ));
-
-        rbButtonOperator.whileTrue(Commands.startEnd(
-            () -> RobotContainer.intake.ballsIn(),
-            () -> RobotContainer.intake.stop(),
-            RobotContainer.intake
-        ));
+        ltButtonDrive.whileTrue(new ShootCommand());
 
         lbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsOut(),
@@ -142,11 +139,14 @@ public class Controls implements Sendable {
             RobotContainer.intake
         ));
 
-        xButtonOperator.whileTrue(Commands.startEnd(
+        rbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
             () -> RobotContainer.feeder.stop(),
             RobotContainer.feeder
         ));
+
+        xButtonOperator.whileTrue(new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
+        .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
 
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));

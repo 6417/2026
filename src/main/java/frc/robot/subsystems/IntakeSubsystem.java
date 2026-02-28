@@ -34,7 +34,8 @@ public class IntakeSubsystem extends SubsystemBase {
         config.openLoopRampRate(Constants.Intake.openLoopRampRate);
         intakeMotor.asSparkMax().configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
-        setDefaultCommand(new IntakeCommand(this));
+        // Could be added back for auto-intake
+        // setDefaultCommand(new IntakeCommand(this));
     }
 
     @Override
@@ -50,12 +51,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void ballsIn() {
         setPercent(Constants.Intake.intakeSpeed);
-        isIntakeOn = true;
     }
 
     public void ballsOut() {
         setPercent(Constants.Intake.outtakeSpeed);
-        isIntakeOn = true;
     }
 
     public void setPercent(double percent) {
@@ -65,6 +64,5 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();
-        isIntakeOn = false;
     }
 }

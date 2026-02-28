@@ -88,9 +88,9 @@ public class Constants {
         public static final double kMaxAcceleration = 6000;
         public static final double kAllowedClosedLoopError = 0;
 
-        public static final PidValues pidValuesRotation = new PidValues(0.3, 0.00001, 0.03);
+        public static final PidValues pidValuesRotation = new PidValues(0.3, 0.001, 0.03);
         public static final double iZone = 1;
-        public static final double iMaxAccum = 10;
+        public static final double iMaxAccum = 100;
 
         public static final double kConversationRatio = 26.0/145.0;
         public static final double kGearRatio = 5.0;
@@ -102,7 +102,10 @@ public class Constants {
         public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
         public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.05, 0, 0);
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.1, 0, 0);
+        
+        public static final int stallCurrentLimit = 30;
+        public static final int freeCurrentLimit = 30;
     }
 
     public static final class SwerveSubsystem {
@@ -144,7 +147,7 @@ public class Constants {
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
 
-        public static final double defaultRPM = 3500;
+        public static final double defaultRPM = 3000;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
