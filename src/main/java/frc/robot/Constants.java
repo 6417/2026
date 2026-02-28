@@ -215,7 +215,7 @@ public class Constants {
 
     public static final class Climber {
         public static final int motorId = 30;
-        public static final boolean motorInverted = false;
+        public static final boolean motorInverted = false; //top Position is highest Value
         public static final IdleMode idleMode = IdleMode.kBrake;
 
         public static final double resetEncoderPosition = 0.0;

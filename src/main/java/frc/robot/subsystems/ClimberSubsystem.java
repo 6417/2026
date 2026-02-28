@@ -136,12 +136,28 @@ public class ClimberSubsystem extends SubsystemBase {
         motionMagicRequest.Slot = 0;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
+    
+    public boolean isMotorBlocked(){
+        return (climberMotor.getAppliedAmps()>1);
+    }
+
+    public void startHoming(){
+        climberMotor.set(Constants.Climber.homingSpeed);
+    }
+
+    public void endHoming(){
+        stop();
+        climberMotor.asTalonFX().setPosition(0);
+    }
 
     public void enableServoHatchet(){
         servoHatchet.setAngle(85);
     }
     public void disableServoHatchet(){
         servoHatchet.setAngle(115);
+    }
+    public void homeRelativeEncoder(){
+        climberMotor.setEncoderPosition(0);
     }
 
     private void reconfigure() {

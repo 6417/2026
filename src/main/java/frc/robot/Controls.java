@@ -18,6 +18,7 @@ import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoder;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.Constants;
@@ -53,7 +54,11 @@ public class Controls implements Sendable {
     Trigger yButtonOperator = operatorJoystick.y();
     Trigger windowsButtonOperator = operatorJoystick.back();
     Trigger burgerButtonOperator = operatorJoystick.start();
-    Trigger pov0Operator = operatorJoystick.povUp();
+    Trigger pov0Operator = operatorJoystick.povUp();                //       0
+    Trigger pov4Operator = operatorJoystick.povDown();              //    7     1
+                                                                    //  6   POV    2
+                                                                    //    5     3
+                                                                    //       4
 
     private boolean automatedTurret = true;
 
@@ -155,6 +160,7 @@ public class Controls implements Sendable {
         aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
         bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
         pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
+        pov4Operator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoder());
         // rbButtonOperator was repurposed for intake — ManualClimberControl removed
 
         Shuffleboard.getTab("Drive").add("Controls", this);
