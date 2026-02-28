@@ -60,7 +60,7 @@ public class Constants {
 
     public static final class Limelight {
         public static boolean useVisionUnderTurret = true;
-        public static boolean useVisionOnTurret= false;
+        public static boolean useVisionOnTurret= true;
         public static final String underTurretLimelight = "limelight-undturr";
         public static final String onTurretLimelight = "limelight-onturr";
         public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,  new Rotation3d());

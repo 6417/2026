@@ -40,10 +40,10 @@ public class VisionSubsystem extends SubsystemBase {
             updateOdometryWithUnderTurretLimelight();
         }
         // On-turret limelight reserved for hub aiming — not fused into odometry yet.
-        // if (this.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
-        //     resetLimelightOnTurretPose(RobotContainer.turret.getCurrentAngle());
-        //     updateOdometryOnTurretLimelight();
-        // }
+        if (this.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
+            resetLimelightOnTurretPose(RobotContainer.turret.getCurrentAngle());
+            // updateOdometryOnTurretLimelight();
+        }
     }
 
     public PoseEstimate getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace() {
@@ -155,7 +155,7 @@ public class VisionSubsystem extends SubsystemBase {
                 doRejectUpdate = true;
             }
 
-            if (!doRejectUpdate) {
+            if (doRejectUpdate) {
                 double clampedDist = Math.max(mt2OnTurret.avgTagDist, 0.5);
                 RobotContainer.drive.getSwerveDrive()
                         .setVisionMeasurementStdDevs(Constants.Limelight.onTurretStdDevs.times(clampedDist));
