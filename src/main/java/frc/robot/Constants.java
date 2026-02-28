@@ -219,7 +219,7 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kBrake;
 
         public static final double resetEncoderPosition = 0.0;
-        public static final double zeroingSpeed = -0.1;
+        public static final double homingSpeed = 0.05;
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
@@ -235,9 +235,9 @@ public class Constants {
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
-        public static final double lowPosition = 70.0;
-        public static final double midPosition = 180.0;
-        public static final double highPosition = 224.0;
-        public static final double positionTolerance = 1.0;
+        public static final double lowPosition = 0;
+        public static final double midPosition = -16;
+        public static final double highPosition = -32;
+        public static final double positionTolerance = 0.2;
     }
 }
