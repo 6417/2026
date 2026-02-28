@@ -13,7 +13,6 @@ public class ReleaseClimbCommand extends SequentialCommandGroup {
 
     public ReleaseClimbCommand() {
         addRequirements(RobotContainer.climber);
-        beforeStarting(null);
         addCommands(
             new InstantCommand(() -> RobotContainer.climber.disableServoHatchet()),
             new SetClimberStateCommand(ClimberState.HIGH),
