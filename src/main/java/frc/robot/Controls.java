@@ -127,10 +127,10 @@ public class Controls implements Sendable {
         // }));
         rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
 
-        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+        // lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
-        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
+        // yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
 
         ltButtonDrive.whileTrue(new ShootCommand().alongWith(new PulseFeederCommand().repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
 
@@ -145,6 +145,8 @@ public class Controls implements Sendable {
             () -> RobotContainer.feeder.stop(),
             RobotContainer.feeder
         ));
+        ltButtonOperator.onTrue(new InstantCommand(()->RobotContainer.climber.enableServoHatchet()));
+        rtButtonOperator.onTrue(new InstantCommand(()->RobotContainer.climber.disableServoHatchet()));
 
         xButtonOperator.whileTrue(new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
         .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));

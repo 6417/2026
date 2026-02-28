@@ -99,73 +99,73 @@ public class VisionSubsystem extends SubsystemBase {
         
     }
 
-    public void updateOdometryOnTurretLimelight() {
-        boolean doRejectUpdate = false;
-        if (mt2 == false) {
-            LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
-            if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1) {
-                if (mt1.rawFiducials[0].ambiguity > .7) {
-                    doRejectUpdate = true;
-                }
-                if (mt1.rawFiducials[0].distToCamera > 3) {
-                    doRejectUpdate = true;
-                }
-            }
-            if (mt1.tagCount == 0) {
-                doRejectUpdate = true;
-            }
+    // public void updateOdometryOnTurretLimelight() {
+    //     boolean doRejectUpdate = false;
+    //     if (mt2 == false) {
+    //         LimelightHelpers.PoseEstimate mt1 = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
+    //         if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1) {
+    //             if (mt1.rawFiducials[0].ambiguity > .7) {
+    //                 doRejectUpdate = true;
+    //             }
+    //             if (mt1.rawFiducials[0].distToCamera > 3) {
+    //                 doRejectUpdate = true;
+    //             }
+    //         }
+    //         if (mt1.tagCount == 0) {
+    //             doRejectUpdate = true;
+    //         }
 
-            if (!doRejectUpdate) {
-                RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
-            }
-        } else {
-            updateLimelightYaw(limelightOnTurretName);
+    //         if (!doRejectUpdate) {
+    //             RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+    //         }
+    //     } else {
+    //         updateLimelightYaw(limelightOnTurretName);
 
-            LimelightHelpers.PoseEstimate mt2OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
+    //         LimelightHelpers.PoseEstimate mt2OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
 
-            // Reject if robot spinning too fast — rolling shutter distorts tag geometry.
-            double onTurretOmegaDeg = Math.abs(
-                    RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
-            if (onTurretOmegaDeg > 45.0) {
-                doRejectUpdate = true;
-            }
+    //         // Reject if robot spinning too fast — rolling shutter distorts tag geometry.
+    //         double onTurretOmegaDeg = Math.abs(
+    //                 RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
+    //         if (onTurretOmegaDeg > 45.0) {
+    //             doRejectUpdate = true;
+    //         }
 
-            // Reject if turret slewing — camera-pose latency causes XY error proportional
-            // to turret angular speed. Differentiate angle across the 20 ms loop period.
-            // TODO : check if angular velocity is in the right direction
-            double currentTurretAngle = RobotContainer.turret.getCurrentAngle();
-            double turretSlewDegPerSec = Math.abs((currentTurretAngle - lastTurretAngleDeg) / 0.02 - RobotContainer.drive.getRobotVelocity().omegaRadiansPerSecond*180/Math.PI);
-            lastTurretAngleDeg = currentTurretAngle;
-            if (turretSlewDegPerSec > 30.0) {
-                doRejectUpdate = true;
-            }
+    //         // Reject if turret slewing — camera-pose latency causes XY error proportional
+    //         // to turret angular speed. Differentiate angle across the 20 ms loop period.
+    //         // TODO : check if angular velocity is in the right direction
+    //         // double currentTurretAngle = RobotContainer.turret.getCurrentAngle();
+    //         double turretSlewDegPerSec = Math.abs((currentTurretAngle - lastTurretAngleDeg) / 0.02 - RobotContainer.drive.getRobotVelocity().omegaRadiansPerSecond*180/Math.PI);
+    //         lastTurretAngleDeg = currentTurretAngle;
+    //         if (turretSlewDegPerSec > 30.0) {
+    //             doRejectUpdate = true;
+    //         }
 
-            // Reject if no tags visible.
-            if (mt2OnTurret.tagCount == 0) {
-                doRejectUpdate = true;
-            }
+    //         // Reject if no tags visible.
+    //         if (mt2OnTurret.tagCount == 0) {
+    //             doRejectUpdate = true;
+    //         }
 
-            // Reject if tag too far — MegaTag2 accuracy degrades quickly at range.
-            if (mt2OnTurret.avgTagDist > 6.0) {
-                doRejectUpdate = true;
-            }
+    //         // Reject if tag too far — MegaTag2 accuracy degrades quickly at range.
+    //         if (mt2OnTurret.avgTagDist > 6.0) {
+    //             doRejectUpdate = true;
+    //         }
 
-            // Reject if moving too fast — latency causes stale pose estimates.
-            edu.wpi.first.math.kinematics.ChassisSpeeds speeds = RobotContainer.drive.getRobotVelocity();
-            if (Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) > 1.5) {
-                doRejectUpdate = true;
-            }
+    //         // Reject if moving too fast — latency causes stale pose estimates.
+    //         edu.wpi.first.math.kinematics.ChassisSpeeds speeds = RobotContainer.drive.getRobotVelocity();
+    //         if (Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) > 1.5) {
+    //             doRejectUpdate = true;
+    //         }
 
-            if (!doRejectUpdate) {
-                double clampedDist = Math.max(mt2OnTurret.avgTagDist, 0.5);
-                RobotContainer.drive.getSwerveDrive()
-                        .setVisionMeasurementStdDevs(Constants.Limelight.onTurretStdDevs.times(clampedDist));
-                RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2OnTurret.pose,
-                        mt2OnTurret.timestampSeconds);
-            }
-            Logger.recordOutput("Swerve/OnTurretPose", mt2OnTurret.pose);
-        }
-    }
+    //         if (!doRejectUpdate) {
+    //             double clampedDist = Math.max(mt2OnTurret.avgTagDist, 0.5);
+    //             RobotContainer.drive.getSwerveDrive()
+    //                     .setVisionMeasurementStdDevs(Constants.Limelight.onTurretStdDevs.times(clampedDist));
+    //             RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2OnTurret.pose,
+    //                     mt2OnTurret.timestampSeconds);
+    //         }
+    //         Logger.recordOutput("Swerve/OnTurretPose", mt2OnTurret.pose);
+    //     }
+    // }
 
     private void updateOdometryWithUnderTurretLimelight() {
         boolean doRejectUpdate = false;

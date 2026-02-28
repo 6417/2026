@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
@@ -7,8 +9,10 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoFalcon500v6;
+import frc.fridowpi.motors.FridoServoMotor;
 import frc.robot.Constants;
 
 public class ClimberSubsystem extends SubsystemBase {
@@ -19,6 +23,7 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     private final FridoFalcon500v6 climberMotor;
+    private final Servo servoHatchet;
     private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0.0);
     private final MotionMagicConfigs motionMagicOut = new MotionMagicConfigs();
     private final MotionMagicConfigs motionMagicIn = new MotionMagicConfigs();
@@ -26,6 +31,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
+        servoHatchet = new FridoServoMotor(0);
         climberMotor = new FridoFalcon500v6(Constants.Climber.motorId);
         climberMotor.setInverted(Constants.Climber.motorInverted);
         climberMotor.setIdleMode(Constants.Climber.idleMode);
@@ -35,10 +41,14 @@ public class ClimberSubsystem extends SubsystemBase {
 
         // Start with a known encoder reference.
         climberMotor.setEncoderPosition(Constants.Climber.resetEncoderPosition);
+
+        
+        servoHatchet.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
 
     @Override
     public void periodic() {
+        Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle());
     }
 
     public void setTargetState(ClimberState state) {
@@ -125,6 +135,13 @@ public class ClimberSubsystem extends SubsystemBase {
         motionMagicRequest.Position = Constants.Climber.lowPosition;
         motionMagicRequest.Slot = 0;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
+    }
+
+    public void enableServoHatchet(){
+        servoHatchet.setAngle(85);
+    }
+    public void disableServoHatchet(){
+        servoHatchet.setAngle(115);
     }
 
     private void reconfigure() {
