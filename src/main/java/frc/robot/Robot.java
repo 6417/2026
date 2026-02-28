@@ -11,6 +11,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.fasterxml.jackson.databind.node.POJONode;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -89,17 +91,19 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
    */
   @Override
   public void autonomousInit() {
-    
-    Constants.Field.EDGE = DriverStation.getAlliance().get() == Alliance.Blue ? 
-        new Pose2d(0, 0, null) : 
-        new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
-    
-    Constants.Field.HUB_CENTER = 
-        DriverStation.getAlliance().get() == Alliance.Blue ? 
-        Constants.Field.HUB_CENTER_BLUE : 
-        Constants.Field.HUB_CENTER_RED;
+    if (DriverStation.getAlliance().get() == Alliance.Blue) {
+      Constants.Field.EDGERight = new Pose2d(0,0,null);
+      Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
+      Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
+      Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
 
-    Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+    }
+    else {
+      Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+      Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
+      Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
+      Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+    }
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
@@ -121,17 +125,20 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    if (Constants.Field.EDGE == null || Constants.Field.HUB_CENTER == null || Constants.Field.neutralZoneStartX == 0) {
-      Constants.Field.EDGE = DriverStation.getAlliance().get() == Alliance.Blue ? 
-          new Pose2d(0, 0, null) : 
-          new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
-      
-      Constants.Field.HUB_CENTER = 
-          DriverStation.getAlliance().get() == Alliance.Blue ? 
-          Constants.Field.HUB_CENTER_BLUE : 
-          Constants.Field.HUB_CENTER_RED;
+    if (Constants.Field.EDGELeft == null || Constants.Field.EDGERight == null || Constants.Field.HUB_CENTER == null || Constants.Field.neutralZoneStartX == 0) {
+      if (DriverStation.getAlliance().get() == Alliance.Blue) {
+      Constants.Field.EDGERight = new Pose2d(0,0,null);
+      Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
+      Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
+      Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
 
-      Constants.Field.neutralZoneStartX = DriverStation.getAlliance().get() == Alliance.Blue ? Units.inchesToMeters(158.6) : Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+    }
+      else {
+        Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+        Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
+        Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
+        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+      }
     }
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight

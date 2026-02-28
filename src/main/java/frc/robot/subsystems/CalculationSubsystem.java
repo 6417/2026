@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 import java.util.List;
 
+import org.ejml.dense.block.decomposition.chol.InnerCholesky_DDRB;
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -23,6 +24,7 @@ public class CalculationSubsystem extends SubsystemBase {
     private Pair<Double, Double> desiredShooterRPM;
 
     private double distanceHubTurret;
+    private boolean inNeutralzone;
 
     // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
     private final LoggedTunableNumber tuneTopRpm =
@@ -119,19 +121,32 @@ public class CalculationSubsystem extends SubsystemBase {
         Translation2d poseToTrack = null;
         boolean toHub = false;
 
-        if (Constants.Field.EDGE == null || Constants.Field.HUB_CENTER == null) {
+        if (Constants.Field.EDGERight == null || Constants.Field.EDGELeft == null || Constants.Field.HUB_CENTER == null) {
             return new Translation2d(0,0);
         }
 
+        Alliance all = DriverStation.getAlliance().get();
+
         // first check if is in neutral zone or team zone
-        if ((DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
-            (DriverStation.getAlliance().get() == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
+        if ((all == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
+            (all == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
             // in team zone, track hub
             poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
             toHub = true;
+            inNeutralzone = false;
         } else {
             // in neutral zone, track edges for shooting balls in the back to team zone
-            poseToTrack = Constants.Field.EDGE.getTranslation();
+            if (robotPose.getY() >= Constants.Field.FIELD_WIDTH_METERS/2) {
+                //blue: left    
+                //red: right
+                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGELeft.getTranslation() : Constants.Field.EDGERight.getTranslation();
+            }
+            else {
+                //red: left
+                //blue: right
+                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGERight.getTranslation() : Constants.Field.EDGELeft.getTranslation();
+            }
+            inNeutralzone = true;
         }
 
         // translation from turret to desired position
@@ -153,16 +168,21 @@ public class CalculationSubsystem extends SubsystemBase {
      */
     private Pair<Double, Double> shootFromDistance() {
         double topRpm, bottomRpm;
+        Pair<Double, Double> result;
         if (Constants.TUNING_MODE) {
             // Read live from dashboard — adjust without redeploying.
             topRpm = tuneTopRpm.get();
             bottomRpm = tuneBottomRpm.get();
-        } else {
+        } else if(inNeutralzone) {
+            topRpm = Constants.Shooter.defaultRPM;
+            bottomRpm = Constants.Shooter.defaultRPM;
+        }
+        else {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret);
             bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
         }
 
-        Pair<Double, Double> result = Pair.of(bottomRpm, topRpm);
+        result = Pair.of(bottomRpm, topRpm);
         return result;
     }
 

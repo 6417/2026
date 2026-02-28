@@ -40,14 +40,6 @@ public class TurretSubsystem extends SubsystemBase {
         motorConfig = new SparkMaxConfig();
         smartMotionConfig = new MAXMotionConfig();
 
-        SparkMaxConfig limitConfig = new SparkMaxConfig();
-        limitConfig.softLimit
-        .forwardSoftLimit(Constants.TurretSubsystem.pitchMotorForwardLimit).forwardSoftLimitEnabled(true);
-        limitConfig.softLimit
-        .reverseSoftLimit(Constants.TurretSubsystem.pitchMotorReverseLimit).reverseSoftLimitEnabled(true);
-
-        turretMotor.asSparkMax().configure(limitConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-
         smartMotionConfig.allowedProfileError(Constants.TurretSubsystem.kAllowedClosedLoopError, ClosedLoopSlot.kSlot0);
         smartMotionConfig.maxAcceleration(Constants.TurretSubsystem.kMaxAcceleration, ClosedLoopSlot.kSlot0);
         smartMotionConfig.cruiseVelocity(Constants.TurretSubsystem.kMaxVelocity, ClosedLoopSlot.kSlot0);
@@ -94,6 +86,14 @@ public class TurretSubsystem extends SubsystemBase {
         turretMotor.stopMotor();
     }
 
+    public double getAmperage() {
+        return turretMotor.getOutputCurrent();
+    }
+
+    public boolean isZeroDetectedByCurrent() {
+        return getAmperage() >= Constants.TurretSubsystem.zeroingCurrentThresholdAmps;
+    }
+
     // get the current angle in degrees
     public double getCurrentAngle() {
         double degs = turretMotor.getEncoderTicks() / Constants.TurretSubsystem.kGearRatio; // shift to start at 0
@@ -137,7 +137,7 @@ public class TurretSubsystem extends SubsystemBase {
         
             // set percent output for manual control.
     public void setPercent(double percent) {
-        turretMotor.set(percent);
+        turretMotor.asSparkMax().setVoltage(1);
     }
 
     @Override

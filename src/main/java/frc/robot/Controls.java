@@ -21,6 +21,8 @@ import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.turret.TurretControlled;
+import frc.robot.commands.turret.TurretZeroCommand;
+import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.Constants;
 
@@ -56,6 +58,7 @@ public class Controls implements Sendable {
     Trigger windowsButtonOperator = operatorJoystick.back();
     Trigger burgerButtonOperator = operatorJoystick.start();
     Trigger pov0Operator = operatorJoystick.povUp();
+    Trigger speedButtonOperator = operatorJoystick.leftStick();
 
     private boolean automatedTurret = true;
 
@@ -133,6 +136,7 @@ public class Controls implements Sendable {
 
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
+        speedButtonOperator.onTrue(new ZeroGroup());
 
         ltButtonDrive.whileTrue(new ShootCommand().alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
 

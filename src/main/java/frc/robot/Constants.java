@@ -51,7 +51,8 @@ public class Constants {
         public static final double RADIUS_TO_HUB = 3.0; // in meters
 
         // to be set in Robot.java based on alliance
-        public static Pose2d EDGE;
+        public static Pose2d EDGERight;
+        public static Pose2d EDGELeft;
         public static Pose2d HUB_CENTER;
         public static double neutralZoneStartX;       
     }
@@ -96,7 +97,9 @@ public class Constants {
         public static final double kGearRatio = 5.0;
 
         public static final double resetEncoderPositionDegrees = 112;
-        public static final double zeroingSpeedPercentage = 0.2;
+        public static final double zeroingSpeedPercentage = 0.1;
+        public static final double zeroingCurrentThresholdAmps = 25.0; // test
+        public static final double zeroingTimeoutSec = 0.5;
  
         public static final double[] tickRange = {-8.643, 8.81};
 
