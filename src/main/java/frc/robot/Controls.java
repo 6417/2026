@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
@@ -157,7 +158,7 @@ public class Controls implements Sendable {
         aButtonOperator.onTrue(new FinalClimbCommand());
         bButtonOperator.onTrue(new ReleaseClimbCommand());
          
-        pov0Operator.onTrue(new SetClimberStateCommand(ClimberState.HIGH));
+        pov0Operator.whileTrue(Commands.startEnd(()->RobotContainer.climber.setManualPercent(-0.05), ()->RobotContainer.climber.setManualPercent(0)));
         pov2Operator.onTrue(new InstantCommand(()->RobotContainer.climber.disableServoHatchet()));
         pov4Operator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
         pov6Operator.onTrue(new InstantCommand(()->RobotContainer.climber.enableServoHatchet()));

@@ -32,7 +32,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left1"
+            "pathName": "middle 1"
           }
         },
         {
@@ -48,7 +48,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "left2"
+                  "pathName": "middle 2"
                 }
               }
             ]
@@ -82,7 +82,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left3"
+            "pathName": "middle 3"
           }
         },
         {
