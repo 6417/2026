@@ -20,19 +20,12 @@ public class VisionSubsystem extends SubsystemBase {
     private String limelightOnTurretName;
     private String limelightUnderTurretName;
 
-    private boolean mt2;
-    private double lastTurretAngleDeg = 0.0;
-
-    public VisionSubsystem(boolean megaTag2, boolean underTurretVision, boolean onTurretVision) {
-        this.limelightUnderTurretName = underTurretVision ? Constants.Limelight.underTurretLimelight : null;
-        this.limelightOnTurretName = onTurretVision ? Constants.Limelight.onTurretLimelight : null;
-        this.mt2 = megaTag2;
+    public VisionSubsystem() {
+        // initialise
+        this.limelightUnderTurretName = Constants.Limelight.useVisionUnderTurret ? Constants.Limelight.underTurretLimelight : null;
+        this.limelightOnTurretName = Constants.Limelight.useVisionOnTurret ? Constants.Limelight.onTurretLimelight : null;
         Constants.Limelight.useVisionUnderTurret = this.isUnderTurretLimelightConnected();
         Constants.Limelight.useVisionOnTurret = this.isOnTurretLimelightConnected();
-    }
-
-    public void changeMegaTag(boolean megaTag2) {
-        this.mt2 = megaTag2;
     }
 
     @Override
@@ -48,16 +41,12 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public PoseEstimate getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace() {
-        if (mt2) {
-            return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUnderTurretName);
-        }
-        return LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightUnderTurretName);
+        // Under Turret uses MT2
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUnderTurretName);
     }
 
     public PoseEstimate getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace() {
-        if (mt2) {
-            return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightOnTurretName);
-        }
+        // On Turret uses MT1
         return LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightOnTurretName);
     }
 
@@ -115,7 +104,7 @@ public class VisionSubsystem extends SubsystemBase {
         if (mt1OnTurret.tagCount == 0) {
             doRejectUpdate = true;
         }
-
+        
         if (!doRejectUpdate) {
             // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
             // mt1OnTurret.pose.rotateBy(Rotation2d.fromDegrees(RobotContainer.turret.getCurrentAngle())),
