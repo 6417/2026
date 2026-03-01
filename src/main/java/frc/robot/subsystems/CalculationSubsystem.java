@@ -123,9 +123,14 @@ public class CalculationSubsystem extends SubsystemBase {
             desiredTurretAngle = vturret.getAngle().minus(RobotContainer.drive.getPose().getRotation());
 
             double rpm_conversion_factor = 1 + Constants.Shooter.rpmConversionFactorScale * (vturret.getNorm() / vdesired.getNorm()-1);
+
+            // Instead of treating it like this we could scale the distance to target that goes into the getdesiredRPM function with this factor (or another factor)
+            // This would account for spin of the ball and could be able to shoot while driving towards the target
             desiredShooterRPM = Pair.of(desiredShooterRPM.getFirst()*(rpm_conversion_factor), desiredShooterRPM.getSecond()*rpm_conversion_factor);
 
-            Logger.recordOutput("Calculation/Movecompensationangle", turretToDesiredpos.getAngle().minus(vturret.getAngle()).getDegrees());
+            double moveCompensationAngle = 0;
+            moveCompensationAngle = turretToDesiredpos.getAngle().minus(vturret.getAngle()).getDegrees();
+            Logger.recordOutput("Calculation/Movecompensationangle", moveCompensationAngle);
             Logger.recordOutput("Calculation/rpm_conversion_factor", rpm_conversion_factor);
         }
     }

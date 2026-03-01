@@ -112,7 +112,7 @@ public class TurretSubsystem extends SubsystemBase {
     public void setDesiredRotation(Rotation2d rotation) {
         //TODO: Convert Degrees to encoder ticks
         double pos = rotation.getDegrees();
-        pos = clamp(pos, -90, 90); // clamp the position to the limits of the turret; here in degrees
+        pos = clamp(pos, -100, 100); // clamp the position to the limits of the turret; here in degrees
         pos = degreesToEncoderTicks(pos);
                 
         desiredPosition = pos;
