@@ -49,6 +49,7 @@ public class Controls implements Sendable {
     Trigger burgerButtonDrive = driveJoystick.start();
     Trigger pov0Drive = driveJoystick.povUp();
     Trigger speedButton = driveJoystick.leftStick();
+    Trigger intakeButton = driveJoystick.rightStick();
 
     Trigger ltButtonOperator = operatorJoystick.leftTrigger();
     Trigger rtButtonOperator = operatorJoystick.rightTrigger();
@@ -114,7 +115,15 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        speedButton.whileTrue(Commands.startEnd(
+        intakeButton.whileTrue(new InstantCommand( () ->   RobotContainer.drive.setIntakeMode(true))).onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
+
+        burgerButtonDrive.onTrue(new InstantCommand(() -> {
+            RobotContainer.drive.zeroGyroWithAlliance();
+        }));
+        rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
+        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+
+        lbButtonDrive.whileTrue(Commands.startEnd(
                 () -> {
                     setActiveSpeedFactor(DriveSpeed.SLOW);
                 },
@@ -122,31 +131,14 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        burgerButtonDrive.onTrue(new InstantCommand(() -> {
-            RobotContainer.drive.zeroGyroWithAlliance();
-        }));
-        rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-        // rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> {
-        //     RobotContainer.drive.setIntakeMode(true);
-        //     // RobotContainer.intake.isIntakeOn = true;
-
-        // }))
-        // .onFalse(new InstantCommand( () -> {
-        //     RobotContainer.drive.setIntakeMode(false);
-        //     // RobotContainer.intake.isIntakeOn = false;
-        //     RobotContainer.intake.stop();
-        // }));
-        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
-
-        lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
-
         xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
         speedButtonOperator.onTrue(new ZeroGroup());
 
         ltButtonDrive.whileTrue(new ShootCommand().alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
+        rtButtonOperator.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
-        lbButtonOperator.whileTrue(Commands.startEnd(
+       lbButtonOperator.whileTrue(Commands.startEnd(
             () -> RobotContainer.intake.ballsOut(),
             () -> RobotContainer.intake.stop(),
             RobotContainer.intake
