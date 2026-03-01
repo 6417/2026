@@ -216,13 +216,18 @@ public class Constants {
 
     public static final class Climber {
         public static final int motorId = 30;
-        public static final boolean motorInverted = false;
+        public static final boolean motorInverted = false; //top Position is highest Value
         public static final IdleMode idleMode = IdleMode.kBrake;
 
         public static final double resetEncoderPosition = 0.0;
-        public static final double zeroingSpeed = -0.1;
+        public static final double homingSpeed = 0.05;
+        public static final double homingAmpsThreshold = 1.3;
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
+
+        public static final double finalClimbSpeed = 0.35;
+        public static final double releaseClimbSpeed = -0.05;
+        public static final double finalClimbVelocityThreshold = 0.05; //TODO: set threshold for final climb motor stall detection
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
@@ -236,9 +241,9 @@ public class Constants {
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
-        public static final double lowPosition = 70.0;
-        public static final double midPosition = 180.0;
-        public static final double highPosition = 224.0;
-        public static final double positionTolerance = 1.0;
+        public static final double lowPosition = 0;
+        public static final double midPosition = -16;
+        public static final double highPosition = -32;
+        public static final double positionTolerance = 0.2;
     }
 }

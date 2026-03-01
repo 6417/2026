@@ -19,7 +19,10 @@ import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
 import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
-import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.climber.SetClimberStateCommand;
+import frc.robot.commands.climber.FinalClimbCommand;
+import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
+import frc.robot.commands.climber.ReleaseClimbCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
@@ -57,7 +60,10 @@ public class Controls implements Sendable {
     Trigger yButtonOperator = operatorJoystick.y();
     Trigger windowsButtonOperator = operatorJoystick.back();
     Trigger burgerButtonOperator = operatorJoystick.start();
-    Trigger pov0Operator = operatorJoystick.povUp();
+    Trigger pov0Operator = operatorJoystick.povUp();      
+    Trigger pov2Operator = operatorJoystick.povRight();
+    Trigger pov4Operator = operatorJoystick.povDown(); 
+    Trigger pov6Operator = operatorJoystick.povLeft();   
     Trigger speedButtonOperator = operatorJoystick.leftStick();
 
     private boolean automatedTurret = true;
@@ -120,11 +126,17 @@ public class Controls implements Sendable {
             RobotContainer.drive.zeroGyroWithAlliance();
         }));
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
+        // rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(true);
+        //     // RobotContainer.intake.isIntakeOn = true;
 
-        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake).
-        alongWith(new InstantCommand(() -> 
-        RobotContainer.drive.setIntakeMode(true)))).onFalse(
-        new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
+        // }))
+        // .onFalse(new InstantCommand( () -> {
+        //     RobotContainer.drive.setIntakeMode(false);
+        //     // RobotContainer.intake.isIntakeOn = false;
+        //     RobotContainer.intake.stop();
+        // }));
+        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
 
         lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
@@ -145,15 +157,18 @@ public class Controls implements Sendable {
             () -> RobotContainer.feeder.stop(),
             RobotContainer.feeder
         ));
-
+        
         xButtonOperator.whileTrue(new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
         .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
-
+        
         // Climber presets and manual jog controls.
-        /*aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
-        bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
-        pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));*/
-        // rbButtonOperator was repurposed for intake — ManualClimberControl removed
+        aButtonOperator.onTrue(new FinalClimbCommand());
+        bButtonOperator.onTrue(new ReleaseClimbCommand());
+         
+        pov0Operator.onTrue(new SetClimberStateCommand(ClimberState.HIGH));
+        pov2Operator.onTrue(new InstantCommand(()->RobotContainer.climber.disableServoHatchet()));
+        pov4Operator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
+        pov6Operator.onTrue(new InstantCommand(()->RobotContainer.climber.enableServoHatchet()));
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }

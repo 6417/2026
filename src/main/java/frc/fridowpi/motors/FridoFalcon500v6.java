@@ -159,6 +159,9 @@ public class FridoFalcon500v6 implements FridolinsMotor {
 		return motorProxy.getMotorVoltage().getValueAsDouble();
 	}
 
+	public double getAppliedAmps(){
+		return motorProxy.getSupplyCurrent().getValueAsDouble();
+	}
 	@Override
 	public void setPidTarget(double value, PidType type) {
 		switch (type) {
