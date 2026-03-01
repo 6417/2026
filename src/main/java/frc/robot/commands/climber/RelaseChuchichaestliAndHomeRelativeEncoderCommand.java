@@ -8,7 +8,7 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
 public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Command {
-
+    private boolean done = false;
     public RelaseChuchichaestliAndHomeRelativeEncoderCommand() {
         addRequirements(RobotContainer.climber);
     }
@@ -22,7 +22,7 @@ public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Command {
     public void execute() {
         if (RobotContainer.climber.isMotorBlockedDetectionByAmperage(Constants.Climber.homingAmpsThreshold)) {
             RobotContainer.climber.endHoming();
-            end(false);
+            done = true; 
         }
 
     }
@@ -35,6 +35,6 @@ public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return false;
+        return done;
     }
 }

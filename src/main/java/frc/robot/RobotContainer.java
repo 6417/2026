@@ -16,6 +16,7 @@ import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
+import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.ShooterParallelCommandGroup;
 import frc.robot.commands.turret.TurretZeroCommand;
@@ -57,6 +58,7 @@ public class RobotContainer {
         namedCommands.put("ZeroTurret", new TurretZeroCommand(turret));
         namedCommands.put("Shoot", new ShooterParallelCommandGroup());
         namedCommands.put("Intake", new IntakeCommand(intake));
+        namedCommands.put("ReleaseIntakeAndZeroClimberCommand", new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
         NamedCommands.registerCommands(namedCommands);
 

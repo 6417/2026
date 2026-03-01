@@ -126,7 +126,7 @@ public class Constants {
 
         public static final boolean intakeMotorInverted = true;
 
-        public static final double intakeSpeed = 0.3;
+        public static final double intakeSpeed = 0.4;
         public static final double outtakeSpeed = -0.3;
         public static final double openLoopRampRate = 0.4;
 
@@ -217,7 +217,7 @@ public class Constants {
     public static final class Climber {
         public static final int motorId = 30;
         public static final boolean motorInverted = false; //top Position is highest Value
-        public static final IdleMode idleMode = IdleMode.kBrake;
+        public static final IdleMode idleMode = IdleMode.kCoast;
 
         public static final double resetEncoderPosition = 0.0;
         public static final double homingSpeed = 0.05;
