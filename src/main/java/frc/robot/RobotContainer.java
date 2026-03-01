@@ -1,6 +1,11 @@
 package frc.robot;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -11,8 +16,10 @@ import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
+import frc.robot.commands.intake.IntakeCommand;
+import frc.robot.commands.shooter.ShooterParallelCommandGroup;
+import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.subsystems.CalculationSubsystem;
-import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     public static final Pigeon2 gyro;
@@ -28,6 +35,7 @@ public class RobotContainer {
 
     public static final Controls controls;
 
+    private static final Map<String,Command> namedCommands;
     private static final SendableChooser<String> autoChooser = new SendableChooser<>();
 
     static {
@@ -43,8 +51,16 @@ public class RobotContainer {
         calculationSubsystem = new CalculationSubsystem();
         controls = new Controls();
 
-        autoChooser.addOption("Example Auto", "Example Auto");
-        autoChooser.addOption("Second Auto", "Second Auto");
+        namedCommands = new HashMap<String,Command>();
+
+        namedCommands.put("ZeroTurret", new TurretZeroCommand(turret));
+        namedCommands.put("Shoot", new ShooterParallelCommandGroup());
+        namedCommands.put("Intake", new IntakeCommand(intake));
+
+        NamedCommands.registerCommands(namedCommands);
+
+        autoChooser.addOption("Links", "Left");
+        autoChooser.addOption("Rechts", "Right");
         autoChooser.addOption("None", null);
         autoChooser.setDefaultOption("Example Auto", "Example Auto");
         

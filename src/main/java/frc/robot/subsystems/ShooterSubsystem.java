@@ -5,22 +5,13 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.config.FeedForwardConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkFlex;
-import frc.fridowpi.motors.FridoSparkMax;
-import frc.fridowpi.motors.FridolinsMotor;
 import frc.robot.Constants;
-import frc.robot.utils.LoggedTunableNumber;
 
 public class ShooterSubsystem extends SubsystemBase {
     // Top and bottom shooter motors.

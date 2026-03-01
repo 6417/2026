@@ -33,11 +33,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.Limelight;
 
-import com.ctre.phoenix6.hardware.TalonFX;
 import swervelib.SwerveController;
-import swervelib.SwerveModule;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
 import swervelib.math.SwerveMath;
@@ -90,22 +87,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
         drive.stopOdometryThread();
 
-        // Reduce Phoenix6 signal rates to 50 Hz to match the main loop.
-        // YAGSL configures Krakens and Pigeon2 at 250 Hz for its odometry thread;
-        // after stopping that thread those devices still transmit at 250 Hz,
-        // which saturates the CAN bus even at idle.
-        // for (SwerveModule module : drive.getModules()) {
-        //     if (module.getDriveMotor().getMotor() instanceof TalonFX talonFX) {
-        //         talonFX.getPosition().setUpdateFrequency(120);
-        //         talonFX.getVelocity().setUpdateFrequency(120);
-        //         talonFX.optimizeBusUtilization(); // disables all other unused signals
-        //     }
-        // }
-
-        // RobotContainer.gyro.getYaw().setUpdateFrequency(120);
-        // RobotContainer.gyro.getPitch().setUpdateFrequency(120);
-        // RobotContainer.gyro.getRoll().setUpdateFrequency(120);
-        // RobotContainer.gyro.optimizeBusUtilization();
         setupPathPlanner();
     }
 

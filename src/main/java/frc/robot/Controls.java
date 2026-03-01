@@ -120,17 +120,11 @@ public class Controls implements Sendable {
             RobotContainer.drive.zeroGyroWithAlliance();
         }));
         rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-        // rtButtonDrive.debounce(0.02).whileTrue(new InstantCommand( () -> {
-        //     RobotContainer.drive.setIntakeMode(true);
-        //     // RobotContainer.intake.isIntakeOn = true;
 
-        // }))
-        // .onFalse(new InstantCommand( () -> {
-        //     RobotContainer.drive.setIntakeMode(false);
-        //     // RobotContainer.intake.isIntakeOn = false;
-        //     RobotContainer.intake.stop();
-        // }));
-        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+        rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake).
+        alongWith(new InstantCommand(() -> 
+        RobotContainer.drive.setIntakeMode(true)))).onFalse(
+        new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
 
         lbButtonDrive.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
@@ -156,9 +150,9 @@ public class Controls implements Sendable {
         .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
 
         // Climber presets and manual jog controls.
-        aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
+        /*aButtonOperator.onTrue(new ClimberCommand(ClimberState.LOW));
         bButtonOperator.onTrue(new ClimberCommand(ClimberState.MID));
-        pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));
+        pov0Operator.onTrue(new ClimberCommand(ClimberState.HIGH));*/
         // rbButtonOperator was repurposed for intake — ManualClimberControl removed
 
         Shuffleboard.getTab("Drive").add("Controls", this);
