@@ -29,9 +29,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public void periodic() {
         double currentAmps = intakeMotor.getOutputCurrent();
         double rpms = intakeMotor.getEncoderVelocity();
-        if (currentAmps > Constants.Intake.intakeStallCurrentAmps && rpms < Constants.Intake.intakeStallRpmThreshold) {
-            stop();
-        }
+       
     }
 
     public void ballsIn() {
