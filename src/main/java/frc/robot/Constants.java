@@ -126,7 +126,7 @@ public class Constants {
 
         public static final boolean intakeMotorInverted = true;
 
-        public static final double intakeSpeed = 0.4;
+        public static final double intakeSpeed = 0.3;
         public static final double outtakeSpeed = -0.3;
         public static final double openLoopRampRate = 0.4;
 
@@ -185,6 +185,14 @@ public class Constants {
         public static final PidValues pidBoth = new PidValues(kP, kI, kD);
         public static final FeedForwardValues ffTop = new FeedForwardValues(kS_Top, kV_Top);
         public static final FeedForwardValues ffBottom = new FeedForwardValues(kS_Bottom, kV_Bottom);
+
+        public static final double shooterAngle = 60.0;
+        public static final double shooterWheelDiameter_meters = 0.055;
+
+        // RPM conversion scale for shoot on move 
+        // if it shoots too far (near) when driving towards(away from) target, increase
+        // if it shoots too near (far) when driving towards(away from) target, decrease
+        public static final double rpmConversionFactorScale = 0.7;
 
         public static final double defaultRPM = 3000;
         public static final double neutralZoneRPM = 2500;

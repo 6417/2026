@@ -4,16 +4,20 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+
+import java.awt.Robot;
 
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.utils.LoggedTunableNumber;
+import swervelib.simulation.ironmaple.simulation.opponentsim.SmartOpponentConfig.ChassisConfig;
 
 
 public class CalculationSubsystem extends SubsystemBase {
@@ -33,11 +37,10 @@ public class CalculationSubsystem extends SubsystemBase {
         MODE_FIXED,
         MODE_STATIONARY_TURRETFIX,
         MODE_STATIONARY_TURRETDYNAMIC,
-        MODE_MOVEMENT_NOROTATION,
-        MODE_MOVEMENT_ROTATION
+        MODE_MOVEMENT
     }
 
-    private ShootingMode currentShootingMode = ShootingMode.MODE_STATIONARY_TURRETDYNAMIC;
+    private ShootingMode currentShootingMode = ShootingMode.MODE_MOVEMENT;
 
     public CalculationSubsystem() {
         Shuffleboard.getTab("Calculation").add(this);
@@ -55,13 +58,9 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_STATIONARY_TURRETDYNAMIC:
                 calculateSTATIONARY_TURRETDYNAMIC();
                 break;
-            case MODE_MOVEMENT_NOROTATION:
-                calculateMOVEMENT_NOROTATION();
+            case MODE_MOVEMENT:
+                calculateMOVEMENT();
                 break;
-            case MODE_MOVEMENT_ROTATION:
-                calculateMOVEMENT_ROTATION();
-                break;
-
         }
 
         //updateDistanceToHub();
@@ -95,12 +94,40 @@ public class CalculationSubsystem extends SubsystemBase {
         desiredShooterRPM = shootFromDistance();
     }
 
-    private void calculateMOVEMENT_NOROTATION() {
+    private void calculateMOVEMENT() {
+        ChassisSpeeds robotSpeed = RobotContainer.drive.getFieldVelocity();
+        Translation2d robotSpeedVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
 
-    }
+        // Get information on how you would shoot stationary at the desired position
+        Translation2d turretToDesiredpos = getTurretToDesiredpos();
+        desiredShooterRPM = shootFromDistance();
 
-    private void calculateMOVEMENT_ROTATION() {
+        // Calculate desired velocity by converting RPM to approximate ball exit velocity 
+        double rpm_average = (desiredShooterRPM.getFirst() + desiredShooterRPM.getSecond()) / 2;
+        double rpm_to_meterspersec = 1.0 / 60.0 * Math.cos(Constants.Shooter.shooterAngle / 180.0 * Math.PI) * Math.PI*Constants.Shooter.shooterWheelDiameter_meters;
+        double vball = rpm_average*rpm_to_meterspersec;
+        Logger.recordOutput("Calculation/Vball", vball);
+        Logger.recordOutput("Calculation/rpm_average", rpm_average);
+        Logger.recordOutput("Calculation/rpm_to_meterspersec", rpm_to_meterspersec);
+        Logger.recordOutput("Calculation/RobotSpeed", robotSpeedVector.getNorm());
+        Translation2d vdesired = turretToDesiredpos.div(turretToDesiredpos.getNorm()).times(vball);
 
+        // Calculate desired turret shot vector
+        Translation2d vturret = vdesired.minus(robotSpeedVector);
+
+        // Simply update the angle and do not change the RPM for now, more complex math needed otherwise
+        if (vturret.getX() == 0 && vturret.getY() == 0) {
+            desiredTurretAngle = Rotation2d.fromDegrees(0);
+        }
+        else {
+            desiredTurretAngle = vturret.getAngle().minus(RobotContainer.drive.getPose().getRotation());
+
+            double rpm_conversion_factor = 1 + Constants.Shooter.rpmConversionFactorScale * (vturret.getNorm() / vdesired.getNorm()-1);
+            desiredShooterRPM = Pair.of(desiredShooterRPM.getFirst()*(rpm_conversion_factor), desiredShooterRPM.getSecond()*rpm_conversion_factor);
+
+            Logger.recordOutput("Calculation/Movecompensationangle", turretToDesiredpos.getAngle().minus(vturret.getAngle()).getDegrees());
+            Logger.recordOutput("Calculation/rpm_conversion_factor", rpm_conversion_factor);
+        }
     }
 
     private void updateDistanceToHub() {
