@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
+import frc.robot.commands.turret.ZeroGroup;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -28,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   private final RobotContainer robotContainer;
   private Command autonomousCommand;
+  private boolean wereMechanismsZeroed;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -35,6 +38,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
    * initialization code.
    */
   public Robot() {
+    wereMechanismsZeroed = false;
     // Advantage Kit initialization
     Logger.recordMetadata("ProjectName", "MyProject"); // Set a metadata value
 
@@ -50,7 +54,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
                     // be added.
-    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight,0);
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
     LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.underTurretLimelight, 0.001);
     robotContainer = new RobotContainer();
   }
@@ -90,17 +94,17 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void autonomousInit() {
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
-      Constants.Field.EDGERight = new Pose2d(0,0,null);
+      Constants.Field.EDGERight = new Pose2d(0, 0, null);
       Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
       Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
 
-    }
-    else {
-      Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+    } else {
+      Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS,
+          null);
       Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
-      Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+      Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - 158.6);
     }
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
@@ -108,6 +112,12 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0); // Use internal IMU + external assist
     RobotContainer.drive.setAutomatedControl();
     autonomousCommand = robotContainer.getAutonomousCommand();
+    
+        if (wereMechanismsZeroed) {
+          ZeroGroup zg = new ZeroGroup();
+          zg.schedule();
+          wereMechanismsZeroed = true;
+        }
 
     if (autonomousCommand != null) {
       autonomousCommand.schedule();
@@ -123,28 +133,35 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    if (Constants.Field.EDGELeft == null || Constants.Field.EDGERight == null || Constants.Field.HUB_CENTER == null || Constants.Field.neutralZoneStartX == 0) {
-      if (DriverStation.getAlliance().get() == Alliance.Blue) {
-      Constants.Field.EDGERight = new Pose2d(0,0,null);
-      Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
-      Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
-      Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
 
+    if (wereMechanismsZeroed) {
+      ZeroGroup zg = new ZeroGroup();
+      zg.schedule();
+      wereMechanismsZeroed = true;
     }
-      else {
-        Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS, null);
+    if (Constants.Field.EDGELeft == null || Constants.Field.EDGERight == null || Constants.Field.HUB_CENTER == null
+        || Constants.Field.neutralZoneStartX == 0) {
+      if (DriverStation.getAlliance().get() == Alliance.Blue) {
+        Constants.Field.EDGERight = new Pose2d(0, 0, null);
+        Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
+        Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
+        Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
+
+      } else {
+        Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS,
+            null);
         Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
         Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
-        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES -158.6);
+        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - 158.6);
       }
     }
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
-    LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight,
+        RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0); // Use internal IMU + external assist
     RobotContainer.drive.setOperatorControl();
-
   }
 
   /** This function is called periodically during operator control. */
@@ -155,14 +172,16 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {
-    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 200); // Sort of disable Limelight, so there is less thermal production
-    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 200); // Sort of disable Limelight, so there is less thermal production
+    LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 200); // Sort of disable Limelight, so there
+                                                                                 // is less thermal production
+    LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 200); // Sort of disable Limelight, so there is
+                                                                              // less thermal production
   }
 
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); //Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); // Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */
