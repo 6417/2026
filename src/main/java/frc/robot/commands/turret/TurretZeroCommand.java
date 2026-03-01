@@ -27,7 +27,7 @@ public class TurretZeroCommand extends Command {
         timer.reset();
         timer.start();
         // Disable soft limits during zeroing, otherwise the motor might stop before hard-stop.
-        this.turret.setPercent(Constants.TurretSubsystem.zeroingSpeedPercentage);
+        this.turret.setVoltage(Constants.TurretSubsystem.zeroingVoltage);
     }
 
     @Override

@@ -14,18 +14,9 @@ import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.utils.LinearInterpolationTable;
 
 import java.awt.geom.Point2D;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import org.opencv.features2d.FlannBasedMatcher;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
-import frc.fridowpi.motors.utils.FeedForwardValues;
-import frc.fridowpi.motors.utils.PidValues;
 
 public class Constants {
     // Set to true during tuning sessions; false for competition.
@@ -97,9 +88,10 @@ public class Constants {
         public static final double kGearRatio = 5.0;
 
         public static final double resetEncoderPositionDegrees = 112;
-        public static final double zeroingSpeedPercentage = 0.1;
+        public static final double zeroingVoltage = 1;
         public static final double zeroingCurrentThresholdAmps = 25.0; // test
         public static final double zeroingTimeoutSec = 0.5;
+        public static final double turretTollerance = 0.1;
  
         public static final double[] tickRange = {-8.643, 8.81};
 

@@ -18,7 +18,7 @@ public class TurretControlled extends Command {
         input = RobotContainer.controls.getJoystickAxes()[2];
         input = applyDeadband(input, 0.15);
 
-        turret.setPercent(input * 0.1);
+        turret.setVoltage(input * 0.1);
     }
 
     private static double applyDeadband(double x, double deadBand) {
