@@ -22,8 +22,11 @@ public class VisionSubsystem extends SubsystemBase {
 
     public VisionSubsystem() {
         // initialise
-        this.limelightUnderTurretName = Constants.Limelight.useVisionUnderTurret ? Constants.Limelight.underTurretLimelight : null;
-        this.limelightOnTurretName = Constants.Limelight.useVisionOnTurret ? Constants.Limelight.onTurretLimelight : null;
+        this.limelightUnderTurretName = Constants.Limelight.useVisionUnderTurret
+                ? Constants.Limelight.underTurretLimelight
+                : null;
+        this.limelightOnTurretName = Constants.Limelight.useVisionOnTurret ? Constants.Limelight.onTurretLimelight
+                : null;
         Constants.Limelight.useVisionUnderTurret = this.isUnderTurretLimelightConnected();
         Constants.Limelight.useVisionOnTurret = this.isOnTurretLimelightConnected();
     }
@@ -63,15 +66,19 @@ public class VisionSubsystem extends SubsystemBase {
         Pose3d standardLimelightPose = Constants.Limelight.zeroDegreesTurretLimelightOnTurret;
         Pose3d turretRotationMiddlePose = new Pose3d(Constants.TurretSubsystem.TURRET_OFFSET.getX(),
                 Constants.TurretSubsystem.TURRET_OFFSET.getY(), standardLimelightPose.getZ(), new Rotation3d());
-        Translation2d turretRotationMiddlePoseToLimelight = new Translation2d(0.089837, 0.054311)
-                .rotateBy(new Rotation2d(Math.toRadians(turretAngleDegrees)));
+        Translation2d turretRotationMiddlePoseToLimelight = new Translation2d(
+            Constants.Limelight.turretRotationMiddlePoseToLimelight.getY(),
+            Constants.Limelight.turretRotationMiddlePoseToLimelight.getX())
+                .rotateBy(new Rotation2d(Math.toRadians(-turretAngleDegrees))); // ToTest: potential fix of flipping
+                                                                                // turret angle :)
         double desiredX = turretRotationMiddlePose.getX() + (turretRotationMiddlePoseToLimelight.getX());
         double desiredY = turretRotationMiddlePose.getY() + (turretRotationMiddlePoseToLimelight.getY());
         double desiredZ = standardLimelightPose.getZ();
         double desiredRoll = -90;
         double desiredPitch = 28.1;
-        double desiredYaw = -turretAngleDegrees; // negate because of how the limelight is mounted, so positive turret
-                                                 // rotation results in negative yaw rotation of the limelight
+        double desiredYaw = turretAngleDegrees; // ToTest: potential fix to fix direction LL is pointing at
+                                                // negate because of how the limelight is mounted, so positive turret
+                                                // rotation results in negative yaw rotation of the limelight
         LimelightHelpers.setCameraPose_RobotSpace(Constants.Limelight.onTurretLimelight, desiredX, desiredY, desiredZ,
                 desiredRoll, desiredPitch, desiredYaw);
     }
@@ -104,7 +111,7 @@ public class VisionSubsystem extends SubsystemBase {
         if (mt1OnTurret.tagCount == 0) {
             doRejectUpdate = true;
         }
-        
+
         if (!doRejectUpdate) {
             // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
             // mt1OnTurret.pose.rotateBy(Rotation2d.fromDegrees(RobotContainer.turret.getCurrentAngle())),
