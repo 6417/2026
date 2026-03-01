@@ -75,6 +75,11 @@ public class CalculationSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
         Logger.recordOutput("Shooter/DesiredRPMBottom", desiredShooterRPM.getFirst());
         Logger.recordOutput("Shooter/DesiredRPMTop", desiredShooterRPM.getSecond());
+
+        ChassisSpeeds periodicVel = RobotContainer.drive.getFieldVelocity();
+        Logger.recordOutput("ShootOnMove/RobotSpeedMps",
+            Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond));
+        Logger.recordOutput("ShootOnMove/SpeedOkToShoot", isSpeedOkToShoot());
     }
 
     private void calculateFIXED() {
@@ -141,39 +146,54 @@ public class CalculationSubsystem extends SubsystemBase {
     }
 
     private void calculateMOVEMENT_VIRTUAL() {
-        if (Constants.Field.HUB_CENTER == null) return;
+        // Reuse stationary target selection (handles hub vs neutral zone edges)
+        Translation2d turretToTarget = getTurretToDesiredpos();
 
-        Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
-            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(
-                RobotContainer.drive.getPose().getRotation()));
-
-        Translation2d targetPos = Constants.Field.HUB_CENTER.getTranslation();
-
-        // Estimate flight time from unadjusted distance
-        double rawDist = targetPos.minus(turretPose).getNorm();
-        double flightTime = Constants.Shooter.flightTimeTable.getOutput(rawDist);
-
-        // Virtual target: where to aim so the ball arrives at the real target despite robot motion
-        ChassisSpeeds vel = RobotContainer.drive.getRobotVelocity();
-        Translation2d virtualTarget = targetPos.minus(
-            new Translation2d(vel.vxMetersPerSecond * flightTime,
-                              vel.vyMetersPerSecond * flightTime));
-
-        Translation2d turretToVirtual = virtualTarget.minus(turretPose);
-        if (turretToVirtual.getNorm() < 1e-6) {
-            // Prevent division by zero and NaNs. should not occur as the turret is never in the hub.
+        if (turretToTarget.getX() == 0 && turretToTarget.getY() == 0) {
             desiredTurretAngle = Rotation2d.fromDegrees(0);
-        } else {
-            desiredTurretAngle = turretToVirtual.getAngle()
-                .minus(RobotContainer.drive.getPose().getRotation());
+            desiredShooterRPM = Pair.of(Constants.Shooter.defaultRPM, Constants.Shooter.defaultRPM);
+            return;
         }
 
-        distanceHubTurret = turretToVirtual.getNorm();
-        inNeutralzone = false;
+        // Estimate flight time from raw (uncompensated) distance
+        double rawDist = turretToTarget.getNorm();
+        double flightTime = Constants.Shooter.flightTimeTable.getOutput(rawDist);
+
+        // Virtual target offset: use field-relative velocity (same frame as target position)
+        ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
+        double offsetX = fieldVel.vxMetersPerSecond * flightTime;
+        double offsetY = fieldVel.vyMetersPerSecond * flightTime;
+
+        // Clamp offset magnitude to prevent wild corrections
+        double offsetMag = Math.hypot(offsetX, offsetY);
+        if (offsetMag > Constants.ShootOnMove.MAX_VIRTUAL_OFFSET_METERS) {
+            double scale = Constants.ShootOnMove.MAX_VIRTUAL_OFFSET_METERS / offsetMag;
+            offsetX *= scale;
+            offsetY *= scale;
+        }
+
+        // Apply offset: shift the aiming vector to compensate for ball inheriting robot velocity
+        Translation2d turretToVirtual = new Translation2d(
+            turretToTarget.getX() - offsetX,
+            turretToTarget.getY() - offsetY);
+
+        desiredTurretAngle = turretToVirtual.getAngle()
+            .minus(RobotContainer.drive.getPose().getRotation());
+
+        // Update distance for RPM lookup (use virtual target distance when aiming at hub)
+        if (!inNeutralzone) {
+            distanceHubTurret = turretToVirtual.getNorm();
+        }
+
         desiredShooterRPM = shootFromDistance();
+
+        // Logging
+        Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime);
+        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", Math.hypot(offsetX, offsetY));
     }
 
     private void calculateMOVEMENT_ROTATION() {
+        // Placeholder for future implementation when we take the robot Swerve spin into consideration.
     }
 
     private void updateDistanceToHub() {
@@ -254,6 +274,12 @@ public class CalculationSubsystem extends SubsystemBase {
 
         result = Pair.of(bottomRpm, topRpm);
         return result;
+    }
+
+    public boolean isSpeedOkToShoot() {
+        ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
+        double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
+        return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
     }
 
     public void setShootingMode(ShootingMode mode) {
