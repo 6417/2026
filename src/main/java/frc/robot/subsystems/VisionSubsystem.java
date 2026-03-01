@@ -67,8 +67,8 @@ public class VisionSubsystem extends SubsystemBase {
         Pose3d turretRotationMiddlePose = new Pose3d(Constants.TurretSubsystem.TURRET_OFFSET.getX(),
                 Constants.TurretSubsystem.TURRET_OFFSET.getY(), standardLimelightPose.getZ(), new Rotation3d());
         Translation2d turretRotationMiddlePoseToLimelight = new Translation2d(
-            Constants.Limelight.turretRotationMiddlePoseToLimelight.getY(),
-            Constants.Limelight.turretRotationMiddlePoseToLimelight.getX())
+                Constants.Limelight.turretRotationMiddlePoseToLimelight.getY(),
+                Constants.Limelight.turretRotationMiddlePoseToLimelight.getX())
                 .rotateBy(new Rotation2d(Math.toRadians(-turretAngleDegrees))); // ToTest: potential fix of flipping
                                                                                 // turret angle :)
         double desiredX = turretRotationMiddlePose.getX() + (turretRotationMiddlePoseToLimelight.getX());
@@ -100,6 +100,8 @@ public class VisionSubsystem extends SubsystemBase {
     public void updateOdometryWithOnTurretLimelight() {
         boolean doRejectUpdate = false;
         LimelightHelpers.PoseEstimate mt1OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
+
+        // Reject single tag with high ambiguity
         if (mt1OnTurret.tagCount == 1 && mt1OnTurret.rawFiducials.length == 1) {
             if (mt1OnTurret.rawFiducials[0].ambiguity > .7) {
                 doRejectUpdate = true;
@@ -108,20 +110,29 @@ public class VisionSubsystem extends SubsystemBase {
                 doRejectUpdate = true;
             }
         }
+
+        // Reject if no tags
         if (mt1OnTurret.tagCount == 0) {
             doRejectUpdate = true;
         }
 
-        if (!doRejectUpdate) {
-            // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
-            // mt1OnTurret.pose.rotateBy(Rotation2d.fromDegrees(RobotContainer.turret.getCurrentAngle())),
-            // mt1OnTurret.timestampSeconds);
-            Pose2d pose = new Pose2d(mt1OnTurret.pose.getX(), mt1OnTurret.pose.getY(), Rotation2d.fromDegrees(
-                    mt1OnTurret.pose.getRotation().getDegrees() + RobotContainer.turret.getCurrentAngle()));
-            Logger.recordOutput("Swerve/OnTurretPose",
-                    pose);
+        // Reject if spinning too fast (same as UnderTurret)
+        double onTurretOmegaDeg = Math.abs(
+                RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
+        if (onTurretOmegaDeg > 45.0) {
+            doRejectUpdate = true;
         }
 
+        if (!doRejectUpdate) {
+            double clampedDist = Math.max(mt1OnTurret.avgTagDist, 0.5);
+            RobotContainer.drive.getSwerveDrive()
+                    .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist * 2)); // On-turret limelight gets moved around more due to being on the turret, so we multiply stdDevs by 2 to account for that.
+            RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
+                    mt1OnTurret.pose,
+                    mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
+        }
+
+        Logger.recordOutput("Swerve/OnTurretPose", mt1OnTurret.pose);
     }
 
     private void updateOdometryWithUnderTurretLimelight() {
@@ -160,7 +171,7 @@ public class VisionSubsystem extends SubsystemBase {
             RobotContainer.drive.getSwerveDrive()
                     .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist));
             RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose,
-                    mt2UnderTurret.timestampSeconds);
+                    mt2UnderTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
         }
         Logger.recordOutput("Swerve/UnderTurretPose", mt2UnderTurret.pose);
     }
