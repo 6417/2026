@@ -90,7 +90,7 @@ public class Constants {
         public static final double resetEncoderPositionDegrees = 112;
         public static final double zeroingVoltage = 1;
         public static final double zeroingCurrentThresholdAmps = 25.0; // test
-        public static final double zeroingTimeoutSec = 0.5;
+        public static final double zeroingTimeoutSec = 1.5;
         public static final double turretTollerance = 0.1;
  
         public static final double[] tickRange = {-8.643, 8.81};
@@ -127,11 +127,20 @@ public class Constants {
         public static final boolean intakeMotorInverted = true;
 
         public static final double intakeSpeed = 0.3;
-        public static final double outtakeSpeed = -0.3;
-        public static final double openLoopRampRate = 0.4;
+        public static final double outtakeSpeed = -0.3; // percent
 
-        public static final double intakeStallCurrentAmps = 80;
-        public static final double intakeStallRpmThreshold = 200;
+        public static final double intakeSpeedRPM = 1500;
+        public static final double outtakeSpeedRPM = -1500;
+
+        public static final PidValues pid = new PidValues(0.00009, 0, 0.0002);
+        public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.0018);
+
+        // current chop: 115
+        // stall: 100
+        // free: 30
+        public static final int stallAmps = 100;
+        public static final int freeAmps = 30;
+        public static final int currentChopAmps = 115;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
@@ -228,7 +237,7 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kBrake;
 
         public static final double resetEncoderPosition = 0.0;
-        public static final double homingSpeed = 0.05;
+        public static final double homingSpeed = 0.08;
         public static final double homingAmpsThreshold = 1.3;
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;

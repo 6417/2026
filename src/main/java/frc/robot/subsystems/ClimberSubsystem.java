@@ -149,11 +149,13 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     public void startHoming() {
+        System.out.println(" ############# should Move now ###############");
         climberMotor.set(Constants.Climber.homingSpeed);
     }
 
     public void endHoming() {
         stop();
+        System.out.println(" ############# should not move now ###############");
         climberMotor.asTalonFX().setPosition(0);
     }
 

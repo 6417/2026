@@ -33,7 +33,7 @@ public class TurretZeroCommand extends Command {
     @Override
     public void execute() {
         // Verify sign on robot: this should drive toward the mechanical end-stop used as zero reference.
-        if (RobotContainer.turret.isZeroDetectedByCurrent() && timer.get() >= Constants.TurretSubsystem.zeroingTimeoutSec) {
+        if (RobotContainer.turret.isZeroDetectedByCurrent() || timer.get() >= Constants.TurretSubsystem.zeroingTimeoutSec) {
             zeroDetected = true;
         }
     }

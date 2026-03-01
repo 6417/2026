@@ -1,6 +1,9 @@
 package frc.robot;
 
 import java.util.Map;
+
+import javax.security.sasl.AuthorizeCallback;
+
 import java.util.HashMap;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -64,6 +67,8 @@ public class RobotContainer {
 
         autoChooser.addOption("Links", "Left");
         autoChooser.addOption("Rechts", "Right");
+        autoChooser.addOption("Mitte", "Middle");
+        autoChooser.addOption("LinksNeutralzone", "LeftNeutralzone");
         autoChooser.addOption("None", null);
         autoChooser.setDefaultOption("Example Auto", "Example Auto");
         

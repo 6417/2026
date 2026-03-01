@@ -62,11 +62,13 @@ public class Controls implements Sendable {
     Trigger yButtonOperator = operatorJoystick.y();
     Trigger windowsButtonOperator = operatorJoystick.back();
     Trigger burgerButtonOperator = operatorJoystick.start();
-    Trigger pov0Operator = operatorJoystick.povUp();      
+    Trigger pov0Operator = operatorJoystick.povUp();
     Trigger pov2Operator = operatorJoystick.povRight();
-    Trigger pov4Operator = operatorJoystick.povDown(); 
-    Trigger pov6Operator = operatorJoystick.povLeft();   
-    Trigger speedButtonOperator = operatorJoystick.leftStick();
+    Trigger pov3Operator = operatorJoystick.povDownRight();
+    Trigger pov4Operator = operatorJoystick.povDown();
+    Trigger pov5Operator = operatorJoystick.povDownLeft();
+    Trigger pov6Operator = operatorJoystick.povLeft();
+    Trigger leftStickOperator = operatorJoystick.leftStick();
 
     private boolean automatedTurret = true;
 
@@ -116,7 +118,8 @@ public class Controls implements Sendable {
     }
 
     public Controls() {
-        intakeButton.whileTrue(new InstantCommand( () ->   RobotContainer.drive.setIntakeMode(true))).onFalse(new InstantCommand( () -> RobotContainer.drive.setIntakeMode(false)));
+        intakeButton.whileTrue(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(true)))
+                .onFalse(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(false)));
 
         burgerButtonDrive.onTrue(new InstantCommand(() -> {
             RobotContainer.drive.zeroGyroWithAlliance();
@@ -132,36 +135,41 @@ public class Controls implements Sendable {
                     setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
                 }));
 
-        xButtonDrive.onTrue(new InstantCommand(()-> RobotContainer.drive.lock()));
-        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret), new TurretControlled(RobotContainer.turret)));
-        speedButtonOperator.onTrue(new ZeroGroup());
+        xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
+        yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret),
+                new TurretControlled(RobotContainer.turret)));
+        leftStickOperator.onTrue(new ZeroGroup());
 
-        ltButtonDrive.whileTrue(new ShootCommand().alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly())).onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
+        ltButtonDrive
+                .whileTrue(new ShootCommand()
+                        .alongWith(new ParallelCommandGroup(new PulseFeederCommand(), new ServoCommand()).repeatedly()))
+                .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
         rtButtonOperator.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
 
-       lbButtonOperator.whileTrue(Commands.startEnd(
-            () -> RobotContainer.intake.ballsOut(),
-            () -> RobotContainer.intake.stop(),
-            RobotContainer.intake
-        ));
+        lbButtonOperator.whileTrue(Commands.startEnd(
+                () -> RobotContainer.intake.ballsOut(),
+                () -> RobotContainer.intake.stop(),
+                RobotContainer.intake));
 
         rbButtonOperator.whileTrue(Commands.startEnd(
-            () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
-            () -> RobotContainer.feeder.stop(),
-            RobotContainer.feeder
-        ));
-        
+                () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
+                () -> RobotContainer.feeder.stop(),
+                RobotContainer.feeder));
+
         xButtonOperator.whileTrue(new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
-        .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
-        
+                .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
+
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new FinalClimbCommand());
         bButtonOperator.onTrue(new ReleaseClimbCommand());
-         
-        pov0Operator.whileTrue(Commands.startEnd(()->RobotContainer.climber.setManualPercent(-0.05), ()->RobotContainer.climber.setManualPercent(0)));
-        pov2Operator.onTrue(new InstantCommand(()->RobotContainer.climber.disableServoHatchet()));
-        pov4Operator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
-        pov6Operator.onTrue(new InstantCommand(()->RobotContainer.climber.enableServoHatchet()));
+
+        pov0Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(-0.05),
+                () -> RobotContainer.climber.setManualPercent(0)));
+        pov2Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.disableServoHatchet()));
+        pov4Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(0.05),
+                () -> RobotContainer.climber.setManualPercent(0)));
+        pov5Operator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
+        pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
 
         Shuffleboard.getTab("Drive").add("Controls", this);
     }

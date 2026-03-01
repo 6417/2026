@@ -19,12 +19,6 @@
                 "data": {
                   "name": "ReleaseIntakeAndZeroClimberCommand"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "ZeroTurret"
-                }
               }
             ]
           }
@@ -36,13 +30,19 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Example Path 1"
+                  "pathName": "right 1"
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "Intake"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ZeroTurret"
                 }
               }
             ]
@@ -76,7 +76,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Example Path 3"
+            "pathName": "right 2"
           }
         },
         {
@@ -86,7 +86,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Example Path 4"
+                  "pathName": "right 3"
                 }
               },
               {

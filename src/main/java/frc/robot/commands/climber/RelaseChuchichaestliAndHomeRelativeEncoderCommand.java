@@ -15,6 +15,7 @@ public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Command {
 
     @Override
     public void initialize(){
+        done = false;
         RobotContainer.climber.startHoming();
     }
 
