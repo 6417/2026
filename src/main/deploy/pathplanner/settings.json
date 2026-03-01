@@ -4,9 +4,10 @@
   "holonomicMode": true,
   "pathFolders": [
     "2 Cycle right",
-    "Example Auto Paths",
     "Alliance Shoot Right",
+    "Left",
     "Orbits Autonomous Imitation",
+    "Right",
     "Second Auto Paths"
   ],
   "autoFolders": [],

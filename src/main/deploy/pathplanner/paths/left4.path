@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.6108666666666667,
-        "y": 5.954655555555555
+        "x": 2.29,
+        "y": 3.741
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.4006195547887903,
-        "y": 4.891157772523556
+        "x": 2.113345164152617,
+        "y": 2.8318367346938773
       },
       "isLocked": false,
-      "linkedName": "Example Path 4 End Pose"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.0,
-        "y": 4.0
+        "x": 0.6566725820763082,
+        "y": 0.6588997338065656
       },
       "prevControl": {
-        "x": 1.8115267467342984,
-        "y": 4.2153417062338985
+        "x": 1.702901508429458,
+        "y": 1.624649511978704
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.08819882503579049
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Example Auto Paths",
+  "folder": "Left",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
