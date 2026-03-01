@@ -232,6 +232,17 @@ public class Constants {
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
         public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
 
+        // Distance (m) -> ball flight time (seconds) — tune from real measurements
+        private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
+
+            // TODO measure these flight times. Note: we want the flight time until the ball enters the TOP of the hub.
+                new Point2D.Double(2.0, 0.20),
+                new Point2D.Double(3.0, 0.30),
+                new Point2D.Double(4.0, 0.40),
+                new Point2D.Double(5.0, 0.50),
+        };
+        public static final LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(kFlightTimePoints);
+
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
 
