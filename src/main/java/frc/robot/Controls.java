@@ -138,7 +138,7 @@ public class Controls implements Sendable {
         xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
         yButtonOperator.onTrue(new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret),
                 new TurretControlled(RobotContainer.turret)));
-        leftStickOperator.onTrue(new ZeroGroup());
+        leftStickOperator.onTrue(new TurretZeroCommand(RobotContainer.turret));
 
         ltButtonDrive
                 .whileTrue(new ShootCommand()
