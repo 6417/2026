@@ -5,9 +5,10 @@ import java.awt.Robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 public class FinalClimbCommand extends Command {
+
+    boolean robotIsClimbed = false;
 
     public FinalClimbCommand() {
         addRequirements(RobotContainer.climber);
@@ -15,13 +16,13 @@ public class FinalClimbCommand extends Command {
 
     @Override
     public void initialize() {
-        RobotContainer.climber.setManualPercent(Constants.Climber.finalClimbSpeed);
+        RobotContainer.climber.setManualPercent(Constants.Climber.climbSpeed);
     }
 
     @Override
     public void execute() {
-        if (RobotContainer.climber.isMotorBlockedDetectionByVelocity(Constants.Climber.finalClimbVelocityThreshold)) {
-            end(false);
+        if (RobotContainer.climber.isClimberAtPosition(Constants.Climber.climbedPosition)) {
+            robotIsClimbed = true;
         }
     }
 
@@ -33,6 +34,6 @@ public class FinalClimbCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return true;
+        return robotIsClimbed;
     }
 }

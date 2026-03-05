@@ -16,6 +16,9 @@ import frc.robot.utils.LinearInterpolationTable;
 import java.awt.geom.Point2D;
 import java.util.Optional;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.Slot1Configs;
+
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 
 public class Constants {
@@ -243,12 +246,30 @@ public class Constants {
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
-        public static final double finalClimbSpeed = 0.35;
-        public static final double releaseClimbSpeed = -0.05;
-        public static final double finalClimbVelocityThreshold = 0.05; //TODO: set threshold for final climb motor stall detection
+        public static final double climbSpeed = 1.0;
+        public static final double prepareClimbSpeed = -0.05;
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
+        public static final Slot1Configs motionMagicSlot1 = new Slot1Configs();
+        public static final double kPSlot1 = 1.8;
+        public static final double kISlot1 = 0.0;
+        public static final double kDSlot1 = 0.0;
+        public static final double kSSlot1 = 0.0;
+        public static final double kVSlot1 = 0.0;
+        public static final double kASlot1 = 0.0;
+        public static final double kGSlot1 = -0.185;
+        
+        public static final double kPSlot2 = 1.8;
+        public static final double kISlot2 = 1.0;
+        public static final double kDSlot2 = 0.0;
+        public static final double kSSlot2 = 0.0;
+        public static final double kVSlot2 = 0.0;
+        public static final double kASlot2 = 0.0;
+        public static final double kGSlot2 = -0.185;
+
+        public static final double gainSchedErrorThreshold = 0.8;
+
         public static final Optional<Double> kG = Optional.of(0.0);
 
         public static double allowedClosedLoopErrorOut = 0.5;
@@ -259,9 +280,8 @@ public class Constants {
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
-        public static final double lowPosition = 0;
-        public static final double midPosition = -16;
-        public static final double highPosition = -32;
+        public static final double climbedPosition = -15;
+        public static final double highPosition = -27.5;
         public static final double positionTolerance = 0.2;
     }
 }
