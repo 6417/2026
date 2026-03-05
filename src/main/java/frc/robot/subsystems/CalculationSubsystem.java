@@ -66,9 +66,6 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT_VIRTUAL:
                 calculateMOVEMENT_VIRTUAL();
                 break;
-            case MODE_MOVEMENT_ROTATION:
-                calculateMOVEMENT_ROTATION();
-                break;
         }
 
         //updateDistanceToHub();
@@ -184,17 +181,6 @@ public class CalculationSubsystem extends SubsystemBase {
         // Logging
         Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime);
         Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", Math.hypot(offsetX, offsetY));
-    }
-
-    private void calculateMOVEMENT_ROTATION() {
-        // Placeholder for future implementation when we take the robot Swerve spin into consideration.
-    }
-
-    private void updateDistanceToHub() {
-        if (Constants.Field.HUB_CENTER == null) return;
-        Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
-            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
-        distanceHubTurret = Constants.Field.HUB_CENTER.getTranslation().minus(turretPose).getNorm();
     }
 
     private Translation2d getTurretToDesiredpos() {
