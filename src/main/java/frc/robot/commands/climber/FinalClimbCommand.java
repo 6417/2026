@@ -8,19 +8,21 @@ import frc.robot.RobotContainer;
 
 public class FinalClimbCommand extends Command {
 
+    boolean robotIsClimbed = false;
+
     public FinalClimbCommand() {
         addRequirements(RobotContainer.climber);
     }
 
     @Override
     public void initialize() {
-        RobotContainer.climber.setManualPercent(Constants.Climber.finalClimbSpeed);
+        RobotContainer.climber.setManualPercent(Constants.Climber.climbSpeed);
     }
 
     @Override
     public void execute() {
-        if (RobotContainer.climber.isMotorBlockedDetectionByVelocity(Constants.Climber.finalClimbVelocityThreshold)) {
-            end(false);
+        if (RobotContainer.climber.isClimberAtPosition(Constants.Climber.climbedPosition)) {
+            robotIsClimbed = true;
         }
     }
 
@@ -32,6 +34,6 @@ public class FinalClimbCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return true;
+        return robotIsClimbed;
     }
 }

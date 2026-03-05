@@ -81,6 +81,10 @@ public class ClimberSubsystem extends SubsystemBase {
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
+    public boolean isClimberAtPosition(double position) {
+        return (climberMotor.getEncoderTicks() >= position);
+    }
+
     public boolean isMotorBlockedDetectionByVelocity(double velocityThreshold) {
         return (climberMotor.asTalonFX().getVelocity().getValueAsDouble() < velocityThreshold);
     }

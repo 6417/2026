@@ -11,7 +11,7 @@ public class ManualClimberControl extends Command {
     public ManualClimberControl(DoubleSupplier percentSupplier) {
         // Supplier allows live joystick input without storing controller here.
         this.percentSupplier = percentSupplier;
-        // addRequirements(RobotContainer.climber);
+        addRequirements(RobotContainer.climber);
     }
 
     @Override
@@ -23,7 +23,7 @@ public class ManualClimberControl extends Command {
     @Override
     public void end(boolean interrupted) {
         // Stop motor on release or interruption.
-        // RobotContainer.climber.stop();
+        RobotContainer.climber.stop();
     }
 
     @Override
