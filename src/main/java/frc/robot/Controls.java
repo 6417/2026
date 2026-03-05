@@ -20,14 +20,12 @@ import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
 import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
-import frc.robot.commands.climber.SetClimberStateCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
-import frc.robot.commands.climber.ReleaseClimbCommand;
+import frc.robot.commands.climber.PrepareClimbCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
-import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.Constants;
 
 /**
@@ -161,7 +159,7 @@ public class Controls implements Sendable {
 
         // Climber presets and manual jog controls.
         aButtonOperator.onTrue(new FinalClimbCommand());
-        bButtonOperator.onTrue(new ReleaseClimbCommand());
+        bButtonOperator.onTrue(new PrepareClimbCommand());
 
         pov0Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(-0.05),
                 () -> RobotContainer.climber.setManualPercent(0)));
