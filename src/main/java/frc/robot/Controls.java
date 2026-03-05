@@ -166,7 +166,7 @@ public class Controls implements Sendable {
         pov2Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.disableServoHatchet()));
         pov4Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(0.05),
                 () -> RobotContainer.climber.setManualPercent(0)));
-        windowsButtonOperator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
+        windowsButtonOperator.onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber));
         pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
 
         Shuffleboard.getTab("Drive").add("Controls", this);
