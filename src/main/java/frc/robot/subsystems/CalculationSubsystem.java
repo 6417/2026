@@ -66,6 +66,9 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT_VIRTUAL:
                 calculateMOVEMENT_VIRTUAL();
                 break;
+            default:
+                calculateSTATIONARY_TURRETFIX();
+                break;
         }
 
         //updateDistanceToHub();
