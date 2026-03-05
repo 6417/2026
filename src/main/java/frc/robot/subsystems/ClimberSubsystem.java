@@ -34,6 +34,8 @@ public class ClimberSubsystem extends SubsystemBase {
     private final Slot0Configs motionMagicSlot1 = new Slot0Configs();
     private final Slot1Configs motionMagicSlot2 = new Slot1Configs();
 
+    public boolean isHatchetEngaged = false;
+
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
         servoHatchet = new FridoServoMotor(0);
@@ -106,10 +108,14 @@ public class ClimberSubsystem extends SubsystemBase {
 
     public void enableServoHatchet() {
         servoHatchet.setAngle(85);
+        isHatchetEngaged = true;
+        // servo engaged, climber cannot move anymore
     }
 
     public void disableServoHatchet() {
         servoHatchet.setAngle(115);
+        isHatchetEngaged = false;
+        // the climber can now move freely
     }
 
     public void homeRelativeEncoder() {

@@ -246,7 +246,7 @@ public class Constants {
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
-        public static final double climbSpeed = 1.0;
+        public static final double climbSpeed = 0.2;
         public static final double prepareClimbSpeed = -0.05;
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);

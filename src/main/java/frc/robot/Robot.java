@@ -57,6 +57,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
     LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.underTurretLimelight, 0.001);
     robotContainer = new RobotContainer();
+
   }
 
   /**
@@ -104,7 +105,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
           null);
       Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
-      Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.START_NEUTRALZONE_INCHES);
+      Constants.Field.neutralZoneStartX = Units
+          .inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.START_NEUTRALZONE_INCHES);
     }
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
@@ -117,6 +119,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
       autonomousCommand.schedule();
       wereMechanismsZeroed = true;
     }
+    // Always disengage Climber Servo at startup.
+    RobotContainer.climber.disableServoHatchet();
   }
 
   /** This function is called periodically during autonomous. */
@@ -157,6 +161,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
         RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0); // Use internal IMU + external assist
     RobotContainer.drive.setOperatorControl();
+    // Always disengage Climber Servo at startup.
+    RobotContainer.climber.disableServoHatchet();
   }
 
   /** This function is called periodically during operator control. */
