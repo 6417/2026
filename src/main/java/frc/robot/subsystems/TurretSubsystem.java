@@ -150,6 +150,7 @@ public class TurretSubsystem extends SubsystemBase {
         builder.addBooleanProperty("is at desired rotation", () -> this.isAtSetpoint(), null);
         builder.addDoubleProperty("desired rotation", () -> desiredPosition, null);
         builder.addDoubleProperty("current angle", () -> getCurrentAngle(), null);
+        builder.addDoubleProperty("Amps", () -> turretMotor.getOutputCurrent(), null);
         super.initSendable(builder);
     }
 }

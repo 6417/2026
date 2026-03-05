@@ -128,9 +128,6 @@ public class CalculationSubsystem extends SubsystemBase {
             // This would account for spin of the ball and could be able to shoot while driving towards the target
             desiredShooterRPM = Pair.of(desiredShooterRPM.getFirst()*(rpm_conversion_factor), desiredShooterRPM.getSecond()*rpm_conversion_factor);
 
-            double moveCompensationAngle = 0;
-            moveCompensationAngle = turretToDesiredpos.getAngle().minus(vturret.getAngle()).getDegrees();
-            Logger.recordOutput("Calculation/Movecompensationangle", moveCompensationAngle);
             Logger.recordOutput("Calculation/rpm_conversion_factor", rpm_conversion_factor);
         }
     }
