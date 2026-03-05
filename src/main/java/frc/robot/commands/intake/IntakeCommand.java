@@ -2,6 +2,7 @@ package frc.robot.commands.intake;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utils.Utils;
+import frc.robot.Constants;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
@@ -18,19 +19,13 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        // if (intake.operatorIsControlling) {
-        //     return;
-        // }
-        // if (intake.motorIsBlocked) {
-        //     return;
-        // }
-
-        intake.ballsIn();
-        // if (intake.isIntakeOn) {
-        //     intake.ballsIn();
-        // } else {
-        //     intake.stop();
-        // }
+        if (intake.getCurrentOutput() > Constants.Intake.currentStuck) {
+            intake.setPercent(0.8);
+            System.out.println("here33333333");
+        }
+        else {
+            intake.ballsIn();
+        }
     }
 
     @Override

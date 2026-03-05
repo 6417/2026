@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -45,7 +47,8 @@ public class IntakeSubsystem extends SubsystemBase {
     public void periodic() {
         double currentAmps = intakeMotor.getOutputCurrent();
         double rpms = intakeMotor.getEncoderVelocity();
-       
+        Logger.recordOutput("Intake/Current", currentAmps);
+        Logger.recordOutput("Intake/RPM_Motor", rpms);
     }
 
     public void ballsIn() {
@@ -63,5 +66,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();
+    }
+
+    public double getCurrentOutput() {
+        return intakeMotor.getOutputCurrent();    
     }
 }

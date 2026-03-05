@@ -139,12 +139,14 @@ public class Constants {
         public static final PidValues pid = new PidValues(0.00009, 0, 0.0002);
         public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.0018);
 
+        // In Ampère
         // current chop: 115
         // stall: 100
         // free: 30
         public static final int stallAmps = 100;
-        public static final int freeAmps = 30;
-        public static final int currentChopAmps = 115;
+        public static final int freeAmps = 60;
+
+        public static final int currentStuck = 115;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
