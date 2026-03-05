@@ -40,6 +40,7 @@ public class Constants {
                 null);
 
         public static final double RADIUS_TO_HUB = 3.0; // in meters
+        public static final double START_NEUTRALZONE_INCHES = 165;
 
         // to be set in Robot.java based on alliance
         public static Pose2d EDGERight;
@@ -89,8 +90,8 @@ public class Constants {
 
         public static final double resetEncoderPositionDegrees = 112;
         public static final double zeroingVoltage = 1;
-        public static final double zeroingCurrentThresholdAmps = 25.0; // test
-        public static final double zeroingTimeoutSec = 1.5;
+        public static final double zeroingCurrentThresholdAmps = 25; // test
+        public static final double zeroingTimeoutSec = 0.5;
         public static final double turretTollerance = 0.1;
  
         public static final double[] tickRange = {-8.643, 8.81};

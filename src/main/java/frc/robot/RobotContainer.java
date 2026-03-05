@@ -2,8 +2,6 @@ package frc.robot;
 
 import java.util.Map;
 
-import javax.security.sasl.AuthorizeCallback;
-
 import java.util.HashMap;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -23,6 +21,7 @@ import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderComm
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.ShooterParallelCommandGroup;
 import frc.robot.commands.turret.TurretZeroCommand;
+import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 
@@ -58,19 +57,20 @@ public class RobotContainer {
 
         namedCommands = new HashMap<String,Command>();
 
-        namedCommands.put("ZeroTurret", new TurretZeroCommand(turret));
         namedCommands.put("Shoot", new ShooterParallelCommandGroup());
         namedCommands.put("Intake", new IntakeCommand(intake));
-        namedCommands.put("ReleaseIntakeAndZeroClimberCommand", new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
+        namedCommands.put("ZeroGroup", new ZeroGroup());
 
         NamedCommands.registerCommands(namedCommands);
 
-        autoChooser.addOption("Links", "Left");
-        autoChooser.addOption("Rechts", "Right");
-        autoChooser.addOption("Mitte", "Middle");
-        autoChooser.addOption("LinksNeutralzone", "LeftNeutralzone");
+        autoChooser.addOption("Left", "Left");
+        autoChooser.addOption("Right", "Right");
+        autoChooser.addOption("Middle", "Middle");
+        autoChooser.addOption("LeftNeutralzone", "LeftNeutralzone");
+        autoChooser.addOption("LeftShootFirst", "LeftShootFirst");
+        
         autoChooser.addOption("None", null);
-        autoChooser.setDefaultOption("Example Auto", "Example Auto");
+        autoChooser.setDefaultOption("None", null);
         
         SmartDashboard.putData("Auto Selector", autoChooser);
     }

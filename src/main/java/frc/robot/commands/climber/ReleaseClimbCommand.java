@@ -10,13 +10,12 @@ import frc.robot.RobotContainer;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 public class ReleaseClimbCommand extends SequentialCommandGroup {
-
     public ReleaseClimbCommand() {
         addRequirements(RobotContainer.climber);
         addCommands(
             new InstantCommand(() -> RobotContainer.climber.disableServoHatchet()),
             new SetClimberStateCommand(ClimberState.HIGH),
-            new RelaseChuchichaestliAndHomeRelativeEncoderCommand()
+            new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber)
         );
     }
 
