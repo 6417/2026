@@ -157,19 +157,21 @@ public class CalculationSubsystem extends SubsystemBase {
             return;
         }
 
-        // Estimate flight time from raw (uncompensated) distance
-        double rawDist = turretToTarget.getNorm();
-        double flightTime = Constants.Shooter.flightTimeTable.getOutput(rawDist);
-
-        // Virtual target offset: use field-relative velocity (same frame as target position)
+        // Iteratively refine flight time: the virtual target distance differs from
+        // the raw distance, so the flight time estimate must be updated to match.
+        // Contraction factor ~0.34 at max speed → 3 iterations gives <2 cm residual.
         ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
-        double offsetX = fieldVel.vxMetersPerSecond * flightTime;
-        double offsetY = fieldVel.vyMetersPerSecond * flightTime;
+        double dist = turretToTarget.getNorm();
+        double flightTime = 0;
+        Translation2d turretToVirtual = turretToTarget;
 
-        // Apply offset: shift the aiming vector to compensate for ball inheriting robot velocity
-        Translation2d turretToVirtual = new Translation2d(
-            turretToTarget.getX() - offsetX,
-            turretToTarget.getY() - offsetY);
+        for (int i = 0; i < 3; i++) {
+            flightTime = Constants.Shooter.flightTimeTable.getOutput(dist);
+            turretToVirtual = new Translation2d(
+                turretToTarget.getX() - fieldVel.vxMetersPerSecond * flightTime,
+                turretToTarget.getY() - fieldVel.vyMetersPerSecond * flightTime);
+            dist = turretToVirtual.getNorm();
+        }
 
         desiredTurretAngle = turretToVirtual.getAngle()
             .minus(RobotContainer.drive.getPose().getRotation());
@@ -183,7 +185,7 @@ public class CalculationSubsystem extends SubsystemBase {
 
         // Logging
         Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime);
-        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", Math.hypot(offsetX, offsetY));
+        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", turretToTarget.getNorm() - dist);
     }
 
     private Translation2d getTurretToDesiredpos() {
