@@ -246,4 +246,8 @@ public class FridoSparkFlex implements FridolinsMotor {
         return pidSetpoint;
     }
 
+    public double getOutputCurrent() {
+        return motorProxy.getOutputCurrent();
+    }
+
 }
