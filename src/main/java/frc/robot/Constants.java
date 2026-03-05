@@ -249,7 +249,6 @@ public class Constants {
 
     public static final class ShootOnMove {
         public static final double MAX_SHOOT_SPEED_MPS = 1.5;
-        public static final double MAX_VIRTUAL_OFFSET_METERS = 1.0;
     }
 
     public static final class Climber {

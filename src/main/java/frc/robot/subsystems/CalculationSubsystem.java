@@ -150,6 +150,8 @@ public class CalculationSubsystem extends SubsystemBase {
         Translation2d turretToTarget = getTurretToDesiredpos();
 
         if (turretToTarget.getX() == 0 && turretToTarget.getY() == 0) {
+            // No target info (e.g. field measurements not set) — default to something safe.
+            Logger.recordOutput("ShootOnMove/Warning", "No target info; defaulting to safe values");
             desiredTurretAngle = Rotation2d.fromDegrees(0);
             desiredShooterRPM = Pair.of(Constants.Shooter.defaultRPM, Constants.Shooter.defaultRPM);
             return;
@@ -163,14 +165,6 @@ public class CalculationSubsystem extends SubsystemBase {
         ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
         double offsetX = fieldVel.vxMetersPerSecond * flightTime;
         double offsetY = fieldVel.vyMetersPerSecond * flightTime;
-
-        // Clamp offset magnitude to prevent wild corrections
-        double offsetMag = Math.hypot(offsetX, offsetY);
-        if (offsetMag > Constants.ShootOnMove.MAX_VIRTUAL_OFFSET_METERS) {
-            double scale = Constants.ShootOnMove.MAX_VIRTUAL_OFFSET_METERS / offsetMag;
-            offsetX *= scale;
-            offsetY *= scale;
-        }
 
         // Apply offset: shift the aiming vector to compensate for ball inheriting robot velocity
         Translation2d turretToVirtual = new Translation2d(
@@ -277,9 +271,12 @@ public class CalculationSubsystem extends SubsystemBase {
     }
 
     public boolean isSpeedOkToShoot() {
-        ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
-        double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
-        return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
+        // // TODO: 
+
+        // ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
+        // double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
+        // return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
+        return true;
     }
 
     public void setShootingMode(ShootingMode mode) {
