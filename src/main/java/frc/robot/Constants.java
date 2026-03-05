@@ -217,17 +217,17 @@ public class Constants {
         // Measured data points: (distance_meters, rpm)
         // Add more points between/beyond these for a better curve.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(2.08, 4000),
-                new Point2D.Double(2.61, 2340),
-                new Point2D.Double(3.62, 2500),
-                new Point2D.Double(4.76, 3200),
+                new Point2D.Double(2.14, 2100),
+                new Point2D.Double(2.67, 2230),
+                new Point2D.Double(4.0, 2580),
+                new Point2D.Double(5.1, 3200),
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(2.08, 600),
-                new Point2D.Double(2.61, 2440),
-                new Point2D.Double(3.62, 2700),
-                new Point2D.Double(4.76, 3200),
+                new Point2D.Double(2.14, 2100),
+                new Point2D.Double(2.67, 2230),
+                new Point2D.Double(4.0, 2580),
+                new Point2D.Double(5.1, 3100),
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
@@ -236,11 +236,10 @@ public class Constants {
         // Distance (m) -> ball flight time (seconds) — tune from real measurements
         private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
 
-            // TODO measure these flight times. Note: we want the flight time until the ball enters the TOP of the hub.
-                new Point2D.Double(2.0, 0.20),
-                new Point2D.Double(3.0, 0.30),
-                new Point2D.Double(4.0, 0.40),
-                new Point2D.Double(5.0, 0.50),
+            // DONE@HOTEL measure these flight times. Note: we want the flight time until the ball enters the TOP of the hub.
+                new Point2D.Double(2.03, 0.65),
+                new Point2D.Double(2.71, 0.803),
+                new Point2D.Double(4.0, 1.05),
         };
         public static final LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(kFlightTimePoints);
 
