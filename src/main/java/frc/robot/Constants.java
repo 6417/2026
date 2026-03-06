@@ -5,7 +5,9 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -43,7 +45,8 @@ public class Constants {
                 null);
 
         public static final double RADIUS_TO_HUB = 3.0; // in meters
-        public static final double START_NEUTRALZONE_INCHES = 165;
+        public static final double START_NEUTRALZONE_INCHES = 177.17;
+        public static Transform2d EDGE_OFFSET = new Transform2d(0.0, 0.0, new Rotation2d(0));
 
         // to be set in Robot.java based on alliance
         public static Pose2d EDGERight;

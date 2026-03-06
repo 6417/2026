@@ -124,9 +124,6 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
       autonomousCommand.schedule();
       wereMechanismsZeroed = true;
     }
-    // Always disengage Climber Servo at startup.
-    new ClearHatchetForMovement().schedule();
-    RobotContainer.climber.disableServoHatchet();
   }
 
   /** This function is called periodically during autonomous. */
@@ -150,14 +147,14 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
         Constants.Field.EDGERight = new Pose2d(0, 0, null);
         Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
         Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
-        Constants.Field.neutralZoneStartX = Units.inchesToMeters(158.6);
+        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.START_NEUTRALZONE_INCHES);
 
       } else {
         Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS,
             null);
         Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
         Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
-        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - 158.6);
+        Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.START_NEUTRALZONE_INCHES);
       }
     }
 

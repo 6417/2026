@@ -103,7 +103,7 @@ public class ClimberSubsystem extends SubsystemBase {
     
     public void endHoming() {
         stop();
-        homeRelativeEncoder();
+        climberMotor.setEncoderPosition(0);
     }
     
     public void enableServoHatchet() {
@@ -118,10 +118,6 @@ public class ClimberSubsystem extends SubsystemBase {
         servoHatchet.setAngle(115);
         isHatchetEngaged = false;
         // the climber can now move freely
-    }
-
-    public void homeRelativeEncoder() {
-        climberMotor.setEncoderPosition(0);
     }
 
     private void reconfigure() {

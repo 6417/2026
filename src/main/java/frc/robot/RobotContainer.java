@@ -76,6 +76,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
+        //System.out.println(autoChooser.getSelected().toString());
         return drive.getAutonomousCommand(autoChooser.getSelected());
     }
 }
