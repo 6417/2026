@@ -15,7 +15,7 @@ public class Utils {
     }
 
     /** If there is no Alliance, returns false */
-    public static boolean isRobotInNeutralZone() {
+    public static boolean isRobotNotInAllianceZone() {
         var alliance = DriverStation.getAlliance();
         if (alliance.isEmpty()) {
             return false;
