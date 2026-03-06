@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.climber.ClearHatchetForMovement;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.turret.ZeroGroup;
 
@@ -54,11 +55,12 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
                     // be added.
-    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight,0);
-    LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight,0);
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0);
+    LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0);
     LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.underTurretLimelight, 0.001);
     LimelightHelpers.SetIMUAssistAlpha(Constants.Limelight.onTurretLimelight, 0.001);
     robotContainer = new RobotContainer();
+    RobotContainer.climber.disableServoHatchet();
 
   }
 
@@ -123,6 +125,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
       wereMechanismsZeroed = true;
     }
     // Always disengage Climber Servo at startup.
+    new ClearHatchetForMovement().schedule();
     RobotContainer.climber.disableServoHatchet();
   }
 
@@ -160,12 +163,15 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
 
     LimelightHelpers.SetThrottle(Constants.Limelight.underTurretLimelight, 0); // "Enable" Limelight
     LimelightHelpers.SetThrottle(Constants.Limelight.onTurretLimelight, 0); // "Enable" Limelight
-    LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
-    LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight,
+        RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
+    LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight,
+        RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0, 0); // Seed Limelights IMU with Pigeon 2 yaw
     LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 0); // Use internal IMU + external assist
     LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 0); // Use internal IMU + external assist
     RobotContainer.drive.setOperatorControl();
     // Always disengage Climber Servo at startup.
+    new ClearHatchetForMovement().schedule();
     RobotContainer.climber.disableServoHatchet();
   }
 
@@ -186,8 +192,8 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); //Seed IMU when disabled
-    LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 1); //Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.underTurretLimelight, 1); // Seed IMU when disabled
+    LimelightHelpers.SetIMUMode(Constants.Limelight.onTurretLimelight, 1); // Seed IMU when disabled
   }
 
   /** This function is called once when test mode is enabled. */

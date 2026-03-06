@@ -55,6 +55,8 @@ public class ClimberSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle());
+        Logger.recordOutput("/Climber/HatchetEngaged", isHatchetEngaged);
+        Logger.recordOutput("/Climber/ClimberEncoderTicks", climberMotor.getEncoderTicks());
     }
 
     public void setManualPercent(double percent) {
@@ -96,23 +98,23 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     public void startHoming() {
-        System.out.println(" ############# should Move now ###############");
         climberMotor.set(Constants.Climber.homingSpeed);
     }
-
+    
     public void endHoming() {
         stop();
-        System.out.println(" ############# should not move now ###############");
         homeRelativeEncoder();
     }
-
+    
     public void enableServoHatchet() {
         servoHatchet.setAngle(85);
+        System.out.println(" ############# Enabled Servo Hatchet ###############");
         isHatchetEngaged = true;
         // servo engaged, climber cannot move anymore
     }
 
     public void disableServoHatchet() {
+        System.out.println(" ############# Disabled Servo Hatchet ###############");
         servoHatchet.setAngle(115);
         isHatchetEngaged = false;
         // the climber can now move freely

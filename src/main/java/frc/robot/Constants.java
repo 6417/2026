@@ -74,6 +74,8 @@ public class Constants {
         // Higher base uncertainty for on-turret: turret encoder error and mechanical
         // compliance add position uncertainty beyond pure MegaTag2 tag-distance noise.
         public static Vector<N3> onTurretStdDevs = VecBuilder.fill(0.5, 0.5, 9999999);
+        public static int throttleWhileDisabled = 200;
+        public static int throttleWhileEnabled = 0;
     }
 
     public static final class TurretSubsystem { //TODO: set constants
@@ -219,17 +221,17 @@ public class Constants {
         // Measured data points: (distance_meters, rpm)
         // Add more points between/beyond these for a better curve.
         private static final Point2D[] kTopRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(2.14, 2100),
-                new Point2D.Double(2.67, 2230),
-                new Point2D.Double(4.0, 2580),
-                new Point2D.Double(5.1, 3200),
+                new Point2D.Double(2.08, 4000),
+                new Point2D.Double(2.61, 2340),
+                new Point2D.Double(3.62, 2500),
+                new Point2D.Double(4.76, 3200),
         };
 
         private static final Point2D[] kBottomRpmPoints = new Point2D.Double[] {
-                new Point2D.Double(2.14, 2100),
-                new Point2D.Double(2.67, 2230),
-                new Point2D.Double(4.0, 2580),
-                new Point2D.Double(5.1, 3100),
+                new Point2D.Double(2.08, 600),
+                new Point2D.Double(2.61, 2440),
+                new Point2D.Double(3.62, 2700),
+                new Point2D.Double(4.76, 3200),
         };
 
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
@@ -239,9 +241,8 @@ public class Constants {
         private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
 
             // DONE@HOTEL measure these flight times. Note: we want the flight time until the ball enters the TOP of the hub.
-                new Point2D.Double(2.03, 0.65),
-                new Point2D.Double(2.71, 0.803),
-                new Point2D.Double(4.0, 1.05),
+                new Point2D.Double(2.77, 0.883),
+                new Point2D.Double(3.44, 1.0),
         };
         public static final LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(kFlightTimePoints);
 
@@ -263,7 +264,7 @@ public class Constants {
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
-        public static final double climbSpeed = 0.2;
+        public static final double climbSpeed = 0.4;
         public static final double prepareClimbSpeed = -0.05;
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
@@ -290,15 +291,15 @@ public class Constants {
         public static final Optional<Double> kG = Optional.of(0.0);
 
         public static double allowedClosedLoopErrorOut = 0.5;
-        public static double maxAccelerationOut = 30000;
-        public static double maxVelocityOut = 3000;
+        public static double maxAccelerationOut = 15000; //halfed
+        public static double maxVelocityOut = 800; //3000 led to white sparkles
 
         public static double allowedClosedLoopErrorIn = 0.5;
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
         public static final double climbedPosition = -15;
-        public static final double highPosition = -27.5;
+        public static final double highPosition = -24.793457;
         public static final double positionTolerance = 0.2;
     }
 }
