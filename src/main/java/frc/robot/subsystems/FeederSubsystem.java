@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -43,6 +45,8 @@ public class FeederSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        Logger.recordOutput("/Feedexer/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity());
+        Logger.recordOutput("/Feedexer/ServoAngle", servoFeeder.getAngle());
     }
 
     public void run(double topRpm) {

@@ -1,27 +1,31 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.config.FeedForwardConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.fridowpi.motors.FridoSparkFlex;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private final FridoSparkMax intakeMotor;
+    private final FridoSparkFlex intakeMotor;
 
     public IntakeSubsystem() {
-        intakeMotor = new FridoSparkMax(Constants.Intake.intakeMotorId);
+        intakeMotor = new FridoSparkFlex(Constants.Intake.intakeMotorId);
 
         intakeMotor.setIdleMode(Constants.Intake.idleMode);
         intakeMotor.setInverted(Constants.Intake.intakeMotorInverted);
 
-        SparkMaxConfig motorConfig = new SparkMaxConfig();
+        SparkFlexConfig motorConfig = new SparkFlexConfig();
 
         PidValues pidValues = Constants.Intake.pid;
 
@@ -36,7 +40,7 @@ public class IntakeSubsystem extends SubsystemBase {
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         
         motorConfig.smartCurrentLimit(Constants.Intake.stallAmps, Constants.Intake.freeAmps);
-        intakeMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        intakeMotor.asSparkFlex().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
         // Could be added back for auto-intake
         // setDefaultCommand(new IntakeCommand(this));
     }
@@ -45,15 +49,16 @@ public class IntakeSubsystem extends SubsystemBase {
     public void periodic() {
         double currentAmps = intakeMotor.getOutputCurrent();
         double rpms = intakeMotor.getEncoderVelocity();
-       
+        Logger.recordOutput("Intake/Current", currentAmps);
+        Logger.recordOutput("Intake/RPM_Motor", rpms);
     }
 
     public void ballsIn() {
-        intakeMotor.asSparkMax().getClosedLoopController().setSetpoint(Constants.Intake.intakeSpeedRPM, ControlType.kVelocity);
+        intakeMotor.asSparkFlex().getClosedLoopController().setSetpoint(Constants.Intake.intakeSpeedRPM, ControlType.kVelocity);
     }
 
     public void ballsOut() {
-        intakeMotor.asSparkMax().getClosedLoopController().setSetpoint(Constants.Intake.outtakeSpeedRPM, ControlType.kVelocity);
+        intakeMotor.asSparkFlex().getClosedLoopController().setSetpoint(Constants.Intake.outtakeSpeedRPM, ControlType.kVelocity);
     }
 
     public void setPercent(double percent) {
@@ -63,5 +68,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();
+    }
+
+    public double getCurrentOutput() {
+        return intakeMotor.getOutputCurrent();    
     }
 }

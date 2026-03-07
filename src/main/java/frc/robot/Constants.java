@@ -5,7 +5,9 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -43,7 +45,8 @@ public class Constants {
                 null);
 
         public static final double RADIUS_TO_HUB = 3.0; // in meters
-        public static final double START_NEUTRALZONE_INCHES = 165;
+        public static final double START_NEUTRALZONE_INCHES = 177.17;
+        public static Transform2d EDGE_OFFSET = new Transform2d(0.0, 0.0, new Rotation2d(0));
 
         // to be set in Robot.java based on alliance
         public static Pose2d EDGERight;
@@ -64,15 +67,18 @@ public class Constants {
 
     public static final class Limelight {
         public static boolean useVisionUnderTurret = true;
-        public static boolean useVisionOnTurret= false;
+        public static boolean useVisionOnTurret= true;
         public static final String underTurretLimelight = "limelight-undturr";
         public static final String onTurretLimelight = "limelight-onturr";
         public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,  new Rotation3d());
+        public static final Pose3d turretRotationMiddlePoseToLimelight = new Pose3d(0.10193, 0.02512, 0, new Rotation3d());
 
         public static Vector<N3> standardDevs = VecBuilder.fill(0.3, 0.3, 9999999);
         // Higher base uncertainty for on-turret: turret encoder error and mechanical
         // compliance add position uncertainty beyond pure MegaTag2 tag-distance noise.
         public static Vector<N3> onTurretStdDevs = VecBuilder.fill(0.5, 0.5, 9999999);
+        public static int throttleWhileDisabled = 200;
+        public static int throttleWhileEnabled = 0;
     }
 
     public static final class TurretSubsystem { //TODO: set constants
@@ -84,7 +90,7 @@ public class Constants {
         public static final double kMaxAcceleration = 6000;
         public static final double kAllowedClosedLoopError = 0;
 
-        public static final PidValues pidValuesRotation = new PidValues(0.3, 0.001, 0.03);
+        public static final PidValues pidValuesRotation = new PidValues(0.1, 0.001, 0.06);
         public static final double iZone = 1;
         public static final double iMaxAccum = 100;
 
@@ -92,17 +98,17 @@ public class Constants {
         public static final double kGearRatio = 5.0;
 
         public static final double resetEncoderPositionDegrees = 112;
-        public static final double zeroingVoltage = 1;
-        public static final double zeroingCurrentThresholdAmps = 25; // test
+        public static final double zeroingVoltage = 1.5;
+        public static final double zeroingCurrentThresholdAmps = 27.9; // new turret 7/03/2026
         public static final double zeroingTimeoutSec = 0.5;
-        public static final double turretTollerance = 0.1;
+        public static final double turretTollerance = 0.2;
  
         public static final double[] tickRange = {-8.643, 8.81};
 
         public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
         public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.1, 0, 0);
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
         
         public static final int stallCurrentLimit = 30;
         public static final int freeCurrentLimit = 30;
@@ -139,12 +145,14 @@ public class Constants {
         public static final PidValues pid = new PidValues(0.00009, 0, 0.0002);
         public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.0018);
 
+        // In Ampère
         // current chop: 115
         // stall: 100
         // free: 30
         public static final int stallAmps = 100;
-        public static final int freeAmps = 30;
-        public static final int currentChopAmps = 115;
+        public static final int freeAmps = 60;
+
+        public static final int currentStuck = 115;
 
         public static final IdleMode idleMode = IdleMode.kCoast;
     }
@@ -232,7 +240,20 @@ public class Constants {
         public static final LinearInterpolationTable topRpmTable = new LinearInterpolationTable(kTopRpmPoints);
         public static final LinearInterpolationTable bottomRpmTable = new LinearInterpolationTable(kBottomRpmPoints);
 
+        // Distance (m) -> ball flight time (seconds) — tune from real measurements
+        private static final Point2D[] kFlightTimePoints = new Point2D.Double[] {
+
+            // DONE@HOTEL measure these flight times. Note: we want the flight time until the ball enters the TOP of the hub.
+                new Point2D.Double(2.77, 0.883),
+                new Point2D.Double(3.44, 1.0),
+        };
+        public static final LinearInterpolationTable flightTimeTable = new LinearInterpolationTable(kFlightTimePoints);
+
         public static final IdleMode idleMode = IdleMode.kCoast;
+    }
+
+    public static final class ShootOnMove {
+        public static final double MAX_SHOOT_SPEED_MPS = 1.5;
     }
 
     public static final class Climber {
@@ -246,7 +267,7 @@ public class Constants {
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
-        public static final double climbSpeed = 0.2;
+        public static final double climbSpeed = 0.4;
         public static final double prepareClimbSpeed = -0.05;
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
@@ -273,15 +294,15 @@ public class Constants {
         public static final Optional<Double> kG = Optional.of(0.0);
 
         public static double allowedClosedLoopErrorOut = 0.5;
-        public static double maxAccelerationOut = 30000;
-        public static double maxVelocityOut = 3000;
+        public static double maxAccelerationOut = 15000; //halfed
+        public static double maxVelocityOut = 800; //3000 led to white sparkles
 
         public static double allowedClosedLoopErrorIn = 0.5;
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
         public static final double climbedPosition = -15;
-        public static final double highPosition = -27.5;
+        public static final double highPosition = -24.793457;
         public static final double positionTolerance = 0.2;
     }
 }

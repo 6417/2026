@@ -27,6 +27,7 @@ import frc.robot.commands.climber.PrepareClimbCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
+import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
 import frc.robot.Constants;
 
 /**
@@ -153,10 +154,16 @@ public class Controls implements Sendable {
                                 () -> RobotContainer.intake.stop(),
                                 RobotContainer.intake));
 
-                rbButtonOperator.whileTrue(Commands.startEnd(
-                                () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
-                                () -> RobotContainer.feeder.stop(),
-                                RobotContainer.feeder));
+                rbButtonOperator.onTrue(
+                        new InstantCommand(() -> {
+                                if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
+                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_STATIONARY_TURRETFIX);
+                                }
+                                else {
+                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
+                                }
+                        })
+                );
 
                 xButtonOperator.whileTrue(
                                 new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
@@ -164,10 +171,9 @@ public class Controls implements Sendable {
 
                 // Climber presets and manual jog controls.
                 aButtonOperator.onTrue(new SequentialCommandGroup(
-                        new FinalClimbCommand(),
-                        new WaitCommand(0.3),
-                        new InstantCommand(()-> RobotContainer.climber.stop())
-                        ));
+                                new FinalClimbCommand(),
+                                new WaitCommand(0.3),
+                                new InstantCommand(() -> RobotContainer.climber.stop())));
                 bButtonOperator.onTrue(new PrepareClimbCommand());
 
                 pov0Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(-0.05),
@@ -175,9 +181,9 @@ public class Controls implements Sendable {
                 pov2Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.disableServoHatchet()));
                 pov4Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(0.05),
                                 () -> RobotContainer.climber.setManualPercent(0)));
+                pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
                 windowsButtonOperator
                                 .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber));
-                pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
         }

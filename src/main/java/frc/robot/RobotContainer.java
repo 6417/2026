@@ -45,7 +45,7 @@ public class RobotContainer {
     static {
         intake = new IntakeSubsystem();
         gyro = new Pigeon2(Constants.Gyro.PIGEON_ID);
-        vision = new VisionSubsystem(true, true, true);
+        vision = new VisionSubsystem();
         drive = new SwerveSubsystem();
         turret = new TurretSubsystem();
         climber = new ClimberSubsystem();
@@ -76,6 +76,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
+        //System.out.println(autoChooser.getSelected().toString());
         return drive.getAutonomousCommand(autoChooser.getSelected());
     }
 }

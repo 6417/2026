@@ -37,10 +37,12 @@ public class CalculationSubsystem extends SubsystemBase {
         MODE_FIXED,
         MODE_STATIONARY_TURRETFIX,
         MODE_STATIONARY_TURRETDYNAMIC,
-        MODE_MOVEMENT
+        MODE_MOVEMENT,
+        MODE_MOVEMENT_VIRTUAL,
+        MODE_MOVEMENT_ROTATION
     }
 
-    private ShootingMode currentShootingMode = ShootingMode.MODE_MOVEMENT;
+    private ShootingMode currentShootingMode = ShootingMode.MODE_MOVEMENT_VIRTUAL;
 
     public CalculationSubsystem() {
         Shuffleboard.getTab("Calculation").add(this);
@@ -61,12 +63,23 @@ public class CalculationSubsystem extends SubsystemBase {
             case MODE_MOVEMENT:
                 calculateMOVEMENT();
                 break;
+            case MODE_MOVEMENT_VIRTUAL:
+                calculateMOVEMENT_VIRTUAL();
+                break;
+            default:
+                calculateSTATIONARY_TURRETFIX();
+                break;
         }
 
         //updateDistanceToHub();
         Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
         Logger.recordOutput("Shooter/DesiredRPMBottom", desiredShooterRPM.getFirst());
         Logger.recordOutput("Shooter/DesiredRPMTop", desiredShooterRPM.getSecond());
+
+        ChassisSpeeds periodicVel = RobotContainer.drive.getFieldVelocity();
+        Logger.recordOutput("ShootOnMove/RobotSpeedMps",
+            Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond));
+        Logger.recordOutput("ShootOnMove/SpeedOkToShoot", isSpeedOkToShoot());
     }
 
     private void calculateFIXED() {
@@ -76,6 +89,7 @@ public class CalculationSubsystem extends SubsystemBase {
     }
 
     private void calculateSTATIONARY_TURRETFIX() {
+        getTurretToDesiredpos();
         // linear interpolate distance to hub to RPM
         desiredShooterRPM = shootFromDistance();
     }
@@ -102,7 +116,7 @@ public class CalculationSubsystem extends SubsystemBase {
         Translation2d turretToDesiredpos = getTurretToDesiredpos();
         desiredShooterRPM = shootFromDistance();
 
-        // Calculate desired velocity by converting RPM to approximate ball exit velocity 
+        // Calculate desired velocity by converting RPM to approximate ball exit velocity
         double rpm_average = (desiredShooterRPM.getFirst() + desiredShooterRPM.getSecond()) / 2;
         double rpm_to_meterspersec = 1.0 / 60.0 * Math.cos(Constants.Shooter.shooterAngle / 180.0 * Math.PI) * Math.PI*Constants.Shooter.shooterWheelDiameter_meters;
         double vball = rpm_average*rpm_to_meterspersec;
@@ -132,11 +146,47 @@ public class CalculationSubsystem extends SubsystemBase {
         }
     }
 
-    private void updateDistanceToHub() {
-        if (Constants.Field.HUB_CENTER == null) return;
-        Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
-            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
-        distanceHubTurret = Constants.Field.HUB_CENTER.getTranslation().minus(turretPose).getNorm();
+    private void calculateMOVEMENT_VIRTUAL() {
+        // Reuse stationary target selection (handles hub vs neutral zone edges)
+        Translation2d turretToTarget = getTurretToDesiredpos();
+
+        if (turretToTarget.getX() == 0 && turretToTarget.getY() == 0) {
+            // No target info (e.g. field measurements not set) — default to something safe.
+            Logger.recordOutput("ShootOnMove/Warning", "No target info; defaulting to safe values");
+            desiredTurretAngle = Rotation2d.fromDegrees(0);
+            desiredShooterRPM = Pair.of(Constants.Shooter.defaultRPM, Constants.Shooter.defaultRPM);
+            return;
+        }
+
+        // Iteratively refine flight time: the virtual target distance differs from
+        // the raw distance, so the flight time estimate must be updated to match.
+        // Contraction factor ~0.34 at max speed → 3 iterations gives <2 cm residual.
+        ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
+        double dist = turretToTarget.getNorm();
+        double flightTime = 0;
+        Translation2d turretToVirtual = turretToTarget;
+
+        for (int i = 0; i < 3; i++) {
+            flightTime = Constants.Shooter.flightTimeTable.getOutput(dist);
+            turretToVirtual = new Translation2d(
+                turretToTarget.getX() - fieldVel.vxMetersPerSecond * flightTime,
+                turretToTarget.getY() - fieldVel.vyMetersPerSecond * flightTime);
+            dist = turretToVirtual.getNorm();
+        }
+
+        desiredTurretAngle = turretToVirtual.getAngle()
+            .minus(RobotContainer.drive.getPose().getRotation());
+
+        // Update distance for RPM lookup (use virtual target distance when aiming at hub)
+        if (!inNeutralzone) {
+            distanceHubTurret = turretToVirtual.getNorm();
+        }
+
+        desiredShooterRPM = shootFromDistance();
+
+        // Logging
+        Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime);
+        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", turretToTarget.getNorm() - dist);
     }
 
     private Translation2d getTurretToDesiredpos() {
@@ -212,8 +262,21 @@ public class CalculationSubsystem extends SubsystemBase {
         return result;
     }
 
+    public boolean isSpeedOkToShoot() {
+        // // TODO: 
+
+        // ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
+        // double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
+        // return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
+        return true;
+    }
+
     public void setShootingMode(ShootingMode mode) {
         this.currentShootingMode = mode;
+    }
+
+    public ShootingMode getShootingMode() {
+        return currentShootingMode;
     }
 
     public Pair<Double, Double> getRPMShooter() {

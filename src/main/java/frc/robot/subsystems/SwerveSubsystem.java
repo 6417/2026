@@ -155,7 +155,6 @@ public class SwerveSubsystem extends SubsystemBase {
                             System.out.println("Alliance for path mirroring: " + alliance.get().toString());
                             return alliance.get() == DriverStation.Alliance.Red;
                         }
-                        System.out.println("Alliance for path mirroring: " + alliance.get().toString());
                         return false;
                     },
                     this
@@ -179,7 +178,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void driveWithJoysticks() {
         double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
         if (!driveIsAutomated) {
-            int i = DriverStation.getAlliance().get() == Alliance.Blue ? 1 : -1;
+            int i = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1 : -1; // TODO check the orElse: maybe rather give error if cannot get the alliance?
             if (Constants.SwerveSubsystem.oldTurnSystem) {
                 if (intakeMode) {
                     driveCommand(
@@ -357,7 +356,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     private Alliance getAlliance() {
-        return edu.wpi.first.wpilibj.DriverStation.getAlliance().get();
+        return edu.wpi.first.wpilibj.DriverStation.getAlliance().orElse(Alliance.Blue); // TODO check the orElse: maybe rather give error if cannot get the alliance?
     }
 
     public Pose2d getPose() {
