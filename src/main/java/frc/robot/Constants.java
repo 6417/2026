@@ -101,7 +101,7 @@ public class Constants {
         public static final double zeroingVoltage = 1;
         public static final double zeroingCurrentThresholdAmps = 25; // test
         public static final double zeroingTimeoutSec = 0.5;
-        public static final double turretTollerance = 0.1;
+        public static final double turretTollerance = 0.2;
  
         public static final double[] tickRange = {-8.643, 8.81};
 
