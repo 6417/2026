@@ -92,11 +92,6 @@ public class VisionSubsystem extends SubsystemBase {
                 0);
     }
 
-    public void updateOdometry() {
-        updateOdometryWithUnderTurretLimelight();
-        updateOdometryWithOnTurretLimelight();
-    }
-
     public void updateOdometryWithOnTurretLimelight() {
         boolean doRejectUpdate = false;
         LimelightHelpers.PoseEstimate mt1OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
@@ -106,7 +101,7 @@ public class VisionSubsystem extends SubsystemBase {
             if (mt1OnTurret.rawFiducials[0].ambiguity > .7) {
                 doRejectUpdate = true;
             }
-            if (mt1OnTurret.rawFiducials[0].distToCamera > 3) {
+            if (mt1OnTurret.rawFiducials[0].distToCamera > 4) {
                 doRejectUpdate = true;
             }
         }
@@ -125,11 +120,13 @@ public class VisionSubsystem extends SubsystemBase {
 
         if (!doRejectUpdate) {
             double clampedDist = Math.max(mt1OnTurret.avgTagDist, 0.5);
-            RobotContainer.drive.getSwerveDrive()
-                    .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist * 2)); // On-turret limelight gets moved around more due to being on the turret, so we multiply stdDevs by 2 to account for that.
-            RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
-                    mt1OnTurret.pose,
-                    mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
+
+            // // NO ODOMETRY UPDATES with **ON** turret limelight BUT log it
+            // RobotContainer.drive.getSwerveDrive()
+            //         .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist * 2)); // On-turret limelight gets moved around more due to being on the turret, so we multiply stdDevs by 2 to account for that.
+            // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
+            //         mt1OnTurret.pose,
+            //         mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
         }
 
         Logger.recordOutput("Swerve/OnTurretPose", mt1OnTurret.pose);

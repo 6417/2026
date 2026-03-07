@@ -1,5 +1,7 @@
 package frc.robot.commands.intake;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utils.Utils;
 import frc.robot.Constants;
@@ -19,9 +21,11 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        if (intake.getCurrentOutput() > Constants.Intake.currentStuck) {
+        boolean isStuck = intake.getCurrentOutput() > Constants.Intake.currentStuck;
+        Logger.recordOutput("Intake/IsStuck", isStuck);
+        if (isStuck) {
+            System.out.println("> Detected: Intake is stuck. DUTY CYCLE: 80%");
             intake.setPercent(0.8);
-            System.out.println("here33333333");
         }
         else {
             intake.ballsIn();

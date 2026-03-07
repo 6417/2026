@@ -46,6 +46,7 @@ public class FeederSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         Logger.recordOutput("/Feedexer/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity());
+        Logger.recordOutput("/Feedexer/ServoAngle", servoFeeder.getAngle());
     }
 
     public void run(double topRpm) {
