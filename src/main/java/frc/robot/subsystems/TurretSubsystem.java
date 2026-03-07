@@ -20,6 +20,7 @@ import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
 import frc.robot.commands.turret.SmartTurret;
+import org.littletonrobotics.junction.Logger;
 
 public class TurretSubsystem extends SubsystemBase {
     private FridoSparkMax turretMotor;
@@ -73,6 +74,10 @@ public class TurretSubsystem extends SubsystemBase {
 
     @Override
     public void periodic(){
+        Logger.recordOutput("Turret/DesiredRotation", desiredPosition);
+        Logger.recordOutput("Turret/CurrentAngle", getCurrentAngle());
+        Logger.recordOutput("Turret/IsAtDesiredRotation", isAtSetpoint());
+        Logger.recordOutput("Turret/EncoderTicks", turretMotor.getEncoderTicks());
     }
 
     public void resetRotationEncoder() {
