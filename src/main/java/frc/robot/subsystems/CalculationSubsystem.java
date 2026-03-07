@@ -89,6 +89,7 @@ public class CalculationSubsystem extends SubsystemBase {
     }
 
     private void calculateSTATIONARY_TURRETFIX() {
+        getTurretToDesiredpos();
         // linear interpolate distance to hub to RPM
         desiredShooterRPM = shootFromDistance();
     }
@@ -272,6 +273,10 @@ public class CalculationSubsystem extends SubsystemBase {
 
     public void setShootingMode(ShootingMode mode) {
         this.currentShootingMode = mode;
+    }
+
+    public ShootingMode getShootingMode() {
+        return currentShootingMode;
     }
 
     public Pair<Double, Double> getRPMShooter() {

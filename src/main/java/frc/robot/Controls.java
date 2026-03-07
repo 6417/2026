@@ -27,6 +27,7 @@ import frc.robot.commands.climber.PrepareClimbCommand;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
+import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
 import frc.robot.Constants;
 
 /**
@@ -153,10 +154,16 @@ public class Controls implements Sendable {
                                 () -> RobotContainer.intake.stop(),
                                 RobotContainer.intake));
 
-                rbButtonOperator.whileTrue(Commands.startEnd(
-                                () -> RobotContainer.feeder.run(Constants.Feeder.defaultRPM),
-                                () -> RobotContainer.feeder.stop(),
-                                RobotContainer.feeder));
+                rbButtonOperator.onTrue(
+                        new InstantCommand(() -> {
+                                if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
+                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_STATIONARY_TURRETFIX);
+                                }
+                                else {
+                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
+                                }
+                        })
+                );
 
                 xButtonOperator.whileTrue(
                                 new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
