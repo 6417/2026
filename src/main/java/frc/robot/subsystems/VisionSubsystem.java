@@ -39,7 +39,7 @@ public class VisionSubsystem extends SubsystemBase {
         // On-turret limelight reserved for hub aiming — not fused into odometry yet.
         if (this.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
             resetLimelightOnTurretPose(RobotContainer.turret.getCurrentAngle());
-            updateOdometryWithOnTurretLimelight();
+            //updateOdometryWithOnTurretLimelight();
         }
     }
 
@@ -90,11 +90,6 @@ public class VisionSubsystem extends SubsystemBase {
     private void updateLimelightYaw(String limelightName) {
         LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0,
                 0);
-    }
-
-    public void updateOdometry() {
-        updateOdometryWithUnderTurretLimelight();
-        updateOdometryWithOnTurretLimelight();
     }
 
     public void updateOdometryWithOnTurretLimelight() {
