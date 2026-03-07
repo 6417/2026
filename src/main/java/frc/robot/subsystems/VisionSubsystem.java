@@ -27,8 +27,6 @@ public class VisionSubsystem extends SubsystemBase {
                 : null;
         this.limelightOnTurretName = Constants.Limelight.useVisionOnTurret ? Constants.Limelight.onTurretLimelight
                 : null;
-        Constants.Limelight.useVisionUnderTurret = this.isUnderTurretLimelightConnected();
-        Constants.Limelight.useVisionOnTurret = this.isOnTurretLimelightConnected();
     }
 
     @Override

@@ -98,8 +98,8 @@ public class Constants {
         public static final double kGearRatio = 5.0;
 
         public static final double resetEncoderPositionDegrees = 112;
-        public static final double zeroingVoltage = 1;
-        public static final double zeroingCurrentThresholdAmps = 25; // test
+        public static final double zeroingVoltage = 1.5;
+        public static final double zeroingCurrentThresholdAmps = 27.9; // new turret 7/03/2026
         public static final double zeroingTimeoutSec = 0.5;
         public static final double turretTollerance = 0.2;
  
