@@ -96,6 +96,10 @@ public class ShooterSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/BottomRPM", bottomMotor.asSparkFlex().getEncoder().getVelocity());
         Logger.recordOutput("Shooter/TopRPMSetpoint", topRpmSetpoint);
         Logger.recordOutput("Shooter/BottomRPMSetpoint", bottomRpmSetpoint);
+        Logger.recordOutput("Shooter/TopAmps", topMotor.asSparkFlex().getOutputCurrent());
+        Logger.recordOutput("Shooter/TopAppliedAmps", topMotor.asSparkFlex().getAppliedOutput());
+        Logger.recordOutput("Shooter/BottomAmps", bottomMotor.asSparkFlex().getOutputCurrent());
+        Logger.recordOutput("Shooter/BottomAppliedAmps", topMotor.asSparkFlex().getAppliedOutput());
         Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
     }
 
