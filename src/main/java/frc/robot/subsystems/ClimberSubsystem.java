@@ -55,10 +55,11 @@ public class ClimberSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle(), Units.Degrees);
+        Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle(), Units.Degrees); //Engaged angle should be around 85, disengaged around 115
         Logger.recordOutput("/Climber/FreeToMove", !isHatchetEngaged);
         Logger.recordOutput("/Climber/ClimberEncoderTicks", climberMotor.getEncoderTicks());
         Logger.recordOutput("/Climber/ClimberAmps", climberMotor.asTalonFX().getSupplyCurrent().getValueAsDouble(), Units.Amps);
+        Logger.recordOutput("/Climber/EncoderSetpoint", motionMagicRequest.Position);
     }
 
     public void setManualPercent(double percent) {
