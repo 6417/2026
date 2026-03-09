@@ -32,7 +32,7 @@ public class FinalClimbCommand extends SequentialCommandGroup {
 
         @Override
         public void execute() {
-            if (RobotContainer.climber.isClimberAtPosition(Constants.Climber.climbedPosition)) {
+            if (RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
                 robotIsClimbed = true;
             }
         }

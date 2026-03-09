@@ -3,48 +3,53 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.418,
-        "y": 2.198
+        "x": 7.393828264758497,
+        "y": 3.3616457960644004
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3843555555556235,
-        "y": 2.76822222221894
+        "x": 7.551704652330846,
+        "y": 3.167802957024354
       },
       "isLocked": false,
-      "linkedName": "Alliance Shoot Right 2 End"
+      "linkedName": "right_neutral1end"
     },
     {
       "anchor": {
-        "x": 1.6145444444445127,
-        "y": 4.765833333330051
+        "x": 6.27427549194991,
+        "y": 0.7655813953488371
       },
       "prevControl": {
-        "x": 2.374611111111179,
-        "y": 4.454011111107828
+        "x": 6.6312343470483,
+        "y": 1.0251878354203927
       },
       "nextControl": {
-        "x": 0.705103692582137,
-        "y": 5.138937231530002
+        "x": 6.005033157114209,
+        "y": 0.5697687881956
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.5134222222222222,
-        "y": 4.989955555555555
+        "x": 3.580858676207513,
+        "y": 0.6357781753130587
       },
       "prevControl": {
-        "x": 0.7505930467335286,
-        "y": 4.910898614047379
+        "x": 3.954042933810375,
+        "y": 0.6357781753130587
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Alliance Shoot Right 3 End"
+      "linkedName": "right_neutral2end"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.0000000000000016,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -58,13 +63,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -88.86182299251182
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Alliance Shoot Right",
+  "folder": "RightNeutral",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 29.272999999999996
+    "rotation": -135.0
   },
   "useDefaultConstraints": true
 }

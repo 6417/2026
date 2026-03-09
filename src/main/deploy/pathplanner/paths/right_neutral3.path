@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.5134222222222222,
-        "y": 4.989955555555555
+        "x": 3.580858676207513,
+        "y": 0.6357781753130587
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.5151235086100513,
-        "y": 5.239949766737787
+        "x": 2.580858676207513,
+        "y": 0.6357781753130586
       },
       "isLocked": false,
-      "linkedName": "Alliance Shoot Right 3 End"
+      "linkedName": "right_neutral2end"
     },
     {
       "anchor": {
-        "x": 0.5036777777777779,
-        "y": 6.958333333333332
+        "x": 0.717,
+        "y": 0.6357781753130587
       },
       "prevControl": {
-        "x": 0.5070841944510722,
-        "y": 6.708356541759699
+        "x": 1.717,
+        "y": 0.6357781753130588
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Alliance Shoot Right 4 End"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -33,8 +33,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 1.0,
+    "maxAcceleration": 0.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.07108653860323
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Alliance Shoot Right",
+  "folder": "RightNeutral",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -88.86182299251182
+    "rotation": 0.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

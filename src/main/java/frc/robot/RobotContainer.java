@@ -68,6 +68,7 @@ public class RobotContainer {
         autoChooser.addOption("Middle", "Middle");
         autoChooser.addOption("LeftNeutralzone", "LeftNeutralzone");
         autoChooser.addOption("LeftShootFirst", "LeftShootFirst");
+        autoChooser.addOption("RightShootFirst", "RightShootFirst");
         
         autoChooser.addOption("None", null);
         autoChooser.setDefaultOption("None", null);

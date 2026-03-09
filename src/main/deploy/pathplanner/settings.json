@@ -4,10 +4,10 @@
   "holonomicMode": true,
   "pathFolders": [
     "2 Cycle right",
-    "Alliance Shoot Right",
     "Left",
     "Middle",
     "Neutralzone",
+    "RightNeutral",
     "Right"
   ],
   "autoFolders": [],

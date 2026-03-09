@@ -294,15 +294,15 @@ public class Constants {
         public static final Optional<Double> kG = Optional.of(0.0);
 
         public static double allowedClosedLoopErrorOut = 0.5;
-        public static double maxAccelerationOut = 15000; //halfed
-        public static double maxVelocityOut = 800; //3000 led to white sparkles
+        public static double maxAccelerationOut = 1000; //halfed
+        public static double maxVelocityOut = 10; //3000 led to white sparkles
 
         public static double allowedClosedLoopErrorIn = 0.5;
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
 
-        public static final double climbedPosition = -15;
-        public static final double highPosition = -24.793457;
+        public static final double climbedPositionDifference = 13;
+        public static double highPositionDifference = 27.283;
         public static final double positionTolerance = 0.2;
     }
 }

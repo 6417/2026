@@ -33,6 +33,8 @@ public class ClimberSubsystem extends SubsystemBase {
     private final ClosedLoopGeneralConfigs closedLoopGeneralConfigs = new ClosedLoopGeneralConfigs();
     private final Slot0Configs motionMagicSlot1 = new Slot0Configs();
     private final Slot1Configs motionMagicSlot2 = new Slot1Configs();
+    private double highPosition = -25;
+    public double climbPosition = -15;
 
     public boolean isHatchetEngaged = false;
 
@@ -42,7 +44,7 @@ public class ClimberSubsystem extends SubsystemBase {
         climberMotor = new FridoFalcon500v6(Constants.Climber.motorId);
         climberMotor.setInverted(Constants.Climber.motorInverted);
         climberMotor.setIdleMode(Constants.Climber.idleMode);
-
+        
         // Configure Motion Magic and PID slots (extend/retract).
         reconfigure();
 
@@ -80,7 +82,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
     public void setPositionTop() {
         // Use slot 0 for extend (out) with outward motion constraints.
-        motionMagicRequest.Position = Constants.Climber.highPosition;
+        motionMagicRequest.Position = highPosition;
         motionMagicRequest.Slot = 1;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
@@ -104,8 +106,11 @@ public class ClimberSubsystem extends SubsystemBase {
     public void endHoming() {
         stop();
         climberMotor.setEncoderPosition(0);
+        highPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.highPositionDifference;
+        climbPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.climbedPositionDifference;
     }
     
+
     public void enableServoHatchet() {
         servoHatchet.setAngle(85);
         System.out.println(" ############# Enabled Servo Hatchet ###############");
@@ -145,9 +150,14 @@ public class ClimberSubsystem extends SubsystemBase {
 
         closedLoopGeneralConfigs.GainSchedErrorThreshold = Constants.Climber.gainSchedErrorThreshold;
         closedLoopGeneralConfigs.GainSchedKpBehavior = GainSchedKpBehaviorValue.Continuous;
-
+        
+        MotionMagicConfigs config = new MotionMagicConfigs();
+        config.MotionMagicCruiseVelocity = Constants.Climber.maxVelocityOut;
+        config.MotionMagicAcceleration = Constants.Climber.maxAccelerationOut;
+        
         climberMotor.asTalonFX().getConfigurator().apply(motionMagicSlot1);
         climberMotor.asTalonFX().getConfigurator().apply(motionMagicSlot2);
         climberMotor.asTalonFX().getConfigurator().apply(closedLoopGeneralConfigs);
+        climberMotor.asTalonFX().getConfigurator().apply(config);
     }
 }
