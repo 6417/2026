@@ -39,6 +39,9 @@ public class VisionSubsystem extends SubsystemBase {
             resetLimelightOnTurretPose(RobotContainer.turret.getCurrentAngle());
             updateOdometryWithOnTurretLimelight();
         }
+        Logger.recordOutput("/Vision/OnTurretLimelightConnected", this.isOnTurretLimelightConnected());
+        Logger.recordOutput("/Vision/UnderTurretLimelightConnected", this.isUnderTurretLimelightConnected());
+
     }
 
     public PoseEstimate getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace() {

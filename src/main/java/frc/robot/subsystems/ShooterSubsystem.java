@@ -12,6 +12,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkFlex;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class ShooterSubsystem extends SubsystemBase {
     // Top and bottom shooter motors.
@@ -92,11 +93,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Shooter/TopRPM", topMotor.asSparkFlex().getEncoder().getVelocity());
-        Logger.recordOutput("Shooter/BottomRPM", bottomMotor.asSparkFlex().getEncoder().getVelocity());
         Logger.recordOutput("Shooter/TopRPMSetpoint", topRpmSetpoint);
         Logger.recordOutput("Shooter/BottomRPMSetpoint", bottomRpmSetpoint);
+        Logger.recordOutput("Shooter/TopAmps", topMotor.asSparkFlex().getOutputCurrent());
+        Logger.recordOutput("Shooter/BottomAmps", bottomMotor.asSparkFlex().getOutputCurrent());
         Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
+        Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint()&&RobotContainer.turret.isAtSetpoint()&&RobotContainer.calculationSubsystem.isSpeedOkToShoot());
     }
 
     private double clampRpm(double rpm) {

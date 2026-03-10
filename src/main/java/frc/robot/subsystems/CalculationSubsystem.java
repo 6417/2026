@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -71,15 +72,17 @@ public class CalculationSubsystem extends SubsystemBase {
                 break;
         }
 
-        //updateDistanceToHub();
-        Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret);
-        Logger.recordOutput("Shooter/DesiredRPMBottom", desiredShooterRPM.getFirst());
-        Logger.recordOutput("Shooter/DesiredRPMTop", desiredShooterRPM.getSecond());
+        // updateDistanceToHub();
+        Logger.recordOutput("Shooter/DistanceToHubMeters", distanceHubTurret, Units.Meters);
+        Logger.recordOutput("Shooter/DesiredRPMBottom", desiredShooterRPM.getFirst(), Units.RPM);
+        Logger.recordOutput("Shooter/DesiredRPMTop", desiredShooterRPM.getSecond(), Units.RPM);
+        Logger.recordOutput("Shooter/DesiredTurretAngle", desiredTurretAngle.getDegrees(), Units.Degrees);
 
         ChassisSpeeds periodicVel = RobotContainer.drive.getFieldVelocity();
         Logger.recordOutput("ShootOnMove/RobotSpeedMps",
-            Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond));
+                Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond), Units.MetersPerSecond);
         Logger.recordOutput("ShootOnMove/SpeedOkToShoot", isSpeedOkToShoot());
+        Logger.recordOutput("ShootOnMove/CurrentShootingMode", currentShootingMode.toString());
     }
 
     private void calculateFIXED() {
@@ -123,7 +126,7 @@ public class CalculationSubsystem extends SubsystemBase {
         Logger.recordOutput("Calculation/Vball", vball);
         Logger.recordOutput("Calculation/rpm_average", rpm_average);
         Logger.recordOutput("Calculation/rpm_to_meterspersec", rpm_to_meterspersec);
-        Logger.recordOutput("Calculation/RobotSpeed", robotSpeedVector.getNorm());
+        Logger.recordOutput("Calculation/RobotSpeedVector", robotSpeedVector.getNorm());
         Translation2d vdesired = turretToDesiredpos.div(turretToDesiredpos.getNorm()).times(vball);
 
         // Calculate desired turret shot vector

@@ -96,6 +96,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odometry", drive.getPose());
+        Logger.recordOutput("Swerve/driveIsAutomated", driveIsAutomated);
+        Logger.recordOutput("Swerve/intakeMode", intakeMode);
         driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If
                               // you remove this, you wont be able to control the robot with the joysticks
                               // anymore.

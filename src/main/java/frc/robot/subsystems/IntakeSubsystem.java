@@ -51,6 +51,7 @@ public class IntakeSubsystem extends SubsystemBase {
         double rpms = intakeMotor.getEncoderVelocity();
         Logger.recordOutput("Intake/Current", currentAmps);
         Logger.recordOutput("Intake/RPM_Motor", rpms);
+        Logger.recordOutput("Intake/RPMSetpoint", intakeMotor.asSparkFlex().getClosedLoopController().getSetpoint());
     }
 
     public void ballsIn() {

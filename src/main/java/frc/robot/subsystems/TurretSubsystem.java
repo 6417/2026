@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.commands.turret.SmartTurret;
 import org.littletonrobotics.junction.Logger;
 
@@ -75,9 +76,14 @@ public class TurretSubsystem extends SubsystemBase {
     @Override
     public void periodic(){
         Logger.recordOutput("Turret/DesiredRotation", desiredPosition);
-        Logger.recordOutput("Turret/CurrentAngle", getCurrentAngle());
+        Logger.recordOutput("Turret/DesiredRotationDegrees", desiredPosition / Constants.TurretSubsystem.kGearRatio
+                * Constants.TurretSubsystem.kConversationRatio * 360, edu.wpi.first.units.Units.Degrees);
+        Logger.recordOutput("Turret/CurrentAngle", getCurrentAngle(), edu.wpi.first.units.Units.Degrees);
         Logger.recordOutput("Turret/IsAtDesiredRotation", isAtSetpoint());
         Logger.recordOutput("Turret/EncoderTicks", turretMotor.getEncoderTicks());
+        Logger.recordOutput("Turret/CurrentAmps", turretMotor.asSparkMax().getOutputCurrent(),
+                edu.wpi.first.units.Units.Amps);
+        Logger.recordOutput("Turret/IsTurretAutomated", RobotContainer.controls.isTurretAutomated());
     }
 
     public void resetRotationEncoder() {

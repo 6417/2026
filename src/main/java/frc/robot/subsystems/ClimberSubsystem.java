@@ -18,6 +18,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoFalcon500v6;
@@ -56,9 +57,11 @@ public class ClimberSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle());
-        Logger.recordOutput("/Climber/HatchetEngaged", isHatchetEngaged);
+        Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle(), Units.Degrees); //Engaged angle should be around 85, disengaged around 115
+        Logger.recordOutput("/Climber/FreeToMove", !isHatchetEngaged);
         Logger.recordOutput("/Climber/ClimberEncoderTicks", climberMotor.getEncoderTicks());
+        Logger.recordOutput("/Climber/ClimberAmps", climberMotor.asTalonFX().getSupplyCurrent().getValueAsDouble(), Units.Amps);
+        Logger.recordOutput("/Climber/EncoderSetpoint", motionMagicRequest.Position);
     }
 
     public void setManualPercent(double percent) {
