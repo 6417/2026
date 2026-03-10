@@ -20,6 +20,7 @@ import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.ShooterParallelCommandGroup;
+import frc.robot.commands.turret.SmartTurret;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem;
@@ -58,6 +59,7 @@ public class RobotContainer {
         namedCommands = new HashMap<String,Command>();
 
         namedCommands.put("Shoot", new ShooterParallelCommandGroup());
+        namedCommands.put("SmartTurret", new SmartTurret(turret));
         namedCommands.put("Intake", new IntakeCommand(intake));
         namedCommands.put("ZeroGroup", new ZeroGroup());
 
