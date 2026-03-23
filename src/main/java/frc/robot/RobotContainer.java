@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.IndexerSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
@@ -34,6 +35,7 @@ public class RobotContainer {
     public static final ClimberSubsystem climber;
     public static final TurretSubsystem turret;
     public static final IndexerSubsystem indexer;
+    public static final LEDSubsystem leds;
     public static final ShooterSubsystem shooter;
     public static final FeederSubsystem feeder;
     public static final CalculationSubsystem calculationSubsystem;
@@ -53,6 +55,7 @@ public class RobotContainer {
         shooter = new ShooterSubsystem();
         feeder = new FeederSubsystem();
         indexer = new IndexerSubsystem();
+        leds = new LEDSubsystem();
         calculationSubsystem = new CalculationSubsystem();
         controls = new Controls();
 

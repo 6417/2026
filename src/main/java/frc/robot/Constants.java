@@ -83,6 +83,15 @@ public class Constants {
         public static final int PIGEON_ID = 0;
     }
 
+    public static final class LEDs {
+        public static final int ledPort = 0;
+        public static final int ledBufferLength = 30;
+
+        // Lower default brightness keeps the strip readable without blinding
+        // drivers in the queue or while testing indoors.
+        public static final double brightnessScale = 0.25;
+    }
+
     public static final class Limelight {
         public static boolean useVisionUnderTurret = true;
         public static boolean useVisionOnTurret= true;
