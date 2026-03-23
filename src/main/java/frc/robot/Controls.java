@@ -125,6 +125,11 @@ public class Controls implements Sendable {
                 burgerButtonDrive.onTrue(new InstantCommand(() -> {
                         RobotContainer.drive.zeroGyroWithAlliance();
                 }));
+                // Driver fallback if limelight pose updates become unreliable:
+                // BACK disables all vision fusion so pose depends only on wheel odometry + gyro.
+                windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.disableVisionFusion()));
+                // Re-enable both limelight fusion paths once vision is trustworthy again.
+                aButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.enableVisionFusion()));
                 rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
                 rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
 
