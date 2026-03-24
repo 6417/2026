@@ -11,9 +11,12 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.utils.LinearInterpolationTable;
+
+import static edu.wpi.first.units.Units.Meters;
 
 import java.awt.geom.Point2D;
 import java.util.Optional;
@@ -86,6 +89,7 @@ public class Constants {
     public static final class LEDs {
         public static final int ledPort = 0;
         public static final int ledBufferLength = 30;
+        public static final Distance ledsSpacing = Meters.of(0.05);
 
         // Lower default brightness keeps the strip readable without blinding
         // drivers in the queue or while testing indoors.

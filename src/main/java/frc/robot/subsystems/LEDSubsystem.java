@@ -1,13 +1,20 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import java.util.Map;
 import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.AddressableLEDBufferView;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.LEDPattern.GradientType;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -44,6 +51,7 @@ public class LEDSubsystem extends SubsystemBase {
 
     private final AddressableLED leds;
     private final AddressableLEDBuffer ledBuffer;
+    private LEDPattern ledsPattern;
 
     private Optional<RGB> manualOverride = Optional.empty();
     private LEDMode activeMode = LEDMode.ALLIANCE_IDLE;
@@ -51,7 +59,7 @@ public class LEDSubsystem extends SubsystemBase {
     public LEDSubsystem() {
         leds = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
-
+        ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown  ));
         leds.setLength(ledBuffer.getLength());
         setAll(OFF);
         leds.setData(ledBuffer);
@@ -63,6 +71,20 @@ public class LEDSubsystem extends SubsystemBase {
         synchronizeLEDsWithRobotState();
         Logger.recordOutput("LEDs/Mode", activeMode.name());
     }
+
+    /**
+     * Rainbow! =)
+     * @param saturation HUE Saturation of the colors
+     * @param brightness Brightness of the effect
+     * @param scrollSpeed Speed in Meters per second of the rainbow effect.
+     */
+    public void setRainbowPattern(int saturation, int brightness, double scrollSpeed){
+        ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(scrollSpeed), Constants.LEDs.ledsSpacing);
+        ledsPattern.applyTo(ledBuffer);
+        AddressableLEDBufferView myview = ledBuffer.createView(0, 1);
+    }
+
+    
 
     public void setManualColor(int red, int green, int blue) {
         manualOverride = Optional.of(new RGB(red, green, blue));
@@ -78,7 +100,7 @@ public class LEDSubsystem extends SubsystemBase {
         return activeMode;
     }
 
-    public void synchronizeLEDsWithRobotState() {
+    public void synchronizeLEDsWithRobotState() { //By AI
         if (manualOverride.isPresent()) {
             activeMode = LEDMode.MANUAL;
             setAllScaled(manualOverride.get());
@@ -124,7 +146,7 @@ public class LEDSubsystem extends SubsystemBase {
         setAllianceIdlePattern();
     }
 
-    private void setAllianceIdlePattern() {
+    private void setAllianceIdlePattern() { //By AI
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         RGB primary = alliance == Alliance.Red ? RED : BLUE;
         RGB accent = WHITE;
@@ -152,12 +174,12 @@ public class LEDSubsystem extends SubsystemBase {
 
     private void setAllScaled(RGB color) {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
-            setScaledRgb(i, color);
+            setScaledRgb(i, color, 0.25);
         }
         leds.setData(ledBuffer);
     }
 
-    private void setScaledRgb(int index, RGB color) {
+    private void setScaledRgb(int index, RGB color, double brightnessScale) {
         int red = (int) Math.round(color.red * Constants.LEDs.brightnessScale);
         int green = (int) Math.round(color.green * Constants.LEDs.brightnessScale);
         int blue = (int) Math.round(color.blue * Constants.LEDs.brightnessScale);
