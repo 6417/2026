@@ -48,8 +48,8 @@ public class SwerveSubsystem extends SubsystemBase {
     private boolean driveIsAutomated;
 
     private boolean blueAlliance;
+    
     private boolean intakeMode;
-
     public SwerveSubsystem() {
         blueAlliance = getAlliance() == Alliance.Blue;
         driveIsAutomated = false;

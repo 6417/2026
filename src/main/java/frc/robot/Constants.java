@@ -73,7 +73,7 @@ public class Constants {
         public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,  new Rotation3d());
         public static final Pose3d turretRotationMiddlePoseToLimelight = new Pose3d(0.10193, 0.02512, 0, new Rotation3d());
 
-        public static Vector<N3> standardDevs = VecBuilder.fill(0.3, 0.3, 9999999);
+        public static Vector<N3> standardDevs = VecBuilder.fill(0.2, 0.2, 9999999);
         // Higher base uncertainty for on-turret: turret encoder error and mechanical
         // compliance add position uncertainty beyond pure MegaTag2 tag-distance noise.
         public static Vector<N3> onTurretStdDevs = VecBuilder.fill(0.5, 0.5, 9999999);

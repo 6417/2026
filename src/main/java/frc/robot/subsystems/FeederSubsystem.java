@@ -10,6 +10,7 @@ import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoServoMotor;
@@ -20,6 +21,7 @@ public class FeederSubsystem extends SubsystemBase {
     private FridoSparkMax feederMotor;
     private SparkMaxConfig motorConfig;
     private final Servo servoFeeder;
+
     public FeederSubsystem() {
         servoFeeder = new FridoServoMotor(9);
         feederMotor = new FridoSparkMax(Constants.Feeder.motorId);
@@ -31,22 +33,25 @@ public class FeederSubsystem extends SubsystemBase {
 
         feederMotor.setIdleMode(Constants.Feeder.idleMode);
 
-        motorConfig.closedLoop.p(Constants.Feeder.pid.kP, ClosedLoopSlot.kSlot0).i(Constants.Feeder.pid.kI, ClosedLoopSlot.kSlot0)
-            .d(Constants.Feeder.pid.kD, ClosedLoopSlot.kSlot0);
-            
+        motorConfig.closedLoop.p(Constants.Feeder.pid.kP, ClosedLoopSlot.kSlot0)
+                .i(Constants.Feeder.pid.kI, ClosedLoopSlot.kSlot0)
+                .d(Constants.Feeder.pid.kD, ClosedLoopSlot.kSlot0);
+
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.Feeder.ff.kS);
         ffConfig.kV(Constants.Feeder.ff.kV);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
-        feederMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        feederMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
+                PersistMode.kPersistParameters);
         servoFeeder.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
 
-
     @Override
     public void periodic() {
-        Logger.recordOutput("/Feedexer/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity());
-        Logger.recordOutput("/Feedexer/ServoAngle", servoFeeder.getAngle());
+        Logger.recordOutput("/Feedexer/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity(), edu.wpi.first.units.Units.RPM);
+        Logger.recordOutput("/Feedexer/FeederCurrent", feederMotor.asSparkMax().getOutputCurrent(), edu.wpi.first.units.Units.Amps);
+        Logger.recordOutput("/Feeder/FeederRPMSetpoint", feederMotor.asSparkMax().getClosedLoopController().getSetpoint(), edu.wpi.first.units.Units.RPM);
+        Logger.recordOutput("/Feedexer/ServoAngle", servoFeeder.getAngle(), edu.wpi.first.units.Units.Degrees);
     }
 
     public void run(double topRpm) {
@@ -62,11 +67,11 @@ public class FeederSubsystem extends SubsystemBase {
         feederMotor.stopMotor();
     }
 
-    public void enableServoHatchet(){
+    public void enableServoHatchet() {
         servoFeeder.setAngle(115);
     }
 
-    public void disableServoHatchet(){
+    public void disableServoHatchet() {
         servoFeeder.setAngle(45);
     }
 }
