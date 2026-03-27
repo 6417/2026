@@ -126,8 +126,13 @@ public class Controls implements Sendable {
                         RobotContainer.drive.zeroGyroWithAlliance();
                 }));
                 // Driver fallback if limelight pose updates become unreliable:
-                // BACK disables all vision fusion so pose depends only on wheel odometry + gyro.
-                windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.disableVisionFusion()));
+                // BACK disables vision fusion and resets odometry to the known field placement.
+                windowsButtonDrive.onTrue(new InstantCommand(() -> {
+                        // TODO: Test on the real field that this button snaps to the intended
+                        // starting pose for both alliances and that vision re-enable behaves as expected.
+                        RobotContainer.vision.disableVisionFusion();
+                        RobotContainer.drive.resetOdometryToManualSetPose();
+                }));
                 // Re-enable both limelight fusion paths once vision is trustworthy again.
                 aButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.enableVisionFusion()));
                 rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
@@ -227,6 +232,7 @@ public class Controls implements Sendable {
                                 val -> slewRateLimited = val);
                 builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
                 builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
+                builder.addBooleanProperty("isAutomatedTurret", () -> isTurretAutomated(), null);
         }
 
 }
