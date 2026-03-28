@@ -8,8 +8,8 @@ import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderComm
 public class ZeroGroup extends ParallelCommandGroup {
     public ZeroGroup() {
         super.addCommands(
-            new TurretZeroCommand(RobotContainer.turret),
-            new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber)
+            new TurretZeroCommand(),
+            new RelaseChuchichaestliAndHomeRelativeEncoderCommand()
         );
     }
 }

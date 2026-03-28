@@ -13,25 +13,20 @@ import frc.robot.RobotContainer;
 public class DriveToShootpos extends Command {
     private double radius = Constants.Field.RADIUS_TO_HUB;
 
-    private final SwerveSubsystem drive;
-    private final TurretSubsystem turret;
-
     private boolean isFinished = false;
 
     private Command pathCommand;
     
-    public DriveToShootpos(SwerveSubsystem drive, TurretSubsystem turret) {
-        this.drive = drive;
-        this.turret = turret;
-        addRequirements(drive);   
+    public DriveToShootpos() {
+        addRequirements(RobotContainer.drive, RobotContainer.turret);
     }
 
     @Override
     public void initialize() {
-        drive.setAutomatedControl();
+        RobotContainer.drive.setAutomatedControl();
 
         Pose2d nearestPos = DriverStation.getAlliance().get() == Alliance.Blue ? Constants.Field.HUB_CENTER_BLUE : Constants.Field.HUB_CENTER_RED;
-        Pose2d robotPose = drive.getPose();
+        Pose2d robotPose = RobotContainer.drive.getPose();
 
         // return if in neutral zone, cannot shoot from there
         if(DriverStation.getAlliance().get() == Alliance.Blue && robotPose.getX() > Constants.Field.neutralZoneStartX ||
@@ -49,7 +44,7 @@ public class DriveToShootpos extends Command {
         // calculate Pose2d: nearest Spot from robot, radius(m) from Hub away
         Pose2d sweetSpot = new Pose2d(robotPose.getTranslation().plus(toPos), robotPose.getRotation().plus(RobotContainer.calculationSubsystem.getDesiredTurretAngle()));
 
-        pathCommand = drive.driveToPose(
+        pathCommand = RobotContainer.drive.driveToPose(
             sweetSpot
         );
         pathCommand.initialize();
@@ -68,7 +63,7 @@ public class DriveToShootpos extends Command {
             pathCommand.end(interrupted);
         }
 
-        drive.setOperatorControl();
+        RobotContainer.drive.setOperatorControl();
     }
 
     @Override

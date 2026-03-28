@@ -99,15 +99,14 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void autonomousInit() {
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
-      Constants.Field.EDGERight = new Pose2d(0, 0, null);
-      Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
+      Constants.Field.EDGERight = new Pose2d(1.85, 1.43, null);
+      Constants.Field.EDGELeft = new Pose2d(1.85, 6.28, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
       Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.START_NEUTRALZONE_INCHES);
 
     } else {
-      Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS,
-          null);
-      Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
+      Constants.Field.EDGERight = new Pose2d(14.71, 6.28, null);
+      Constants.Field.EDGELeft = new Pose2d(14.71, 1.43, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
       Constants.Field.neutralZoneStartX = Units
           .inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.START_NEUTRALZONE_INCHES);

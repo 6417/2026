@@ -7,12 +7,8 @@ import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
 import frc.robot.RobotContainer;
 
 public class SmartTurret extends Command {
-    private final TurretSubsystem turret;
-
-    public SmartTurret(TurretSubsystem turret) {
-        this.turret = turret;
-         
-        addRequirements(turret); // don't add drive
+    public SmartTurret() {
+        addRequirements(RobotContainer.turret);
     }
 
     @Override
@@ -27,12 +23,12 @@ public class SmartTurret extends Command {
         if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_STATIONARY_TURRETFIX || RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_FIXED) {
             return;
         }
-        turret.setDesiredRotation(desiredAngle);
+        RobotContainer.turret.setDesiredRotation(desiredAngle);
     }
 
     @Override
     public void end(boolean interrupted){
-        turret.stopRotationMotor();
+        RobotContainer.turret.stopRotationMotor();
     }
 
     @Override

@@ -4,13 +4,10 @@ import frc.robot.RobotContainer;
 import frc.robot.subsystems.TurretSubsystem;
 
 public class TurretControlled extends Command {
-    private final TurretSubsystem turret;
-
     private double input;
 
-    public TurretControlled(TurretSubsystem turret) {
-        this.turret = turret;
-        addRequirements(turret);
+    public TurretControlled() {
+        addRequirements(RobotContainer.turret);
     }
 
     @Override
@@ -18,7 +15,7 @@ public class TurretControlled extends Command {
         input = RobotContainer.controls.getJoystickAxes()[2];
         input = applyDeadband(input, 0.15);
 
-        turret.setVoltage(input * 0.1);
+        RobotContainer.turret.setVoltage(input * 0.1);
     }
 
     private static double applyDeadband(double x, double deadBand) {

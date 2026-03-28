@@ -7,11 +7,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class DriveToTrench extends Command {
 
-    private final SwerveSubsystem drive;
     private final Pose2d blueTrenchYlow;
     private final Pose2d blueTrenchYhigh;
     private final Pose2d redTrenchYlow;
@@ -20,24 +20,23 @@ public class DriveToTrench extends Command {
     private double targetXOffsetBeforeTrench;
     private double targetYOffsetBeforeTrench;
 
-    public DriveToTrench(SwerveSubsystem drive) {
-        addRequirements(drive);
+    public DriveToTrench() {
+        addRequirements(RobotContainer.drive);
         blueTrenchYlow = new Pose2d(4.625, 0.6, new Rotation2d(0));
         blueTrenchYhigh = new Pose2d(4.625, 7.4, new Rotation2d(0));
         redTrenchYlow = new Pose2d(11.925, 0.6, new Rotation2d(Math.PI));
         redTrenchYhigh = new Pose2d(11.925, 7.4, new Rotation2d(Math.PI));
         targetXOffsetBeforeTrench = 1.25;
         targetYOffsetBeforeTrench = 0.0;
-        this.drive = drive;
     }
 
     @Override
     public void initialize() {
-        drive.setAutomatedControl();
-        Pose2d robotPose = drive.getPose();
+        RobotContainer.drive.setAutomatedControl();
+        Pose2d robotPose = RobotContainer.drive.getPose();
         Pose2d targetTrench = getNearestTrench(robotPose);
         Pose2d targetPoseBeforeTrench = getTargetPoseBeforeTrench(robotPose, targetTrench);
-        pathCommand = drive.driveToPose(targetPoseBeforeTrench);
+        pathCommand = RobotContainer.drive.driveToPose(targetPoseBeforeTrench);
         pathCommand.initialize();
     }
 
@@ -53,7 +52,7 @@ public class DriveToTrench extends Command {
         if (pathCommand != null) {
             pathCommand.end(interrupted);
         }
-        drive.setOperatorControl();
+        RobotContainer.drive.setOperatorControl();
     }
 
     @Override

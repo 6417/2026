@@ -130,13 +130,16 @@ public class Controls implements Sendable {
                 windowsButtonDrive.onTrue(new InstantCommand(() -> {
                         // TODO: Test on the real field that this button snaps to the intended
                         // starting pose for both alliances and that vision re-enable behaves as expected.
-                        RobotContainer.vision.disableVisionFusion();
-                        RobotContainer.drive.resetOdometryToManualSetPose();
+                        if (RobotContainer.vision.isVisionFusionEnabled()) {
+                                RobotContainer.vision.disableVisionFusion();
+                                RobotContainer.drive.resetOdometryToManualSetPose();
+                        }
+                        else {
+                                RobotContainer.vision.enableVisionFusion();
+                        }
                 }));
-                // Re-enable both limelight fusion paths once vision is trustworthy again.
-                aButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.enableVisionFusion()));
-                rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+                rbButtonDrive.whileTrue(new DriveToTrench());
+                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand());
 
                 lbButtonDrive.whileTrue(Commands.startEnd(
                                 () -> {
@@ -149,15 +152,15 @@ public class Controls implements Sendable {
                 xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
                 yButtonOperator.onTrue(
                                 new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret),
-                                                new TurretControlled(RobotContainer.turret)));
-                leftStickOperator.onTrue(new TurretZeroCommand(RobotContainer.turret));
+                                                new TurretControlled()));
+                leftStickOperator.onTrue(new TurretZeroCommand());
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
                                                 .alongWith(new ParallelCommandGroup(new PulseFeederCommand(),
                                                                 new ServoCommand()).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
-                rtButtonOperator.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+                rtButtonOperator.whileTrue(new DriveToShootpos());
 
                 lbButtonOperator.whileTrue(Commands.startEnd(
                                 () -> RobotContainer.intake.ballsOut(),
@@ -193,7 +196,7 @@ public class Controls implements Sendable {
                                 () -> RobotContainer.climber.setManualPercent(0)));
                 pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
                 windowsButtonOperator
-                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber));
+                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
         }
