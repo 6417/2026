@@ -23,8 +23,7 @@ public class ShootCommand extends Command {
     public void execute() {
         Pair<Double, Double> rpm = RobotContainer.calculationSubsystem.getRPMShooter();
         RobotContainer.shooter.run(rpm.getSecond(), rpm.getFirst());
-        if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint()
-                && RobotContainer.calculationSubsystem.isSpeedOkToShoot())
+        if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint())
             RobotContainer.indexer.run(Constants.Indexer.defaultRPM);
         else 
             RobotContainer.indexer.stop();

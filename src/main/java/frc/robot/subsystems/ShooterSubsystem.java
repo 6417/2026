@@ -98,7 +98,7 @@ public class ShooterSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/TopAmps", topMotor.asSparkFlex().getOutputCurrent());
         Logger.recordOutput("Shooter/BottomAmps", bottomMotor.asSparkFlex().getOutputCurrent());
         Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
-        Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint()&&RobotContainer.turret.isAtSetpoint()&&RobotContainer.calculationSubsystem.isSpeedOkToShoot());
+        Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint()&&RobotContainer.turret.isAtSetpoint());
     }
 
     private double clampRpm(double rpm) {

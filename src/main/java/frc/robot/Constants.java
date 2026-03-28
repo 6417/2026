@@ -46,7 +46,21 @@ public class Constants {
 
         public static final double RADIUS_TO_HUB = 3.0; // in meters
         public static final double START_NEUTRALZONE_INCHES = 177.17;
-        public static Transform2d EDGE_OFFSET = new Transform2d(0.0, 0.0, new Rotation2d(0));
+
+        // Manual fallback pose for odometry reset button.
+        // Fill in the real field position where the robot will be placed before pressing the button.
+        // Units:
+        // x/y in meters, heading in degrees as Rotation2d.
+        // to reset, goto right side of the field in team zone, then reset
+        public static final Pose2d ODOMETRY_SET_POSE_RED = new Pose2d(
+                Field.FIELD_LENGTH_METERS - 0.498,
+                7.532,
+                Rotation2d.fromDegrees(180.0));
+
+        public static final Pose2d ODOMETRY_SET_POSE_BLUE = new Pose2d(
+                0.498,
+                0.498,
+                Rotation2d.fromDegrees(0.0));
 
         // to be set in Robot.java based on alliance
         public static Pose2d EDGERight;

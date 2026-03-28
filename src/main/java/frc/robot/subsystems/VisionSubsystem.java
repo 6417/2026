@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
 import frc.robot.LimelightHelpers.PoseEstimate;
@@ -41,7 +42,32 @@ public class VisionSubsystem extends SubsystemBase {
         }
         Logger.recordOutput("/Vision/OnTurretLimelightConnected", this.isOnTurretLimelightConnected());
         Logger.recordOutput("/Vision/UnderTurretLimelightConnected", this.isUnderTurretLimelightConnected());
+        Logger.recordOutput("/Vision/UseUnderTurret", Constants.Limelight.useVisionUnderTurret);
+        Logger.recordOutput("/Vision/UseOnTurret", Constants.Limelight.useVisionOnTurret);
+        SmartDashboard.putBoolean("Vision/UseUnderTurret", Constants.Limelight.useVisionUnderTurret);
+        SmartDashboard.putBoolean("Vision/UseOnTurret", Constants.Limelight.useVisionOnTurret);
 
+    }
+
+    /**
+     * Disable all vision fusion sources so odometry runs only from drivetrain/gyro.
+     * Limelight network tables still stay alive; only the pose fusion path is disabled.
+     */
+    public void disableVisionFusion() {
+        Constants.Limelight.useVisionUnderTurret = false;
+        Constants.Limelight.useVisionOnTurret = false;
+    }
+
+    /**
+     * Re-enable the configured limelights for odometry fusion.
+     */
+    public void enableVisionFusion() {
+        Constants.Limelight.useVisionUnderTurret = true;
+        Constants.Limelight.useVisionOnTurret = true;
+    }
+
+    public boolean isVisionFusionEnabled() {
+        return Constants.Limelight.useVisionUnderTurret || Constants.Limelight.useVisionOnTurret;
     }
 
     public PoseEstimate getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace() {

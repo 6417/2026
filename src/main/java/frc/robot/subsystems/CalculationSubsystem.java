@@ -81,7 +81,6 @@ public class CalculationSubsystem extends SubsystemBase {
         ChassisSpeeds periodicVel = RobotContainer.drive.getFieldVelocity();
         Logger.recordOutput("ShootOnMove/RobotSpeedMps",
                 Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond), Units.MetersPerSecond);
-        Logger.recordOutput("ShootOnMove/SpeedOkToShoot", isSpeedOkToShoot());
         Logger.recordOutput("ShootOnMove/CurrentShootingMode", currentShootingMode.toString());
     }
 
@@ -253,8 +252,8 @@ public class CalculationSubsystem extends SubsystemBase {
             topRpm = tuneTopRpm.get();
             bottomRpm = tuneBottomRpm.get();
         } else if(inNeutralzone) {
-            topRpm = Constants.Shooter.neutralZoneRPM;
-            bottomRpm = Constants.Shooter.neutralZoneRPM;
+            topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret); // works now
+            bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
         }
         else {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret);
@@ -263,15 +262,6 @@ public class CalculationSubsystem extends SubsystemBase {
 
         result = Pair.of(bottomRpm, topRpm);
         return result;
-    }
-
-    public boolean isSpeedOkToShoot() {
-        // // TODO: 
-
-        // ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
-        // double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
-        // return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
-        return true;
     }
 
     public void setShootingMode(ShootingMode mode) {
