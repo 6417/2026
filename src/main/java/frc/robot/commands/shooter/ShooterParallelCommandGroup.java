@@ -11,7 +11,7 @@ public class ShooterParallelCommandGroup extends ParallelCommandGroup {
         super.addCommands(new ShootCommand(),
         new ServoCommand(),
         new PulseFeederCommand(),
-        new SmartTurret()
+        new SmartTurret(RobotContainer.turret)
         );
     }
 }
