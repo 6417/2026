@@ -155,6 +155,13 @@ public class TurretSubsystem extends SubsystemBase {
     public void setVoltage(double voltage) {
         turretMotor.asSparkMax().setVoltage(voltage);
     }
+    /**
+     * Sets the percent output for manual control.
+     * @param percent The percent output (-1.0 to 1.0)
+     */
+    public void setPercent(double percent) {
+        turretMotor.set(percent);
+    }
 
     @Override
     public void initSendable(SendableBuilder builder) {

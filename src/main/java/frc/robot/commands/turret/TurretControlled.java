@@ -15,10 +15,10 @@ public class TurretControlled extends Command {
 
     @Override
     public void execute() {
-        input = RobotContainer.controls.getJoystickAxes()[2];
+        input = RobotContainer.controls.getJoystickAxesFromOperatorJoystick()[2];
         input = applyDeadband(input, 0.15);
 
-        turret.setVoltage(input * 0.1);
+        turret.setPercent(-input * 0.1); // 0.5 is max speed factor for manual control, can be tuned
     }
 
     private static double applyDeadband(double x, double deadBand) {

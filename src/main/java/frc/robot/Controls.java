@@ -24,6 +24,7 @@ import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.climber.PrepareClimbCommand;
+import frc.robot.commands.turret.SmartTurret;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
@@ -137,9 +138,16 @@ public class Controls implements Sendable {
                                 }));
 
                 xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
-                yButtonOperator.onTrue(
-                                new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret),
-                                                new TurretControlled(RobotContainer.turret)));
+                yButtonOperator.toggleOnTrue(new StartEndCommand(
+                                () -> {
+                                        RobotContainer.turret
+                                                        .setDefaultCommand(new TurretControlled(RobotContainer.turret));
+                                        automatedTurret = false;
+                                },
+                                () -> {
+                                        RobotContainer.turret.setDefaultCommand(new SmartTurret(RobotContainer.turret));
+                                        automatedTurret = true;
+                                }));
                 leftStickOperator.onTrue(new TurretZeroCommand(RobotContainer.turret));
 
                 ltButtonDrive
@@ -155,15 +163,16 @@ public class Controls implements Sendable {
                                 RobotContainer.intake));
 
                 rbButtonOperator.onTrue(
-                        new InstantCommand(() -> {
-                                if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
-                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_STATIONARY_TURRETFIX);
-                                }
-                                else {
-                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
-                                }
-                        })
-                );
+                                new InstantCommand(() -> {
+                                        if (RobotContainer.calculationSubsystem
+                                                        .getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
+                                                RobotContainer.calculationSubsystem.setShootingMode(
+                                                                ShootingMode.MODE_STATIONARY_TURRETFIX);
+                                        } else {
+                                                RobotContainer.calculationSubsystem
+                                                                .setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
+                                        }
+                                }));
 
                 xButtonOperator.whileTrue(
                                 new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
@@ -188,12 +197,28 @@ public class Controls implements Sendable {
                 Shuffleboard.getTab("Drive").add("Controls", this);
         }
 
-        public double[] getJoystickAxes() {
+        public double[] getJoystickAxesFromDriveJoystick() {
                 double[] joystickAxes = {
                                 driveJoystick.getLeftX(),
                                 driveJoystick.getLeftY(),
                                 driveJoystick.getRightX(),
                                 driveJoystick.getRightY()
+                };
+                for (int i = 0; i < joystickAxes.length; i++) {
+                        if (Math.abs(joystickAxes[i]) < Constants.Controls.deadBandDrive) {
+                                joystickAxes[i] = 0.0;
+                        }
+                        joystickAxes[i] *= getAccelerationSensitivity();
+                }
+                return joystickAxes;
+        }
+
+        public double[] getJoystickAxesFromOperatorJoystick() {
+                double[] joystickAxes = {
+                                operatorJoystick.getLeftX(),
+                                operatorJoystick.getLeftY(),
+                                operatorJoystick.getRightX(),
+                                operatorJoystick.getRightY()
                 };
                 for (int i = 0; i < joystickAxes.length; i++) {
                         if (Math.abs(joystickAxes[i]) < Constants.Controls.deadBandDrive) {

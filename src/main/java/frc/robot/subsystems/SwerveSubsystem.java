@@ -178,7 +178,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void driveWithJoysticks() {
-        double[] joystickAxes = RobotContainer.controls.getJoystickAxes();
+        double[] joystickAxes = RobotContainer.controls.getJoystickAxesFromDriveJoystick();
         if (!driveIsAutomated) {
             int i = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1 : -1; // TODO check the orElse: maybe rather give error if cannot get the alliance?
             if (Constants.SwerveSubsystem.oldTurnSystem) {

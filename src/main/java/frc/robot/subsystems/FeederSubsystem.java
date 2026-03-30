@@ -48,15 +48,16 @@ public class FeederSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("/Feedexer/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity(), edu.wpi.first.units.Units.RPM);
-        Logger.recordOutput("/Feedexer/FeederCurrent", feederMotor.asSparkMax().getOutputCurrent(), edu.wpi.first.units.Units.Amps);
+        Logger.recordOutput("/Feeder/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity(), edu.wpi.first.units.Units.RPM);
+        Logger.recordOutput("/Feeder/FeederCurrent", feederMotor.asSparkMax().getOutputCurrent(), edu.wpi.first.units.Units.Amps);
         Logger.recordOutput("/Feeder/FeederRPMSetpoint", feederMotor.asSparkMax().getClosedLoopController().getSetpoint(), edu.wpi.first.units.Units.RPM);
-        Logger.recordOutput("/Feedexer/ServoAngle", servoFeeder.getAngle(), edu.wpi.first.units.Units.Degrees);
+        Logger.recordOutput("/Feeder/ServoAngle", servoFeeder.getAngle(), edu.wpi.first.units.Units.Degrees);
     }
 
     public void run(double topRpm) {
         // velocity control takes RPM as input
-        feederMotor.asSparkMax().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
+        // feederMotor.asSparkMax().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
+        feederMotor.set(1);
     }
 
     public void setPercent(double feeder, double indexer) {

@@ -37,6 +37,6 @@ public class SmartTurret extends Command {
 
     @Override
     public boolean isFinished() {
-        return false;
+        return !RobotContainer.controls.isTurretAutomated();
     }
 }

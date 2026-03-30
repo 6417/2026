@@ -48,9 +48,9 @@ public class IndexerSubsystem extends SubsystemBase {
     public void periodic() {
         Logger.recordOutput("Indexer/BeamBreak", isBallDetected());
         Logger.recordOutput("Indexer/BeamBreakRaw", beamBreak.get());
-        Logger.recordOutput("/Feedexer/IndexerCurrent", indexerMotor.asSparkMax().getOutputCurrent(), Units.Amps);
-        Logger.recordOutput("/Feedexer/IndexerRPM", indexerMotor.asSparkMax().getEncoder().getVelocity(), Units.RPM);
-        Logger.recordOutput("/Feedexer/IndexerRPMSetpoint", indexerMotor.asSparkMax().getClosedLoopController().getSetpoint(), Units.RPM);
+        Logger.recordOutput("Indexer/IndexerCurrent", indexerMotor.asSparkMax().getOutputCurrent(), Units.Amps);
+        Logger.recordOutput("Indexer/IndexerRPM", indexerMotor.asSparkMax().getEncoder().getVelocity(), Units.RPM);
+        Logger.recordOutput("Indexer/IndexerRPMSetpoint", indexerMotor.asSparkMax().getClosedLoopController().getSetpoint(), Units.RPM);
     }
 
     public void stop() {
