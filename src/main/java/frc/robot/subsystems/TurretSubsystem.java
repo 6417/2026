@@ -70,8 +70,6 @@ public class TurretSubsystem extends SubsystemBase {
 
         resetRotationEncoder();
 
-        setDefaultCommand(new SmartTurret(this));
-
         Shuffleboard.getTab("Turret").add(this);
     }
 

@@ -120,6 +120,8 @@ public class Controls implements Sendable {
         }
 
         public Controls() {
+                RobotContainer.turret.setDefaultCommand(new SmartTurret());
+
                 intakeButton.whileTrue(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(true)))
                                 .onFalse(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(false)));
 
@@ -158,7 +160,7 @@ public class Controls implements Sendable {
                                         automatedTurret = false;
                                 },
                                 () -> {
-                                        RobotContainer.turret.setDefaultCommand(new SmartTurret(RobotContainer.turret));
+                                        RobotContainer.turret.setDefaultCommand(new SmartTurret());
                                         automatedTurret = true;
                                 }));
                 leftStickOperator.onTrue(new TurretZeroCommand());
