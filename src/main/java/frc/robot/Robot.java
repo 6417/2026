@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.commands.climber.ClearHatchetForMovement;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.turret.ZeroGroup;
+import frc.robot.utils.Utils;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -62,6 +63,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     robotContainer = new RobotContainer();
     RobotContainer.climber.disableServoHatchet();
 
+    DriverStation.silenceJoystickConnectionWarning(true);
   }
 
   /**
@@ -77,6 +79,36 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    boolean activeHub = Utils.isHubActive();
+
+    Logger.recordOutput("isHubActive", activeHub);
+
+    double time =  DriverStation.getMatchTime();
+
+    double shiftTime = -1;
+
+    if (DriverStation.isAutonomousEnabled()) {
+      shiftTime = time;
+      Logger.recordOutput("ShiftTime", shiftTime);
+      return;
+    }
+  
+    if (time > 130 && !activeHub) {
+      shiftTime = time - 130;
+    } else if (time > 105) {
+      shiftTime = time - 105;
+    } else if (time > 80) {
+      shiftTime = time - 80;
+    } else if (time > 55) {
+      shiftTime = time - 55;
+    } else if (time > 30 && !activeHub) {
+      shiftTime = time - 30;
+    } else {
+      shiftTime = time;
+    }
+
+    Logger.recordOutput("ShiftTime", shiftTime);
   }
 
   /**
