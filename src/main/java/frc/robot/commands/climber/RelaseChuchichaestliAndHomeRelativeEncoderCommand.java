@@ -9,15 +9,12 @@ import frc.robot.RobotContainer;
 import frc.robot.subsystems.ClimberSubsystem;
 
 public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends SequentialCommandGroup {
-    private final ClimberSubsystem climber;
-
-    public RelaseChuchichaestliAndHomeRelativeEncoderCommand(ClimberSubsystem climber) {
-        this.climber = climber;
-        addRequirements(this.climber);
+    public RelaseChuchichaestliAndHomeRelativeEncoderCommand() {
+        addRequirements(RobotContainer.climber);
         
         addCommands(
             new ClearHatchetForMovement(),
-            new HomingMovement(climber),
+            new HomingMovement(),
             new WaitCommand(0.5),
             new InstantCommand(()->RobotContainer.climber.stop())
         );
@@ -26,29 +23,27 @@ public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Sequentia
     // Inner Command für die eigentliche Homing-Bewegung
     private static class HomingMovement extends Command {
         private boolean done = false;
-        private final ClimberSubsystem climber;
 
-        public HomingMovement(ClimberSubsystem climber) {
-            this.climber = climber;
-            addRequirements(this.climber);
+        public HomingMovement() {
+            addRequirements(RobotContainer.climber);
         }
 
         @Override
         public void initialize() {
             done = false;
-            climber.startHoming();
+            RobotContainer.climber.startHoming();
         }
 
         @Override
         public void execute() {
-            if (climber.isMotorBlockedDetectionByAmperage(Constants.Climber.homingAmpsThreshold)) {
+            if (RobotContainer.climber.isMotorBlockedDetectionByAmperage(Constants.Climber.homingAmpsThreshold)) {
                 done = true;
             }
         }
 
         @Override
         public void end(boolean interrupted) {
-            climber.endHoming();
+            RobotContainer.climber.endHoming();
         }
 
         @Override

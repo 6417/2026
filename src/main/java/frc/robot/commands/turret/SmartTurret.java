@@ -8,11 +8,9 @@ import frc.robot.RobotContainer;
 
 public class SmartTurret extends Command {
     private final TurretSubsystem turret;
-
     public SmartTurret(TurretSubsystem turret) {
         this.turret = turret;
-         
-        addRequirements(turret); // don't add drive
+        addRequirements(turret);
     }
 
     @Override

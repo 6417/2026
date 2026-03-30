@@ -5,14 +5,12 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utils.Utils;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
-    private IntakeSubsystem intake;
-
-    public IntakeCommand(IntakeSubsystem intake) {
-        this.intake = intake;
-        addRequirements(intake);
+    public IntakeCommand() {
+        addRequirements(RobotContainer.intake);
     }
 
     @Override
@@ -21,20 +19,20 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        boolean isStuck = intake.getCurrentOutput() > Constants.Intake.currentStuck;
+        boolean isStuck = RobotContainer.intake.getCurrentOutput() > Constants.Intake.currentStuck;
         Logger.recordOutput("Intake/IsStuck", isStuck);
         if (isStuck) {
             System.out.println("> Detected: Intake is stuck. DUTY CYCLE: 80%");
-            intake.setPercent(0.8);
+            RobotContainer.intake.setPercent(0.8);
         }
         else {
-            intake.ballsIn();
+            RobotContainer.intake.ballsIn();
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        intake.stop();
+        RobotContainer.intake.stop();
     }
 
     @Override

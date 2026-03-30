@@ -126,8 +126,21 @@ public class Controls implements Sendable {
                 burgerButtonDrive.onTrue(new InstantCommand(() -> {
                         RobotContainer.drive.zeroGyroWithAlliance();
                 }));
-                rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+                // Driver fallback if limelight pose updates become unreliable:
+                // BACK disables vision fusion and resets odometry to the known field placement.
+                windowsButtonDrive.onTrue(new InstantCommand(() -> {
+                        // TODO: Test on the real field that this button snaps to the intended
+                        // starting pose for both alliances and that vision re-enable behaves as expected.
+                        if (RobotContainer.vision.isVisionFusionEnabled()) {
+                                RobotContainer.vision.disableVisionFusion();
+                                RobotContainer.drive.resetOdometryToManualSetPose();
+                        }
+                        else {
+                                RobotContainer.vision.enableVisionFusion();
+                        }
+                }));
+                rbButtonDrive.whileTrue(new DriveToTrench());
+                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand());
 
                 lbButtonDrive.whileTrue(Commands.startEnd(
                                 () -> {
@@ -141,21 +154,21 @@ public class Controls implements Sendable {
                 yButtonOperator.toggleOnTrue(new StartEndCommand(
                                 () -> {
                                         RobotContainer.turret
-                                                        .setDefaultCommand(new TurretControlled(RobotContainer.turret));
+                                                        .setDefaultCommand(new TurretControlled());
                                         automatedTurret = false;
                                 },
                                 () -> {
                                         RobotContainer.turret.setDefaultCommand(new SmartTurret(RobotContainer.turret));
                                         automatedTurret = true;
                                 }));
-                leftStickOperator.onTrue(new TurretZeroCommand(RobotContainer.turret));
+                leftStickOperator.onTrue(new TurretZeroCommand());
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
                                                 .alongWith(new ParallelCommandGroup(new PulseFeederCommand(),
                                                                 new ServoCommand()).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
-                rtButtonOperator.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+                rtButtonOperator.whileTrue(new DriveToShootpos());
 
                 lbButtonOperator.whileTrue(Commands.startEnd(
                                 () -> RobotContainer.intake.ballsOut(),
@@ -192,7 +205,7 @@ public class Controls implements Sendable {
                                 () -> RobotContainer.climber.setManualPercent(0)));
                 pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
                 windowsButtonOperator
-                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber));
+                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
         }
@@ -247,6 +260,7 @@ public class Controls implements Sendable {
                                 val -> slewRateLimited = val);
                 builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
                 builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
+                builder.addBooleanProperty("isAutomatedTurret", () -> isTurretAutomated(), null);
         }
 
 }

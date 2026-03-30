@@ -27,6 +27,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -45,6 +47,7 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
+    private final Field2d field = new Field2d();
     private boolean driveIsAutomated;
 
     private boolean blueAlliance;
@@ -86,6 +89,7 @@ public class SwerveSubsystem extends SubsystemBase {
         replaceSwerveModuleFeedforward(Constants.SwerveSubsystem.feedforward);
 
         drive.stopOdometryThread();
+        SmartDashboard.putData("Field", field);
 
         setupPathPlanner();
     }
@@ -96,6 +100,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         updateOdometry();
         Logger.recordOutput("Swerve/Odometry", drive.getPose());
+        field.setRobotPose(drive.getPose());
         Logger.recordOutput("Swerve/driveIsAutomated", driveIsAutomated);
         Logger.recordOutput("Swerve/intakeMode", intakeMode);
         driveWithJoysticks(); // So you can drive with the joysticks in the diffrent modes of the robot. If
@@ -109,6 +114,27 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public void resetOdometry(Pose2d pose) {
         drive.resetOdometry(pose);
+    }
+
+    public Pose2d getManualOdometrySetPose() {
+        return getAlliance() == Alliance.Blue
+                ? Constants.Field.ODOMETRY_SET_POSE_BLUE
+                : Constants.Field.ODOMETRY_SET_POSE_RED;
+    }
+
+    public void resetOdometryToManualSetPose() {
+        Pose2d manualSetPose = getManualOdometrySetPose();
+        resetOdometry(manualSetPose);
+
+        double headingDegrees = manualSetPose.getRotation().getDegrees();
+        if (RobotContainer.vision.isUnderTurretLimelightConnected()) {
+            LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, headingDegrees, 0, 0, 0, 0, 0);
+        }
+        if (RobotContainer.vision.isOnTurretLimelightConnected()) {
+            LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, headingDegrees, 0, 0, 0, 0, 0);
+        }
+
+        Logger.recordOutput("Swerve/ManualOdometrySetPose", manualSetPose);
     }
 
     public void setupPathPlanner() {
