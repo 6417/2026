@@ -155,12 +155,12 @@ public class LEDSubsystem extends SubsystemBase {
         // still clearly conveying alliance color.
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             RGB color = (i % 4 < 2) ? primary : accent;
-            setScaledRgb(i, color);
+            setScaledRgb(i, color, 1.0);
         }
         leds.setData(ledBuffer);
     }
 
-    private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) {
+    private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { //By AI
         double phase = Timer.getFPGATimestamp() * frequencyHz;
         boolean on = ((int) Math.floor(phase)) % 2 == 0;
         setAllScaled(on ? onColor : offColor);
