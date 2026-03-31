@@ -19,7 +19,7 @@ import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
-import frc.robot.commands.shooter.ServoCommand;
+// import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
@@ -167,8 +167,8 @@ public class Controls implements Sendable {
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
-                                                .alongWith(new ParallelCommandGroup(new PulseFeederCommand(),
-                                                                new ServoCommand()).repeatedly()))
+                                                .alongWith(new ParallelCommandGroup(new PulseFeederCommand() /*,
+                                                                new ServoCommand() */).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
                 rtButtonOperator.whileTrue(new DriveToShootpos());
 

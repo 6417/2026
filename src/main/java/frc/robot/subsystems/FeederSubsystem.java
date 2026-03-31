@@ -20,10 +20,10 @@ import frc.robot.Constants;
 public class FeederSubsystem extends SubsystemBase {
     private FridoSparkMax feederMotor;
     private SparkMaxConfig motorConfig;
-    private final Servo servoFeeder;
+    // private final Servo servoFeeder;
 
     public FeederSubsystem() {
-        servoFeeder = new FridoServoMotor(9);
+        // servoFeeder = new FridoServoMotor(9);
         feederMotor = new FridoSparkMax(Constants.Feeder.motorId);
 
         // TODO: Check if motor is inverted.
@@ -43,7 +43,7 @@ public class FeederSubsystem extends SubsystemBase {
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
         feederMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
                 PersistMode.kPersistParameters);
-        servoFeeder.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
+        // servoFeeder.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class FeederSubsystem extends SubsystemBase {
         Logger.recordOutput("/Feeder/FeederRPM", feederMotor.asSparkMax().getEncoder().getVelocity(), edu.wpi.first.units.Units.RPM);
         Logger.recordOutput("/Feeder/FeederCurrent", feederMotor.asSparkMax().getOutputCurrent(), edu.wpi.first.units.Units.Amps);
         Logger.recordOutput("/Feeder/FeederRPMSetpoint", feederMotor.asSparkMax().getClosedLoopController().getSetpoint(), edu.wpi.first.units.Units.RPM);
-        Logger.recordOutput("/Feeder/ServoAngle", servoFeeder.getAngle(), edu.wpi.first.units.Units.Degrees);
+        // Logger.recordOutput("/Feeder/ServoAngle", servoFeeder.getAngle(), edu.wpi.first.units.Units.Degrees);
     }
 
     public void run(double topRpm) {
@@ -68,11 +68,11 @@ public class FeederSubsystem extends SubsystemBase {
         feederMotor.stopMotor();
     }
 
-    public void enableServoHatchet() {
-        servoFeeder.setAngle(115);
-    }
+    // public void enableServoHatchet() {
+    //     servoFeeder.setAngle(115);
+    // }
 
-    public void disableServoHatchet() {
-        servoFeeder.setAngle(45);
-    }
+    // public void disableServoHatchet() {
+    //     servoFeeder.setAngle(45);
+    // }
 }
