@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.LEDPattern.GradientType;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.AddressableLED.ColorOrder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -51,6 +52,7 @@ public class LEDSubsystem extends SubsystemBase {
 
     private final AddressableLED leds;
     private final AddressableLEDBuffer ledBuffer;
+    private final AddressableLEDBuffer rainbowFullGradientBuffer;
     private LEDPattern ledsPattern;
 
     private Optional<RGB> manualOverride = Optional.empty();
@@ -59,17 +61,22 @@ public class LEDSubsystem extends SubsystemBase {
     public LEDSubsystem() {
         leds = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
+        rainbowFullGradientBuffer = new AddressableLEDBuffer(6767);
         ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown  ));
         leds.setLength(ledBuffer.getLength());
         setAll(OFF);
         leds.setData(ledBuffer);
         leds.start();
+        leds.setColorOrder(AddressableLED.ColorOrder.kRGB);
+        setAll(RED);
     }
 
     @Override
     public void periodic() {
-        synchronizeLEDsWithRobotState();
         Logger.recordOutput("LEDs/Mode", activeMode.name());
+        ledsPattern.applyTo(ledBuffer);
+        leds.setData(ledBuffer);
+        
     }
 
     /**
@@ -78,15 +85,17 @@ public class LEDSubsystem extends SubsystemBase {
      * @param brightness Brightness of the effect
      * @param scrollSpeed Speed in Meters per second of the rainbow effect.
      */
-    public void setRainbowPattern(int saturation, int brightness, double scrollSpeed){
-        ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(scrollSpeed), Constants.LEDs.ledsSpacing);
-        ledsPattern.applyTo(ledBuffer);
-        AddressableLEDBufferView myview = ledBuffer.createView(0, 1);
+    public void setRainbowPattern(int saturation, int brightness){
+        ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), Constants.LEDs.ledsSpacing);
+        ledsPattern.applyTo(rainbowFullGradientBuffer);
+        leds.setLength(rainbowFullGradientBuffer.getLength());
+        leds.setData(rainbowFullGradientBuffer);
     }
 
     
 
     public void setManualColor(int red, int green, int blue) {
+        leds.setLength(ledBuffer.getLength());
         manualOverride = Optional.of(new RGB(red, green, blue));
         activeMode = LEDMode.MANUAL;
         setAllScaled(manualOverride.get());
@@ -170,12 +179,15 @@ public class LEDSubsystem extends SubsystemBase {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             ledBuffer.setRGB(i, color.red, color.green, color.blue);
         }
+        leds.setLength(ledBuffer.getLength());
+        leds.setData(ledBuffer);
     }
 
     private void setAllScaled(RGB color) {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             setScaledRgb(i, color, 0.25);
         }
+        leds.setLength(ledBuffer.getLength());
         leds.setData(ledBuffer);
     }
 

@@ -85,11 +85,12 @@ public class Constants {
     public static final class LEDs {
         public static final int ledPort = 9;
         public static final int ledBufferLength = 12;
+        
         public static final Distance ledsSpacing = Meters.of(0.035);
 
         // Lower default brightness keeps the strip readable without blinding
         // drivers in the queue or while testing indoors.
-        public static final double brightnessScale = 0.25;
+        public static final double brightnessScale = 1;
     }
 
     public static final class Limelight {

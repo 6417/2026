@@ -7,6 +7,7 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -19,7 +20,7 @@ import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.PulseFeederCommand;
-import frc.robot.commands.shooter.ServoCommand;
+// import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
@@ -132,12 +133,12 @@ public class Controls implements Sendable {
                 // BACK disables vision fusion and resets odometry to the known field placement.
                 windowsButtonDrive.onTrue(new InstantCommand(() -> {
                         // TODO: Test on the real field that this button snaps to the intended
-                        // starting pose for both alliances and that vision re-enable behaves as expected.
+                        // starting pose for both alliances and that vision re-enable behaves as
+                        // expected.
                         if (RobotContainer.vision.isVisionFusionEnabled()) {
                                 RobotContainer.vision.disableVisionFusion();
                                 RobotContainer.drive.resetOdometryToManualSetPose();
-                        }
-                        else {
+                        } else {
                                 RobotContainer.vision.enableVisionFusion();
                         }
                 }));
@@ -167,8 +168,11 @@ public class Controls implements Sendable {
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
-                                                .alongWith(new ParallelCommandGroup(new PulseFeederCommand(),
-                                                                new ServoCommand()).repeatedly()))
+                                                .alongWith(new ParallelCommandGroup(
+                                                                new PulseFeederCommand()/*
+                                                                                         * ,
+                                                                                         * new ServoCommand()
+                                                                                         */).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
                 rtButtonOperator.whileTrue(new DriveToShootpos());
 
@@ -210,6 +214,20 @@ public class Controls implements Sendable {
                                 .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
+
+                // SmartDashboard
+                SmartDashboard.putData("RainbowLED",
+                                new InstantCommand(() -> RobotContainer.leds.setRainbowPattern(255, 255)));
+                SmartDashboard.putData("Red LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 0)));
+                SmartDashboard.putData("Blue LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 0, 255)));
+                SmartDashboard.putData("Green LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 255, 0)));
+                SmartDashboard.putData("Violet LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 255)));
+                SmartDashboard.putData("Cyan LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 255, 255)));
         }
 
         public double[] getJoystickAxesFromDriveJoystick() {
@@ -263,6 +281,7 @@ public class Controls implements Sendable {
                 builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
                 builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
                 builder.addBooleanProperty("isAutomatedTurret", () -> isTurretAutomated(), null);
+
         }
 
 }

@@ -9,7 +9,7 @@ import frc.robot.commands.turret.SmartTurret;
 public class ShooterParallelCommandGroup extends ParallelCommandGroup {
     public ShooterParallelCommandGroup() {
         super.addCommands(new ShootCommand(),
-        new ServoCommand(),
+        // new ServoCommand(),
         new PulseFeederCommand(),
         new SmartTurret()
         );
