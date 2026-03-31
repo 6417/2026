@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,8 +16,10 @@ import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.LEDPattern.GradientType;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color.RGBChannel;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.AddressableLED.ColorOrder;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -28,6 +31,7 @@ public class LEDSubsystem extends SubsystemBase {
         SHOOT_READY,
         VISION_DISABLED,
         CLIMB_LATCHED,
+        RAINBOWFULLGRADIENT,
         MANUAL
     }
 
@@ -49,20 +53,21 @@ public class LEDSubsystem extends SubsystemBase {
     private static final RGB ORANGE = new RGB(255, 90, 0);
     private static final RGB GREEN = new RGB(0, 255, 0);
     private static final RGB WHITE = new RGB(255, 255, 255);
-
+    
     private final AddressableLED leds;
     private final AddressableLEDBuffer ledBuffer;
-    private final AddressableLEDBuffer rainbowFullGradientBuffer;
     private LEDPattern ledsPattern;
-
+    
     private Optional<RGB> manualOverride = Optional.empty();
     private LEDMode activeMode = LEDMode.ALLIANCE_IDLE;
 
+    private SetRainbowFullGradient setRainbowFullGradientCommand;
+    
     public LEDSubsystem() {
+        setRainbowFullGradientCommand = new SetRainbowFullGradient();
         leds = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
-        rainbowFullGradientBuffer = new AddressableLEDBuffer(6767);
-        ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown  ));
+        ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown));
         leds.setLength(ledBuffer.getLength());
         setAll(OFF);
         leds.setData(ledBuffer);
@@ -76,23 +81,60 @@ public class LEDSubsystem extends SubsystemBase {
         Logger.recordOutput("LEDs/Mode", activeMode.name());
         ledsPattern.applyTo(ledBuffer);
         leds.setData(ledBuffer);
-        
+
+    }
+    public void setActiveMode(LEDMode mode) {
+        activeMode = mode;
+            if (activeMode == LEDMode.RAINBOWFULLGRADIENT) {
+                setRainbowFullGradientCommand.schedule();
+            }
     }
 
     /**
      * Rainbow! =)
-     * @param saturation HUE Saturation of the colors
-     * @param brightness Brightness of the effect
+     * 
+     * @param saturation  HUE Saturation of the colors
+     * @param brightness  Brightness of the effect
      * @param scrollSpeed Speed in Meters per second of the rainbow effect.
      */
-    public void setRainbowPattern(int saturation, int brightness){
-        ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), Constants.LEDs.ledsSpacing);
-        ledsPattern.applyTo(rainbowFullGradientBuffer);
-        leds.setLength(rainbowFullGradientBuffer.getLength());
-        leds.setData(rainbowFullGradientBuffer);
+    public void setRainbowPattern(int saturation, int brightness) {
+        ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(1),
+                Constants.LEDs.ledsSpacing);
+        ledsPattern.applyTo(ledBuffer);
+        leds.setData(ledBuffer);
     }
 
-    
+    public class SetRainbowFullGradient extends Command {
+        private int currentHue;
+        private Color currentColor;
+
+        SetRainbowFullGradient() {
+            currentHue = 0;
+            currentColor = new Color();
+        }
+
+        @Override
+        public void execute() {
+            ++currentHue;
+            if (currentHue >= 180) {
+                currentHue = 0;
+            }
+            RobotContainer.leds.setManualColor(
+                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kRed),
+                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kGreen),
+                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue));
+        }
+
+        @Override
+        public void end(boolean interrupted) {
+        }
+
+        @Override
+        public boolean isFinished() {
+            return RobotContainer.leds.getActiveMode() != LEDMode.RAINBOWFULLGRADIENT;
+        }
+
+    }
 
     public void setManualColor(int red, int green, int blue) {
         leds.setLength(ledBuffer.getLength());
@@ -109,7 +151,7 @@ public class LEDSubsystem extends SubsystemBase {
         return activeMode;
     }
 
-    public void synchronizeLEDsWithRobotState() { //By AI
+    public void synchronizeLEDsWithRobotState() { // By AI
         if (manualOverride.isPresent()) {
             activeMode = LEDMode.MANUAL;
             setAllScaled(manualOverride.get());
@@ -155,7 +197,7 @@ public class LEDSubsystem extends SubsystemBase {
         setAllianceIdlePattern();
     }
 
-    private void setAllianceIdlePattern() { //By AI
+    private void setAllianceIdlePattern() { // By AI
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         RGB primary = alliance == Alliance.Red ? RED : BLUE;
         RGB accent = WHITE;
@@ -169,7 +211,7 @@ public class LEDSubsystem extends SubsystemBase {
         leds.setData(ledBuffer);
     }
 
-    private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { //By AI
+    private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { // By AI
         double phase = Timer.getFPGATimestamp() * frequencyHz;
         boolean on = ((int) Math.floor(phase)) % 2 == 0;
         setAllScaled(on ? onColor : offColor);
@@ -179,7 +221,6 @@ public class LEDSubsystem extends SubsystemBase {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             ledBuffer.setRGB(i, color.red, color.green, color.blue);
         }
-        leds.setLength(ledBuffer.getLength());
         leds.setData(ledBuffer);
     }
 
@@ -187,7 +228,6 @@ public class LEDSubsystem extends SubsystemBase {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             setScaledRgb(i, color, 0.25);
         }
-        leds.setLength(ledBuffer.getLength());
         leds.setData(ledBuffer);
     }
 

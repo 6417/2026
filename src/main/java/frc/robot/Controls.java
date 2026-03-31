@@ -30,6 +30,7 @@ import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
+import frc.robot.subsystems.LEDSubsystem.LEDMode;
 import frc.robot.Constants;
 
 /**
@@ -217,7 +218,7 @@ public class Controls implements Sendable {
 
                 // SmartDashboard
                 SmartDashboard.putData("RainbowLED",
-                                new InstantCommand(() -> RobotContainer.leds.setRainbowPattern(255, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setActiveMode(LEDMode.RAINBOWFULLGRADIENT)));
                 SmartDashboard.putData("Red LEDs",
                                 new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 0)));
                 SmartDashboard.putData("Blue LEDs",
@@ -228,6 +229,7 @@ public class Controls implements Sendable {
                                 new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 255)));
                 SmartDashboard.putData("Cyan LEDs",
                                 new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 255, 255)));
+                
         }
 
         public double[] getJoystickAxesFromDriveJoystick() {
