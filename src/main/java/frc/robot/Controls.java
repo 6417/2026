@@ -24,6 +24,7 @@ import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.climber.PrepareClimbCommand;
+import frc.robot.commands.turret.SmartTurret;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
@@ -119,6 +120,8 @@ public class Controls implements Sendable {
         }
 
         public Controls() {
+                RobotContainer.turret.setDefaultCommand(new SmartTurret());
+
                 intakeButton.whileTrue(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(true)))
                                 .onFalse(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(false)));
 
@@ -126,12 +129,20 @@ public class Controls implements Sendable {
                         RobotContainer.drive.zeroGyroWithAlliance();
                 }));
                 // Driver fallback if limelight pose updates become unreliable:
-                // BACK disables all vision fusion so pose depends only on wheel odometry + gyro.
-                windowsButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.disableVisionFusion()));
-                // Re-enable both limelight fusion paths once vision is trustworthy again.
-                aButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.vision.enableVisionFusion()));
-                rbButtonDrive.whileTrue(new DriveToTrench(RobotContainer.drive));
-                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand(RobotContainer.intake));
+                // BACK disables vision fusion and resets odometry to the known field placement.
+                windowsButtonDrive.onTrue(new InstantCommand(() -> {
+                        // TODO: Test on the real field that this button snaps to the intended
+                        // starting pose for both alliances and that vision re-enable behaves as expected.
+                        if (RobotContainer.vision.isVisionFusionEnabled()) {
+                                RobotContainer.vision.disableVisionFusion();
+                                RobotContainer.drive.resetOdometryToManualSetPose();
+                        }
+                        else {
+                                RobotContainer.vision.enableVisionFusion();
+                        }
+                }));
+                rbButtonDrive.whileTrue(new DriveToTrench());
+                rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand());
 
                 lbButtonDrive.whileTrue(Commands.startEnd(
                                 () -> {
@@ -142,17 +153,24 @@ public class Controls implements Sendable {
                                 }));
 
                 xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
-                yButtonOperator.onTrue(
-                                new SequentialCommandGroup(new InstantCommand(() -> automatedTurret = !automatedTurret),
-                                                new TurretControlled(RobotContainer.turret)));
-                leftStickOperator.onTrue(new TurretZeroCommand(RobotContainer.turret));
+                yButtonOperator.toggleOnTrue(new StartEndCommand(
+                                () -> {
+                                        RobotContainer.turret
+                                                        .setDefaultCommand(new TurretControlled());
+                                        automatedTurret = false;
+                                },
+                                () -> {
+                                        RobotContainer.turret.setDefaultCommand(new SmartTurret());
+                                        automatedTurret = true;
+                                }));
+                leftStickOperator.onTrue(new TurretZeroCommand());
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
                                                 .alongWith(new ParallelCommandGroup(new PulseFeederCommand(),
                                                                 new ServoCommand()).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
-                rtButtonOperator.whileTrue(new DriveToShootpos(RobotContainer.drive, RobotContainer.turret));
+                rtButtonOperator.whileTrue(new DriveToShootpos());
 
                 lbButtonOperator.whileTrue(Commands.startEnd(
                                 () -> RobotContainer.intake.ballsOut(),
@@ -160,15 +178,16 @@ public class Controls implements Sendable {
                                 RobotContainer.intake));
 
                 rbButtonOperator.onTrue(
-                        new InstantCommand(() -> {
-                                if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
-                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_STATIONARY_TURRETFIX);
-                                }
-                                else {
-                                        RobotContainer.calculationSubsystem.setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
-                                }
-                        })
-                );
+                                new InstantCommand(() -> {
+                                        if (RobotContainer.calculationSubsystem
+                                                        .getShootingMode() == ShootingMode.MODE_MOVEMENT_VIRTUAL) {
+                                                RobotContainer.calculationSubsystem.setShootingMode(
+                                                                ShootingMode.MODE_STATIONARY_TURRETFIX);
+                                        } else {
+                                                RobotContainer.calculationSubsystem
+                                                                .setShootingMode(ShootingMode.MODE_MOVEMENT_VIRTUAL);
+                                        }
+                                }));
 
                 xButtonOperator.whileTrue(
                                 new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
@@ -188,17 +207,33 @@ public class Controls implements Sendable {
                                 () -> RobotContainer.climber.setManualPercent(0)));
                 pov6Operator.onTrue(new InstantCommand(() -> RobotContainer.climber.enableServoHatchet()));
                 windowsButtonOperator
-                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand(RobotContainer.climber));
+                                .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
         }
 
-        public double[] getJoystickAxes() {
+        public double[] getJoystickAxesFromDriveJoystick() {
                 double[] joystickAxes = {
                                 driveJoystick.getLeftX(),
                                 driveJoystick.getLeftY(),
                                 driveJoystick.getRightX(),
                                 driveJoystick.getRightY()
+                };
+                for (int i = 0; i < joystickAxes.length; i++) {
+                        if (Math.abs(joystickAxes[i]) < Constants.Controls.deadBandDrive) {
+                                joystickAxes[i] = 0.0;
+                        }
+                        joystickAxes[i] *= getAccelerationSensitivity();
+                }
+                return joystickAxes;
+        }
+
+        public double[] getJoystickAxesFromOperatorJoystick() {
+                double[] joystickAxes = {
+                                operatorJoystick.getLeftX(),
+                                operatorJoystick.getLeftY(),
+                                operatorJoystick.getRightX(),
+                                operatorJoystick.getRightY()
                 };
                 for (int i = 0; i < joystickAxes.length; i++) {
                         if (Math.abs(joystickAxes[i]) < Constants.Controls.deadBandDrive) {
@@ -227,6 +262,7 @@ public class Controls implements Sendable {
                                 val -> slewRateLimited = val);
                 builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
                 builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
+                builder.addBooleanProperty("isAutomatedTurret", () -> isTurretAutomated(), null);
         }
 
 }

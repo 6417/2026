@@ -127,15 +127,18 @@ public class VisionSubsystem extends SubsystemBase {
         if (mt1OnTurret.tagCount == 1 && mt1OnTurret.rawFiducials.length == 1) {
             if (mt1OnTurret.rawFiducials[0].ambiguity > .7) {
                 doRejectUpdate = true;
+                Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "High ambiguity");
             }
             if (mt1OnTurret.rawFiducials[0].distToCamera > 4) {
                 doRejectUpdate = true;
+                Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "Tag too far away");
             }
         }
 
         // Reject if no tags
         if (mt1OnTurret.tagCount == 0) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "No tags visible");
         }
 
         // Reject if spinning too fast (same as UnderTurret)
@@ -143,6 +146,7 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
         if (onTurretOmegaDeg > 45.0) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "Spinning too fast");
         }
 
         if (!doRejectUpdate) {
@@ -150,13 +154,20 @@ public class VisionSubsystem extends SubsystemBase {
 
             // // NO ODOMETRY UPDATES with **ON** turret limelight BUT log it
             // RobotContainer.drive.getSwerveDrive()
-            //         .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist * 2)); // On-turret limelight gets moved around more due to being on the turret, so we multiply stdDevs by 2 to account for that.
+            // .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist
+            // * 2)); // On-turret limelight gets moved around more due to being on the
+            // turret, so we multiply stdDevs by 2 to account for that.
             // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
-            //         mt1OnTurret.pose,
-            //         mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
+            // mt1OnTurret.pose,
+            // mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of
+            // latency compensation internally, so we just need to pass the timestamp from
+            // the limelight.
+            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "None");
         }
 
-        Logger.recordOutput("Swerve/OnTurretPose", mt1OnTurret.pose);
+        Logger.recordOutput("Vision/OnTurretPose", mt1OnTurret.pose);
+        Logger.recordOutput("Vision/OnTurretTagCount", mt1OnTurret.tagCount);
+        Logger.recordOutput("Vision/DoRejectUpdateOnTurret", doRejectUpdate);
     }
 
     private void updateOdometryWithUnderTurretLimelight() {
@@ -171,22 +182,26 @@ public class VisionSubsystem extends SubsystemBase {
                 RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
         if (underTurretOmegaDeg > 45.0) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Spinning too fast");
         }
 
         // Reject if no tags visible
         if (mt2UnderTurret.tagCount == 0) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "No tags visible");
         }
 
         // Reject if tag is too far away — pose jumps wildly at long range
         if (mt2UnderTurret.avgTagDist > 7.5) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Tag too far away");
         }
 
         // Reject if linear speed is too high — latency causes stale pose estimates
         edu.wpi.first.math.kinematics.ChassisSpeeds speeds = RobotContainer.drive.getRobotVelocity();
         if (Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) > 1.5) {
             doRejectUpdate = true;
+            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Linear speed too high");
         }
 
         if (!doRejectUpdate) {
@@ -195,8 +210,13 @@ public class VisionSubsystem extends SubsystemBase {
             RobotContainer.drive.getSwerveDrive()
                     .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist));
             RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose,
-                    mt2UnderTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation internally, so we just need to pass the timestamp from the limelight.
+                    mt2UnderTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation
+                                                      // internally, so we just need to pass the timestamp from the
+                                                      // limelight.
+            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "None");
         }
-        Logger.recordOutput("Swerve/UnderTurretPose", mt2UnderTurret.pose);
+        Logger.recordOutput("Vision/DoRejectUpdateUnderTurret", doRejectUpdate);
+        Logger.recordOutput("Vision/UnderTurretPose", mt2UnderTurret.pose);
+        Logger.recordOutput("Vision/UnderTurretTagCount", mt2UnderTurret.tagCount);
     }
 }

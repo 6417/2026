@@ -62,8 +62,8 @@ public class RobotContainer {
         namedCommands = new HashMap<String,Command>();
 
         namedCommands.put("Shoot", new ShooterParallelCommandGroup());
-        namedCommands.put("SmartTurret", new SmartTurret(turret));
-        namedCommands.put("Intake", new IntakeCommand(intake));
+        namedCommands.put("SmartTurret", new SmartTurret());
+        namedCommands.put("Intake", new IntakeCommand());
         namedCommands.put("ZeroGroup", new ZeroGroup());
 
         NamedCommands.registerCommands(namedCommands);

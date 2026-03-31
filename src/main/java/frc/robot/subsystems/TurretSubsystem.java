@@ -13,6 +13,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,8 +49,8 @@ public class TurretSubsystem extends SubsystemBase {
         motorConfig.closedLoop.maxMotion.apply(smartMotionConfig);
 
         motorConfig.closedLoop.p(pidValues.kP, ClosedLoopSlot.kSlot0).i(pidValues.kI, ClosedLoopSlot.kSlot0)
-            .d(pidValues.kD, ClosedLoopSlot.kSlot0)
-            .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
+                .d(pidValues.kD, ClosedLoopSlot.kSlot0)
+                .outputRange(pidValues.peakOutputReverse, pidValues.peakOutputForward, ClosedLoopSlot.kSlot0);
         motorConfig.closedLoop.iZone(Constants.TurretSubsystem.iZone, ClosedLoopSlot.kSlot0);
         motorConfig.closedLoop.iMaxAccum(Constants.TurretSubsystem.iMaxAccum, ClosedLoopSlot.kSlot0);
 
@@ -58,23 +59,22 @@ public class TurretSubsystem extends SubsystemBase {
         ffConfig.kV(Constants.TurretSubsystem.kFeedForward.kV);
         ffConfig.kA(Constants.TurretSubsystem.kFeedForward.kA);
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
-        
-        motorConfig.smartCurrentLimit(Constants.TurretSubsystem.stallCurrentLimit, Constants.TurretSubsystem.freeCurrentLimit);
 
-        turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        motorConfig.smartCurrentLimit(Constants.TurretSubsystem.stallCurrentLimit,
+                Constants.TurretSubsystem.freeCurrentLimit);
+
+        turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
+                PersistMode.kPersistParameters);
 
         angleLimiter = new SlewRateLimiter(18);
 
         resetRotationEncoder();
 
-        setDefaultCommand(new SmartTurret(this));
-
-
         Shuffleboard.getTab("Turret").add(this);
     }
 
     @Override
-    public void periodic(){
+    public void periodic() {
         Logger.recordOutput("Turret/DesiredRotation", desiredPosition);
         Logger.recordOutput("Turret/DesiredRotationDegrees", desiredPosition / Constants.TurretSubsystem.kGearRatio
                 * Constants.TurretSubsystem.kConversationRatio * 360, edu.wpi.first.units.Units.Degrees);
@@ -91,12 +91,11 @@ public class TurretSubsystem extends SubsystemBase {
         this.angleLimiter.reset(ticks);
         this.angleLimiter.calculate(ticks);
         turretMotor.setEncoderPosition(
-            ticks
-        );
+                ticks);
     }
 
     public void stopRotationMotor() {
-        //turretMotor.stopMotor();
+        // turretMotor.stopMotor();
     }
 
     public double getAmperage() {
@@ -121,15 +120,15 @@ public class TurretSubsystem extends SubsystemBase {
 
     // set desired rotation (in degrees!)
     public void setDesiredRotation(Rotation2d rotation) {
-        //TODO: Convert Degrees to encoder ticks
+        // TODO: Convert Degrees to encoder ticks
         double pos = rotation.getDegrees();
         pos = clamp(pos, -100, 100); // clamp the position to the limits of the turret; here in degrees
         pos = degreesToEncoderTicks(pos);
-                
+
         desiredPosition = pos;
 
         double smoothedPos = this.angleLimiter.calculate(pos);
-        
+
         turretMotor.asSparkMax().getClosedLoopController().setSetpoint(smoothedPos, ControlType.kPosition);
     }
 
@@ -140,7 +139,7 @@ public class TurretSubsystem extends SubsystemBase {
         ticks *= Constants.TurretSubsystem.kGearRatio;
         return ticks;
     }
-        
+
     private double clamp(double pos, double pitchmotorreverselimit, double pitchmotorforwardlimit) {
         if (pos < pitchmotorreverselimit) {
             return pitchmotorreverselimit;
@@ -149,10 +148,17 @@ public class TurretSubsystem extends SubsystemBase {
         }
         return pos;
     }
-        
-            // set percent output for manual control.
+
+    // set percent output for manual control.
     public void setVoltage(double voltage) {
         turretMotor.asSparkMax().setVoltage(voltage);
+    }
+    /**
+     * Sets the percent output for manual control.
+     * @param percent The percent output (-1.0 to 1.0)
+     */
+    public void setPercent(double percent) {
+        turretMotor.set(percent);
     }
 
     @Override

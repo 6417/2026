@@ -11,14 +11,12 @@ import frc.robot.subsystems.TurretSubsystem;
  * When current rises above threshold, encoder is reset to configured zero angle.
  */
 public class TurretZeroCommand extends Command {
-    private TurretSubsystem turret;
     private boolean zeroDetected = false;
     private Timer timer;
 
-    public TurretZeroCommand(TurretSubsystem turret) {
-        this.turret = turret;
+    public TurretZeroCommand() {
         timer = new Timer();
-        addRequirements(this.turret);
+        addRequirements(RobotContainer.turret);
     }
 
     @Override
@@ -27,7 +25,7 @@ public class TurretZeroCommand extends Command {
         timer.reset();
         timer.start();
         // Disable soft limits during zeroing, otherwise the motor might stop before hard-stop.
-        this.turret.setVoltage(Constants.TurretSubsystem.zeroingVoltage);
+        RobotContainer.turret.setVoltage(Constants.TurretSubsystem.zeroingVoltage);
     }
 
     @Override

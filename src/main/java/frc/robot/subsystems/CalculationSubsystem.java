@@ -20,7 +20,6 @@ import frc.robot.RobotContainer;
 import frc.robot.utils.LoggedTunableNumber;
 import swervelib.simulation.ironmaple.simulation.opponentsim.SmartOpponentConfig.ChassisConfig;
 
-
 public class CalculationSubsystem extends SubsystemBase {
     private Rotation2d desiredTurretAngle;
     private Pair<Double, Double> desiredShooterRPM;
@@ -29,10 +28,10 @@ public class CalculationSubsystem extends SubsystemBase {
     private boolean inNeutralzone;
 
     // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
-    private final LoggedTunableNumber tuneTopRpm =
-        new LoggedTunableNumber("Shooter/TuneTopRPM", Constants.Shooter.defaultRPM);
-    private final LoggedTunableNumber tuneBottomRpm =
-        new LoggedTunableNumber("Shooter/TuneBottomRPM", Constants.Shooter.defaultRPM);
+    private final LoggedTunableNumber tuneTopRpm = new LoggedTunableNumber("Shooter/TuneTopRPM",
+            Constants.Shooter.defaultRPM);
+    private final LoggedTunableNumber tuneBottomRpm = new LoggedTunableNumber("Shooter/TuneBottomRPM",
+            Constants.Shooter.defaultRPM);
 
     public static enum ShootingMode {
         MODE_FIXED,
@@ -81,7 +80,6 @@ public class CalculationSubsystem extends SubsystemBase {
         ChassisSpeeds periodicVel = RobotContainer.drive.getFieldVelocity();
         Logger.recordOutput("ShootOnMove/RobotSpeedMps",
                 Math.hypot(periodicVel.vxMetersPerSecond, periodicVel.vyMetersPerSecond), Units.MetersPerSecond);
-        Logger.recordOutput("ShootOnMove/SpeedOkToShoot", isSpeedOkToShoot());
         Logger.recordOutput("ShootOnMove/CurrentShootingMode", currentShootingMode.toString());
     }
 
@@ -102,8 +100,7 @@ public class CalculationSubsystem extends SubsystemBase {
 
         if (turretToDesiredpos.getX() == 0 && turretToDesiredpos.getY() == 0) {
             desiredTurretAngle = Rotation2d.fromDegrees(0);
-        }
-        else {
+        } else {
             desiredTurretAngle = turretToDesiredpos.getAngle().minus(RobotContainer.drive.getPose().getRotation());
         }
 
@@ -119,31 +116,36 @@ public class CalculationSubsystem extends SubsystemBase {
         Translation2d turretToDesiredpos = getTurretToDesiredpos();
         desiredShooterRPM = shootFromDistance();
 
-        // Calculate desired velocity by converting RPM to approximate ball exit velocity
+        // Calculate desired velocity by converting RPM to approximate ball exit
+        // velocity
         double rpm_average = (desiredShooterRPM.getFirst() + desiredShooterRPM.getSecond()) / 2;
         double rpm_to_meterspersec = 1.0 / 60.0 * Math.cos(Constants.Shooter.shooterAngle / 180.0 * Math.PI) * Math.PI*Constants.Shooter.shooterWheelDiameter_meters;
         double vball = rpm_average*rpm_to_meterspersec;
         Logger.recordOutput("Calculation/Vball", vball);
         Logger.recordOutput("Calculation/rpm_average", rpm_average);
         Logger.recordOutput("Calculation/rpm_to_meterspersec", rpm_to_meterspersec);
-        Logger.recordOutput("Calculation/RobotSpeedVector", robotSpeedVector.getNorm());
+        Logger.recordOutput("Calculation/RobotSpeed", robotSpeedVector.getNorm());
         Translation2d vdesired = turretToDesiredpos.div(turretToDesiredpos.getNorm()).times(vball);
 
         // Calculate desired turret shot vector
         Translation2d vturret = vdesired.minus(robotSpeedVector);
 
-        // Simply update the angle and do not change the RPM for now, more complex math needed otherwise
+        // Simply update the angle and do not change the RPM for now, more complex math
+        // needed otherwise
         if (vturret.getX() == 0 && vturret.getY() == 0) {
             desiredTurretAngle = Rotation2d.fromDegrees(0);
-        }
-        else {
+        } else {
             desiredTurretAngle = vturret.getAngle().minus(RobotContainer.drive.getPose().getRotation());
 
-            double rpm_conversion_factor = 1 + Constants.Shooter.rpmConversionFactorScale * (vturret.getNorm() / vdesired.getNorm()-1);
+            double rpm_conversion_factor = 1
+                    + Constants.Shooter.rpmConversionFactorScale * (vturret.getNorm() / vdesired.getNorm() - 1);
 
-            // Instead of treating it like this we could scale the distance to target that goes into the getdesiredRPM function with this factor (or another factor)
-            // This would account for spin of the ball and could be able to shoot while driving towards the target
-            desiredShooterRPM = Pair.of(desiredShooterRPM.getFirst()*(rpm_conversion_factor), desiredShooterRPM.getSecond()*rpm_conversion_factor);
+            // Instead of treating it like this we could scale the distance to target that
+            // goes into the getdesiredRPM function with this factor (or another factor)
+            // This would account for spin of the ball and could be able to shoot while
+            // driving towards the target
+            desiredShooterRPM = Pair.of(desiredShooterRPM.getFirst() * (rpm_conversion_factor),
+                    desiredShooterRPM.getSecond() * rpm_conversion_factor);
 
             Logger.recordOutput("Calculation/rpm_conversion_factor", rpm_conversion_factor);
         }
@@ -172,15 +174,16 @@ public class CalculationSubsystem extends SubsystemBase {
         for (int i = 0; i < 3; i++) {
             flightTime = Constants.Shooter.flightTimeTable.getOutput(dist);
             turretToVirtual = new Translation2d(
-                turretToTarget.getX() - fieldVel.vxMetersPerSecond * flightTime,
-                turretToTarget.getY() - fieldVel.vyMetersPerSecond * flightTime);
+                    turretToTarget.getX() - fieldVel.vxMetersPerSecond * flightTime,
+                    turretToTarget.getY() - fieldVel.vyMetersPerSecond * flightTime);
             dist = turretToVirtual.getNorm();
         }
 
         desiredTurretAngle = turretToVirtual.getAngle()
-            .minus(RobotContainer.drive.getPose().getRotation());
+                .minus(RobotContainer.drive.getPose().getRotation());
 
-        // Update distance for RPM lookup (use virtual target distance when aiming at hub)
+        // Update distance for RPM lookup (use virtual target distance when aiming at
+        // hub)
         if (!inNeutralzone) {
             distanceHubTurret = turretToVirtual.getNorm();
         }
@@ -188,42 +191,44 @@ public class CalculationSubsystem extends SubsystemBase {
         desiredShooterRPM = shootFromDistance();
 
         // Logging
-        Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime);
-        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", turretToTarget.getNorm() - dist);
+        Logger.recordOutput("ShootOnMove/FlightTimeSec", flightTime , Units.Seconds);
+        Logger.recordOutput("ShootOnMove/VirtualOffsetMeters", turretToTarget.getNorm() - dist, Units.Meters);
     }
 
     private Translation2d getTurretToDesiredpos() {
         Translation2d turretPose = RobotContainer.drive.getPose().getTranslation().plus(
-            Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
+                Constants.TurretSubsystem.TURRET_OFFSET.rotateBy(RobotContainer.drive.getPose().getRotation()));
         Pose2d robotPose = RobotContainer.drive.getPose();
 
         Translation2d poseToTrack = null;
         boolean toHub = false;
 
-        if (Constants.Field.EDGERight == null || Constants.Field.EDGELeft == null || Constants.Field.HUB_CENTER == null) {
-            return new Translation2d(0,0);
+        if (Constants.Field.EDGERight == null || Constants.Field.EDGELeft == null
+                || Constants.Field.HUB_CENTER == null) {
+            return new Translation2d(0, 0);
         }
 
         Alliance all = DriverStation.getAlliance().get();
 
         // first check if is in neutral zone or team zone
         if ((all == Alliance.Blue && robotPose.getX() < Constants.Field.neutralZoneStartX) ||
-            (all == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
+                (all == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
             // in team zone, track hub
             poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
             toHub = true;
             inNeutralzone = false;
         } else {
             // in neutral zone, track edges for shooting balls in the back to team zone
-            if (robotPose.getY() >= Constants.Field.FIELD_WIDTH_METERS/2) {
-                //blue: left    
-                //red: right
-                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGELeft.getTranslation() : Constants.Field.EDGERight.getTranslation();
-            }
-            else {
-                //red: left
-                //blue: right
-                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGERight.getTranslation() : Constants.Field.EDGELeft.getTranslation();
+            if (robotPose.getY() >= Constants.Field.FIELD_WIDTH_METERS / 2) {
+                // blue: left
+                // red: right
+                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGELeft.getTranslation()
+                        : Constants.Field.EDGERight.getTranslation();
+            } else {
+                // red: left
+                // blue: right
+                poseToTrack = all == Alliance.Blue ? Constants.Field.EDGERight.getTranslation()
+                        : Constants.Field.EDGELeft.getTranslation();
             }
             inNeutralzone = true;
         }
@@ -238,7 +243,7 @@ public class CalculationSubsystem extends SubsystemBase {
 
         return turretToDesiredpos;
     }
-    
+
     /**
      * Set the speeds of the shooter motors based on distance to the target.
      *
@@ -253,8 +258,8 @@ public class CalculationSubsystem extends SubsystemBase {
             topRpm = tuneTopRpm.get();
             bottomRpm = tuneBottomRpm.get();
         } else if(inNeutralzone) {
-            topRpm = Constants.Shooter.neutralZoneRPM;
-            bottomRpm = Constants.Shooter.neutralZoneRPM;
+            topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret); // works now
+            bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
         }
         else {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret);
@@ -297,8 +302,11 @@ public class CalculationSubsystem extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addDoubleArrayProperty("Desired Shooter RPM", () -> {
-            double[] i = {getRPMShooter().getFirst(), getRPMShooter().getSecond()}; return i;}, null);
-        //builder.addDoubleProperty("Desired Turret Angle", () -> getDesiredTurretAngle().getDegrees(), null);
+            double[] i = { getRPMShooter().getFirst(), getRPMShooter().getSecond() };
+            return i;
+        }, null);
+        // builder.addDoubleProperty("Desired Turret Angle", () ->
+        // getDesiredTurretAngle().getDegrees(), null);
         builder.addDoubleProperty("Distance Hub Turret", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }

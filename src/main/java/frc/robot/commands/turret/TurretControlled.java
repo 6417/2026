@@ -4,21 +4,18 @@ import frc.robot.RobotContainer;
 import frc.robot.subsystems.TurretSubsystem;
 
 public class TurretControlled extends Command {
-    private final TurretSubsystem turret;
-
     private double input;
 
-    public TurretControlled(TurretSubsystem turret) {
-        this.turret = turret;
-        addRequirements(turret);
+    public TurretControlled() {
+        addRequirements(RobotContainer.turret);
     }
 
     @Override
     public void execute() {
-        input = RobotContainer.controls.getJoystickAxes()[2];
+        input = RobotContainer.controls.getJoystickAxesFromOperatorJoystick()[2];
         input = applyDeadband(input, 0.15);
 
-        turret.setVoltage(input * 0.1);
+        RobotContainer.turret.setPercent(-input * 0.1); // 0.5 is max speed factor for manual control, can be tuned
     }
 
     private static double applyDeadband(double x, double deadBand) {

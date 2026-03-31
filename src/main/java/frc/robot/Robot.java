@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.commands.climber.ClearHatchetForMovement;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.turret.ZeroGroup;
+import frc.robot.utils.Utils;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -62,6 +63,7 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
     robotContainer = new RobotContainer();
     RobotContainer.climber.disableServoHatchet();
 
+    DriverStation.silenceJoystickConnectionWarning(true);
   }
 
   /**
@@ -77,6 +79,36 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    boolean activeHub = Utils.isHubActive();
+
+    Logger.recordOutput("isHubActive", activeHub);
+
+    double time =  DriverStation.getMatchTime();
+
+    double shiftTime = -1;
+
+    if (DriverStation.isAutonomousEnabled()) {
+      shiftTime = time;
+      Logger.recordOutput("ShiftTime", shiftTime);
+      return;
+    }
+  
+    if (time > 130 && !activeHub) {
+      shiftTime = time - 130;
+    } else if (time > 105) {
+      shiftTime = time - 105;
+    } else if (time > 80) {
+      shiftTime = time - 80;
+    } else if (time > 55) {
+      shiftTime = time - 55;
+    } else if (time > 30 && !activeHub) {
+      shiftTime = time - 30;
+    } else {
+      shiftTime = time;
+    }
+
+    Logger.recordOutput("ShiftTime", shiftTime);
   }
 
   /**
@@ -99,15 +131,14 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   @Override
   public void autonomousInit() {
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
-      Constants.Field.EDGERight = new Pose2d(0, 0, null);
-      Constants.Field.EDGELeft = new Pose2d(0, Constants.Field.FIELD_WIDTH_METERS, null);
+      Constants.Field.EDGERight = new Pose2d(1.85, 1.43, null);
+      Constants.Field.EDGELeft = new Pose2d(1.85, 6.28, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_BLUE;
       Constants.Field.neutralZoneStartX = Units.inchesToMeters(Constants.Field.START_NEUTRALZONE_INCHES);
 
     } else {
-      Constants.Field.EDGERight = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, Constants.Field.FIELD_WIDTH_METERS,
-          null);
-      Constants.Field.EDGELeft = new Pose2d(Constants.Field.FIELD_LENGTH_METERS, 0, null);
+      Constants.Field.EDGERight = new Pose2d(14.71, 6.28, null);
+      Constants.Field.EDGELeft = new Pose2d(14.71, 1.43, null);
       Constants.Field.HUB_CENTER = Constants.Field.HUB_CENTER_RED;
       Constants.Field.neutralZoneStartX = Units
           .inchesToMeters(Constants.Field.FIELD_LENGTH_INCHES - Constants.Field.START_NEUTRALZONE_INCHES);
