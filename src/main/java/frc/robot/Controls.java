@@ -220,15 +220,15 @@ public class Controls implements Sendable {
                 SmartDashboard.putData("RainbowLED",
                                 new InstantCommand(() -> RobotContainer.leds.setActiveMode(LEDMode.RAINBOWFULLGRADIENT)));
                 SmartDashboard.putData("Red LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 0)));
+                                new InstantCommand(() -> RobotContainer.leds.setAllColor(255, 0, 0)));
                 SmartDashboard.putData("Blue LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 0, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 0, 255)));
                 SmartDashboard.putData("Green LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 255, 0)));
+                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 255, 0)));
                 SmartDashboard.putData("Violet LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setManualColor(255, 0, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAllColor(255, 0, 255)));
                 SmartDashboard.putData("Cyan LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setManualColor(0, 255, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 255, 255)));
                 
         }
 

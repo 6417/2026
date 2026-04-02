@@ -270,15 +270,6 @@ public class CalculationSubsystem extends SubsystemBase {
         return result;
     }
 
-    public boolean isSpeedOkToShoot() {
-        // // TODO: 
-
-        // ChassisSpeeds fieldVel = RobotContainer.drive.getFieldVelocity();
-        // double speed = Math.hypot(fieldVel.vxMetersPerSecond, fieldVel.vyMetersPerSecond);
-        // return speed <= Constants.ShootOnMove.MAX_SHOOT_SPEED_MPS;
-        return true;
-    }
-
     public void setShootingMode(ShootingMode mode) {
         this.currentShootingMode = mode;
     }

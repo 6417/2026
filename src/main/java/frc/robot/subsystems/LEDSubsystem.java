@@ -27,13 +27,12 @@ import frc.robot.RobotContainer;
 
 public class LEDSubsystem extends SubsystemBase {
     public enum LEDMode {
-        ALLIANCE_IDLE,
-        BALL_STAGED,
+        SHOOTING_NOT_READY,
         SHOOT_READY,
+        SHOOTING,
         VISION_DISABLED,
         CLIMB_LATCHED,
         RAINBOWFULLGRADIENT,
-        MANUAL
     }
 
     private static class RGB {
@@ -60,7 +59,7 @@ public class LEDSubsystem extends SubsystemBase {
     private LEDPattern ledsPattern;
 
     private Optional<RGB> manualOverride = Optional.empty();
-    private LEDMode activeMode = LEDMode.ALLIANCE_IDLE;
+    private LEDMode activeMode = LEDMode.RAINBOWFULLGRADIENT;
 
     private SetRainbowFullGradient setRainbowFullGradientCommand;
 
@@ -80,7 +79,7 @@ public class LEDSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         Logger.recordOutput("LEDs/Mode", activeMode.name());
-        ledsPattern.applyTo(ledBuffer);
+        synchronizeLEDsWithRobotState();
         ledStrip.setData(ledBuffer);
 
     }
@@ -104,7 +103,6 @@ public class LEDSubsystem extends SubsystemBase {
         ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(1),
                 Constants.LEDs.ledsSpacing);
         ledsPattern.applyTo(ledBuffer);
-        ledStrip.setData(ledBuffer);
     }
 
     public class SetRainbowFullGradient extends Command {
@@ -152,37 +150,15 @@ public class LEDSubsystem extends SubsystemBase {
 
     }
 
-    public void setManualColor(int red, int green, int blue) {
-        ledStrip.setLength(ledBuffer.getLength());
-        manualOverride = Optional.of(new RGB(red, green, blue));
-        activeMode = LEDMode.MANUAL;
-        setAllScaled(manualOverride.get());
-    }
-
-    public void clearManualColor() {
-        manualOverride = Optional.empty();
-    }
-
     public LEDMode getActiveMode() {
         return activeMode;
     }
 
     public void synchronizeLEDsWithRobotState() { // By AI
-        if (manualOverride.isPresent()) {
-            activeMode = LEDMode.MANUAL;
-            setAllScaled(manualOverride.get());
-            return;
-        }
 
-        // Priority matters here:
-        // 1) climb latch is the most safety-critical robot state,
-        // 2) vision disabled is a driver fallback state worth showing clearly,
-        // 3) shooter-ready means the robot is prepared to fire,
-        // 4) ball staged is useful, but less important than the states above,
-        // 5) otherwise show alliance color as the default idle state.
-        if (RobotContainer.climber != null && RobotContainer.climber.isHatchetEngaged) {
+        if (RobotContainer.climber != null && RobotContainer.climber.isHatchetEngaged && RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
             activeMode = LEDMode.CLIMB_LATCHED;
-            setBlinking(RED, OFF, 4.0);
+            setAllianceColor();
             return;
         }
 
@@ -192,39 +168,31 @@ public class LEDSubsystem extends SubsystemBase {
             return;
         }
 
-        if (RobotContainer.shooter != null
-                && RobotContainer.turret != null
-                && RobotContainer.calculationSubsystem != null
-                && RobotContainer.shooter.isAtSetpoint()
-                && RobotContainer.turret.isAtSetpoint()
-                && RobotContainer.calculationSubsystem.isSpeedOkToShoot()) {
+        if (RobotContainer.turret.isAtSetpoint()) {
             activeMode = LEDMode.SHOOT_READY;
-            setBlinking(WHITE, OFF, 6.0);
+            setAll(GREEN);
             return;
         }
-
-        if (RobotContainer.indexer != null && RobotContainer.indexer.isBallDetected()) {
-            activeMode = LEDMode.BALL_STAGED;
-            setAllScaled(GREEN);
-            return;
+        else {
+            activeMode = LEDMode.SHOOTING_NOT_READY;
+            setAll(RED);
         }
 
-        activeMode = LEDMode.ALLIANCE_IDLE;
-        setAllianceIdlePattern();
+        if (RobotContainer.shooter.isAtSetpoint()) {
+            activeMode = LEDMode.SHOOTING;
+            setBlinking(WHITE, OFF, 5.0);
+            return;
+        }
     }
 
-    private void setAllianceIdlePattern() { // By AI
+    private void setAllianceColor() { // By AI
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         RGB primary = alliance == Alliance.Red ? RED : BLUE;
-        RGB accent = WHITE;
+        setAll(primary);
+    }
 
-        // Alternating stripes make it easier to notice the robot is powered while
-        // still clearly conveying alliance color.
-        for (int i = 0; i < ledBuffer.getLength(); i++) {
-            RGB color = (i % 4 < 2) ? primary : accent;
-            setScaledRgb(i, color, 1.0);
-        }
-        ledStrip.setData(ledBuffer);
+    public void setAllColor(int red, int green, int blue) {
+        setAll(new RGB(red, green, blue));
     }
 
     private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { // By AI
@@ -237,20 +205,18 @@ public class LEDSubsystem extends SubsystemBase {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             ledBuffer.setRGB(i, color.red, color.green, color.blue);
         }
-        ledStrip.setData(ledBuffer);
     }
 
     private void setAllScaled(RGB color) {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             setScaledRgb(i, color, 0.25);
         }
-        ledStrip.setData(ledBuffer);
     }
 
     private void setScaledRgb(int index, RGB color, double brightnessScale) {
-        int red = (int) Math.round(color.red * Constants.LEDs.brightnessScale);
-        int green = (int) Math.round(color.green * Constants.LEDs.brightnessScale);
-        int blue = (int) Math.round(color.blue * Constants.LEDs.brightnessScale);
+        int red = (int) Math.round(color.red * brightnessScale);
+        int green = (int) Math.round(color.green * brightnessScale);
+        int blue = (int) Math.round(color.blue * brightnessScale);
         ledBuffer.setRGB(index, red, green, blue);
     }
 }
