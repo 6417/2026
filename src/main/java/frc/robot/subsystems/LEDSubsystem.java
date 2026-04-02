@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.AddressableLEDBufferView;
@@ -88,6 +89,7 @@ public class LEDSubsystem extends SubsystemBase {
         activeMode = mode;
         if (activeMode == LEDMode.RAINBOWFULLGRADIENT) {
             setRainbowFullGradientCommand.schedule();
+            System.out.println("/////////////////////// Command Scheduled ///////////////////////");
         }
     }
 
@@ -107,29 +109,40 @@ public class LEDSubsystem extends SubsystemBase {
 
     public class SetRainbowFullGradient extends Command {
         private int currentHue;
+        private Timer hueIncreaseTimer;
 
         SetRainbowFullGradient() {
             currentHue = 0;
+            hueIncreaseTimer = new Timer();
+        }
+
+        @Override
+        public void initialize() {
+            hueIncreaseTimer.start();
         }
 
         @Override
         public void execute() {
-            ++currentHue;
-            if (currentHue >= 180) {
-                currentHue = 0;
+            if (hueIncreaseTimer.get() % 1 == 0) {
+                ++currentHue;
+                System.out.println("§§§§§§§§§§§§§§§§§§§§§§§§§ Hue Increased §§§§§§§§§§§§§§§§§§§§§§§§§");
+                if (currentHue >= 180) {
+                    currentHue = 0;
+                }
             }
             for (int i = 0; i < RobotContainer.leds.ledBuffer.getLength(); i++) {
                 RobotContainer.leds.ledBuffer.setRGB(i,
-                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kRed),
-                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kGreen),
-                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue)
-                    );
+                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kRed),
+                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kGreen),
+                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue));
             }
             RobotContainer.leds.ledStrip.setData(RobotContainer.leds.ledBuffer);
         }
 
         @Override
         public void end(boolean interrupted) {
+            hueIncreaseTimer.stop();
+            hueIncreaseTimer.reset();
         }
 
         @Override
