@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.commands.leds.SetRainbowFullGradient;
 
 public class LEDSubsystem extends SubsystemBase {
     public enum LEDMode {
@@ -55,7 +56,7 @@ public class LEDSubsystem extends SubsystemBase {
     private static final RGB WHITE = new RGB(255, 255, 255);
 
     private final AddressableLED ledStrip;
-    private final AddressableLEDBuffer ledBuffer;
+    public final AddressableLEDBuffer ledBuffer;
     private LEDPattern ledsPattern;
 
     private Optional<RGB> manualOverride = Optional.empty();
@@ -86,10 +87,6 @@ public class LEDSubsystem extends SubsystemBase {
 
     public void setActiveMode(LEDMode mode) {
         activeMode = mode;
-        if (activeMode == LEDMode.RAINBOWFULLGRADIENT) {
-            setRainbowFullGradientCommand.schedule();
-            System.out.println("/////////////////////// Command Scheduled ///////////////////////");
-        }
     }
 
     /**
@@ -105,57 +102,17 @@ public class LEDSubsystem extends SubsystemBase {
         ledsPattern.applyTo(ledBuffer);
     }
 
-    public class SetRainbowFullGradient extends Command {
-        private int currentHue;
-        private Timer hueIncreaseTimer;
-
-        SetRainbowFullGradient() {
-            currentHue = 0;
-            hueIncreaseTimer = new Timer();
-        }
-
-        @Override
-        public void initialize() {
-            hueIncreaseTimer.start();
-        }
-
-        @Override
-        public void execute() {
-            if (hueIncreaseTimer.get() % 1 == 0) {
-                ++currentHue;
-                System.out.println("§§§§§§§§§§§§§§§§§§§§§§§§§ Hue Increased §§§§§§§§§§§§§§§§§§§§§§§§§");
-                if (currentHue >= 180) {
-                    currentHue = 0;
-                }
-            }
-            for (int i = 0; i < RobotContainer.leds.ledBuffer.getLength(); i++) {
-                RobotContainer.leds.ledBuffer.setRGB(i,
-                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kRed),
-                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kGreen),
-                        Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue));
-            }
-            RobotContainer.leds.ledStrip.setData(RobotContainer.leds.ledBuffer);
-        }
-
-        @Override
-        public void end(boolean interrupted) {
-            hueIncreaseTimer.stop();
-            hueIncreaseTimer.reset();
-        }
-
-        @Override
-        public boolean isFinished() {
-            return RobotContainer.leds.getActiveMode() != LEDMode.RAINBOWFULLGRADIENT;
-        }
-
-    }
-
     public LEDMode getActiveMode() {
         return activeMode;
     }
-
+    
     public void synchronizeLEDsWithRobotState() { // By AI
-
+        if (RobotContainer.shooter.isAtSetpoint()) {
+            activeMode = LEDMode.RAINBOWFULLGRADIENT;
+            setRainbowFullGradientCommand.schedule();
+            return;
+        }
+        
         if (RobotContainer.climber != null && RobotContainer.climber.isHatchetEngaged && RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
             activeMode = LEDMode.CLIMB_LATCHED;
             setAllianceColor();
@@ -178,11 +135,6 @@ public class LEDSubsystem extends SubsystemBase {
             setAll(RED);
         }
 
-        if (RobotContainer.shooter.isAtSetpoint()) {
-            activeMode = LEDMode.SHOOTING;
-            setBlinking(WHITE, OFF, 5.0);
-            return;
-        }
     }
 
     private void setAllianceColor() { // By AI
