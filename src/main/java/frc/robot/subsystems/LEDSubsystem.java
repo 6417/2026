@@ -53,26 +53,26 @@ public class LEDSubsystem extends SubsystemBase {
     private static final RGB ORANGE = new RGB(255, 90, 0);
     private static final RGB GREEN = new RGB(0, 255, 0);
     private static final RGB WHITE = new RGB(255, 255, 255);
-    
-    private final AddressableLED leds;
+
+    private final AddressableLED ledStrip;
     private final AddressableLEDBuffer ledBuffer;
     private LEDPattern ledsPattern;
-    
+
     private Optional<RGB> manualOverride = Optional.empty();
     private LEDMode activeMode = LEDMode.ALLIANCE_IDLE;
 
     private SetRainbowFullGradient setRainbowFullGradientCommand;
-    
+
     public LEDSubsystem() {
         setRainbowFullGradientCommand = new SetRainbowFullGradient();
-        leds = new AddressableLED(Constants.LEDs.ledPort);
+        ledStrip = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
         ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown));
-        leds.setLength(ledBuffer.getLength());
+        ledStrip.setLength(ledBuffer.getLength());
         setAll(OFF);
-        leds.setData(ledBuffer);
-        leds.start();
-        leds.setColorOrder(AddressableLED.ColorOrder.kRGB);
+        ledStrip.setData(ledBuffer);
+        ledStrip.start();
+        ledStrip.setColorOrder(AddressableLED.ColorOrder.kRGB);
         setAll(RED);
     }
 
@@ -80,14 +80,15 @@ public class LEDSubsystem extends SubsystemBase {
     public void periodic() {
         Logger.recordOutput("LEDs/Mode", activeMode.name());
         ledsPattern.applyTo(ledBuffer);
-        leds.setData(ledBuffer);
+        ledStrip.setData(ledBuffer);
 
     }
+
     public void setActiveMode(LEDMode mode) {
         activeMode = mode;
-            if (activeMode == LEDMode.RAINBOWFULLGRADIENT) {
-                setRainbowFullGradientCommand.schedule();
-            }
+        if (activeMode == LEDMode.RAINBOWFULLGRADIENT) {
+            setRainbowFullGradientCommand.schedule();
+        }
     }
 
     /**
@@ -101,16 +102,14 @@ public class LEDSubsystem extends SubsystemBase {
         ledsPattern = LEDPattern.rainbow(saturation, brightness).scrollAtAbsoluteSpeed(MetersPerSecond.of(1),
                 Constants.LEDs.ledsSpacing);
         ledsPattern.applyTo(ledBuffer);
-        leds.setData(ledBuffer);
+        ledStrip.setData(ledBuffer);
     }
 
     public class SetRainbowFullGradient extends Command {
         private int currentHue;
-        private Color currentColor;
 
         SetRainbowFullGradient() {
             currentHue = 0;
-            currentColor = new Color();
         }
 
         @Override
@@ -119,10 +118,14 @@ public class LEDSubsystem extends SubsystemBase {
             if (currentHue >= 180) {
                 currentHue = 0;
             }
-            RobotContainer.leds.setManualColor(
+            for (int i = 0; i < RobotContainer.leds.ledBuffer.getLength(); i++) {
+                RobotContainer.leds.ledBuffer.setRGB(i,
                     Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kRed),
                     Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kGreen),
-                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue));
+                    Color.unpackRGB(Color.hsvToRgb(currentHue, 255, 255), RGBChannel.kBlue)
+                    );
+            }
+            RobotContainer.leds.ledStrip.setData(RobotContainer.leds.ledBuffer);
         }
 
         @Override
@@ -137,7 +140,7 @@ public class LEDSubsystem extends SubsystemBase {
     }
 
     public void setManualColor(int red, int green, int blue) {
-        leds.setLength(ledBuffer.getLength());
+        ledStrip.setLength(ledBuffer.getLength());
         manualOverride = Optional.of(new RGB(red, green, blue));
         activeMode = LEDMode.MANUAL;
         setAllScaled(manualOverride.get());
@@ -208,7 +211,7 @@ public class LEDSubsystem extends SubsystemBase {
             RGB color = (i % 4 < 2) ? primary : accent;
             setScaledRgb(i, color, 1.0);
         }
-        leds.setData(ledBuffer);
+        ledStrip.setData(ledBuffer);
     }
 
     private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { // By AI
@@ -221,14 +224,14 @@ public class LEDSubsystem extends SubsystemBase {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             ledBuffer.setRGB(i, color.red, color.green, color.blue);
         }
-        leds.setData(ledBuffer);
+        ledStrip.setData(ledBuffer);
     }
 
     private void setAllScaled(RGB color) {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
             setScaledRgb(i, color, 0.25);
         }
-        leds.setData(ledBuffer);
+        ledStrip.setData(ledBuffer);
     }
 
     private void setScaledRgb(int index, RGB color, double brightnessScale) {
