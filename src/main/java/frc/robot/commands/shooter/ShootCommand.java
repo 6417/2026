@@ -8,35 +8,34 @@ import frc.robot.RobotContainer;
 import frc.robot.Controls.DriveSpeed;
 import frc.robot.utils.Utils;
 
-
 public class ShootCommand extends Command {
-    
+
     public ShootCommand() {
-        addRequirements(RobotContainer.shooter, RobotContainer.indexer); 
+        addRequirements(RobotContainer.shooter, RobotContainer.indexer);
     }
 
     @Override
     public void initialize() {
     }
-    
+
     @Override
     public void execute() {
         Pair<Double, Double> rpm = RobotContainer.calculationSubsystem.getRPMShooter();
         RobotContainer.shooter.run(rpm.getSecond(), rpm.getFirst());
-        if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint())
+        if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint()) {
             RobotContainer.indexer.run(Constants.Indexer.defaultRPM);
-        else 
+            RobotContainer.feeder.run(Constants.Feeder.defaultRPM);
+        } else {
             RobotContainer.indexer.stop();
-
+            RobotContainer.feeder.stop();
+        }
 
         if (Utils.isRobotNotInAllianceZone()) {
             RobotContainer.controls.setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
-        }
-        else {
+        } else {
             RobotContainer.controls.setActiveSpeedFactor(DriveSpeed.SLOW);
         }
     }
-            
 
     @Override
     public void end(boolean interrupted) {
