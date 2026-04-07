@@ -91,12 +91,22 @@ public class ShooterSubsystem extends SubsystemBase {
         bottomMotor.asSparkFlex().getClosedLoopController().setSetpoint(bottomRpm, ControlType.kVelocity);
     }
 
+    public double getTopRpm() {
+        return topMotor.getEncoderVelocity();
+    }
+
+    public double getBottomRpm() {
+        return bottomMotor.getEncoderVelocity();
+    }
+
     @Override
     public void periodic() {
         Logger.recordOutput("Shooter/TopRPMSetpoint", topRpmSetpoint);
         Logger.recordOutput("Shooter/BottomRPMSetpoint", bottomRpmSetpoint);
         Logger.recordOutput("Shooter/TopAmps", topMotor.asSparkFlex().getOutputCurrent());
         Logger.recordOutput("Shooter/BottomAmps", bottomMotor.asSparkFlex().getOutputCurrent());
+        Logger.recordOutput("Shooter/TopRPM", topMotor.getEncoderVelocity());
+        Logger.recordOutput("Shooter/BottomRPM", bottomMotor.getEncoderVelocity());
         Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
         Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint()&&RobotContainer.turret.isAtSetpoint());
     }
