@@ -180,7 +180,7 @@ public class Constants {
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225); 
 
-        public static final double defaultRPM = 9999;
+        public static final double defaultRPM = 9999; //If this value is 9999 the run() method uses Dutycycle
 
         public static final IdleMode idleMode = IdleMode.kCoast;
 
