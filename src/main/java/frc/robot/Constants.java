@@ -20,6 +20,8 @@ import java.util.Optional;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 
@@ -148,16 +150,16 @@ public class Constants {
     public static final class Intake {
         public static final int intakeMotorId = 10;
 
-        public static final boolean intakeMotorInverted = true;
+        public static final InvertedValue intakeMotorInverted = InvertedValue.CounterClockwise_Positive;
 
         public static final double intakeSpeed = 0.3;
         public static final double outtakeSpeed = -0.3; // percent
 
-        public static final double intakeSpeedRPM = 1500;
-        public static final double outtakeSpeedRPM = -1500;
+        public static final double intakeSpeedRPM = 1500/60;
+        public static final double outtakeSpeedRPM = -1500/60;
 
-        public static final PidValues pid = new PidValues(0.00009, 0, 0.0002);
-        public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.0018);
+        public static final PidValues pid = new PidValues(0.1, 0.03, 0.00);
+        public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.09);
 
         // In Ampère
         // current chop: 115
@@ -168,7 +170,7 @@ public class Constants {
 
         public static final int currentStuck = 115;
 
-        public static final IdleMode idleMode = IdleMode.kCoast;
+        public static final NeutralModeValue idleMode = NeutralModeValue.Coast;
     }
 
     public static final class Feeder {
