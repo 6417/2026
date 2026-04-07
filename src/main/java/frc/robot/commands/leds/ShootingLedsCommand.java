@@ -12,7 +12,7 @@ import java.util.Map;
 public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
 
     boolean makeAShootAnimation;
-    AddressableLEDBuffer ledBuffer = RobotContainer.leds.ledBuffer;
+    AddressableLEDBuffer ledBuffer;
     Map<Double, Integer> shootingAnimationKeyframes;
     double animationCompletionPercentage = 0;
 
@@ -28,6 +28,7 @@ public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
         shootingAnimationKeyframes = Constants.LEDs.shootingAnimationKeyframes;
         lastExecutionTimestamp = Timer.getFPGATimestamp();
         frameIndex = 0;
+        ledBuffer = RobotContainer.leds.ledBuffer;
         System.out.println("Shooting LEDs Activated");
 
     }
