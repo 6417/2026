@@ -124,7 +124,7 @@ public class Constants {
         public static final double pitchMotorForwardLimit = tickRange[1] - 0.2; // for safety measures, leave some buffer.
         public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
-        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.25, 0, 0);
+        public static FeedForwardValues kFeedForward = new FeedForwardValues(0.15, 0, 0);
         
         public static final int stallCurrentLimit = 30;
         public static final int freeCurrentLimit = 30;
