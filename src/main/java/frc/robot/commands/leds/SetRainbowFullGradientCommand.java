@@ -7,10 +7,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
-public class SetRainbowFullGradient extends Command {
+public class SetRainbowFullGradientCommand extends Command {
         private int currentHue;
 
-        public SetRainbowFullGradient() {
+        public SetRainbowFullGradientCommand() {
             currentHue = 0;
         }
 

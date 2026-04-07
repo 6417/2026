@@ -98,7 +98,6 @@ public class Constants {
         // drivers in the queue or while testing indoors.
         public static final double brightnessScale = 1;
 
-        // ()
         public static final Map<Double, Integer> shootingAnimationKeyframes = Map.of(
                 0.0, Color.HSBtoRGB(50, 100, 100),
                 0.3, Color.HSBtoRGB(50, 100, 75),

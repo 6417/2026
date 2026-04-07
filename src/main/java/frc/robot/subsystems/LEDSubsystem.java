@@ -24,7 +24,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.commands.leds.SetRainbowFullGradient;
+import frc.robot.commands.leds.SetRainbowFullGradientCommand;
+import frc.robot.commands.leds.ShootingLedsCommand;
+import frc.robot.commands.shooter.ShootCommand;
 
 public class LEDSubsystem extends SubsystemBase {
     public enum LEDMode {
@@ -62,10 +64,13 @@ public class LEDSubsystem extends SubsystemBase {
     private Optional<RGB> manualOverride = Optional.empty();
     private LEDMode activeMode = LEDMode.RAINBOWFULLGRADIENT;
 
-    private SetRainbowFullGradient setRainbowFullGradientCommand;
+    private SetRainbowFullGradientCommand setRainbowFullGradientCommand;
+    private ShootingLedsCommand shootingLedsCommand = new ShootingLedsCommand();
 
     public LEDSubsystem() {
-        setRainbowFullGradientCommand = new SetRainbowFullGradient();
+        setRainbowFullGradientCommand = new SetRainbowFullGradientCommand();
+        shootingLedsCommand = new ShootingLedsCommand();
+
         ledStrip = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
         ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown));
@@ -105,15 +110,18 @@ public class LEDSubsystem extends SubsystemBase {
     public LEDMode getActiveMode() {
         return activeMode;
     }
-    
-    public void synchronizeLEDsWithRobotState() { // By AI
-        if (RobotContainer.shooter.isAtSetpoint()) {
-            activeMode = LEDMode.RAINBOWFULLGRADIENT;
-            setRainbowFullGradientCommand.schedule();
+
+    public void synchronizeLEDsWithRobotState() {
+        if (Math.abs(RobotContainer.shooter.getTopRpm()) > 100) {
+            activeMode = LEDMode.SHOOTING;
+            if (!shootingLedsCommand.isScheduled()) {
+                shootingLedsCommand.schedule();
+            }
             return;
         }
-        
-        if (RobotContainer.climber != null && RobotContainer.climber.isHatchetEngaged && RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
+
+        if (RobotContainer.climber != null && RobotContainer.climber.isHatchetEngaged
+                && RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
             activeMode = LEDMode.CLIMB_LATCHED;
             setAllianceColor();
             return;
@@ -129,8 +137,7 @@ public class LEDSubsystem extends SubsystemBase {
             activeMode = LEDMode.SHOOT_READY;
             setAll(GREEN);
             return;
-        }
-        else {
+        } else {
             activeMode = LEDMode.SHOOTING_NOT_READY;
             setAll(RED);
         }
