@@ -169,11 +169,8 @@ public class Controls implements Sendable {
 
                 ltButtonDrive
                                 .whileTrue(new ShootCommand()
-                                                .alongWith(new ParallelCommandGroup(
-                                                                new PulseFeederCommand()/*
-                                                                                         * ,
-                                                                                         * new ServoCommand()
-                                                                                         */).repeatedly()))
+                                                .alongWith(new ParallelCommandGroup(new PulseFeederCommand() /*,
+                                                                new ServoCommand() */).repeatedly()))
                                 .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
                 rtButtonOperator.whileTrue(new DriveToShootpos());
 
