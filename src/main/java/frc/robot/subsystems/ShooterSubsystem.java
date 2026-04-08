@@ -95,8 +95,16 @@ public class ShooterSubsystem extends SubsystemBase {
         return topMotor.getEncoderVelocity();
     }
 
+    public double getTopSetpointRpm(){
+        return topRpmSetpoint;
+    }
+
     public double getBottomRpm() {
         return bottomMotor.getEncoderVelocity();
+    }
+
+    public double getBottomSetpointRpm(){
+        return bottomRpmSetpoint;
     }
 
     @Override

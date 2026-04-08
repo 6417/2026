@@ -57,10 +57,8 @@ public class LEDSubsystem extends SubsystemBase {
 
         ledStrip = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
-        ledBufferViewFront = new AddressableLEDBufferView(ledBuffer, 0, ledBuffer.getLength()/2);
-        ledBufferViewFront.setLED(0, Color.kRed);
-        ledBufferViewBack = new AddressableLEDBufferView(ledBuffer, ledBuffer.getLength()/2, ledBuffer.getLength());
-        ledBufferViewBack.setLED(0, Color.kBlue);
+        ledBufferViewFront = new AddressableLEDBufferView(ledBuffer, 0, (ledBuffer.getLength()/2)-1);
+        ledBufferViewBack = new AddressableLEDBufferView(ledBuffer, ledBuffer.getLength()/2, ledBuffer.getLength()-1);
 
         ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown));
         ledStrip.setLength(ledBuffer.getLength());

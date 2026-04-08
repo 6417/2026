@@ -10,6 +10,8 @@ import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
 import java.util.Map;
 
+import org.littletonrobotics.junction.Logger;
+
 public class ShootingLedsCommand extends Command {
 
     boolean makeAShootAnimation;
@@ -35,8 +37,7 @@ public class ShootingLedsCommand extends Command {
 
     @Override
     public void execute() {
-        if (RobotContainer.shooter.getTopRpm() < RobotContainer.calculationSubsystem.getRPMShooter().getFirst()
-                * 0.96) {
+        if (RobotContainer.shooter.getTopRpm() < RobotContainer.shooter.getTopSetpointRpm() * 0.95) {
             makeAShootAnimation = true;
         }
 
@@ -70,6 +71,7 @@ public class ShootingLedsCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        makeAShootAnimation = false;
         System.out.println("Shooting LEDs Deactivated");
     }
 
