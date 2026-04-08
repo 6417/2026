@@ -102,8 +102,8 @@ public class Constants {
 
         public static final Map<Double, Integer> shootingAnimationKeyframes = Map.of(
                 0.0, Color.HSBtoRGB(50, 100, 100),
-                0.3, Color.HSBtoRGB(50, 100, 75),
-                0.4, Color.HSBtoRGB(50, 100, 50),
+                0.3, Color.HSBtoRGB(50, 100, 50),
+                0.4, Color.HSBtoRGB(50, 100, 0),
                 0.5, Color.HSBtoRGB(50, 100, 100),
                 0.7, Color.HSBtoRGB(50, 100, 75),
                 0.8, Color.HSBtoRGB(50, 100, 50),

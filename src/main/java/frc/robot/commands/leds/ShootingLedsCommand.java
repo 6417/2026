@@ -20,8 +20,7 @@ public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
     int frameIndex = 0;
 
     private static final double FRAME_PERIOD_S = 0.05;      // 20 FPS Ziel
-    private static final double TRIGGER_EARLY_S = 0.01;     // früher triggern gegen 20ms-Loop-Jitter
-
+    private static final double TRIGGER_EARLY_S = 0.01;     // früher triggern gegen 20ms-Loop
     @Override
     public void initialize() {
         makeAShootAnimation = false;
@@ -35,7 +34,7 @@ public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
 
     @Override
     public void execute() {
-        if (RobotContainer.shooter.getTopRpm() < RobotContainer.calculationSubsystem.getRPMShooter().getFirst() * 0.9) {
+        if (RobotContainer.shooter.getTopRpm() < RobotContainer.calculationSubsystem.getRPMShooter().getFirst() * 0.96) {
             makeAShootAnimation = true;
         }
 

@@ -60,7 +60,7 @@ public class FeederSubsystem extends SubsystemBase {
 
     public void run(double topRpm) {
         if (topRpm == 9999) {
-            feederMotor.set(1);
+            feederMotor.set(0.3);
         } else {
             feederMotor.asSparkMax().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
         }
