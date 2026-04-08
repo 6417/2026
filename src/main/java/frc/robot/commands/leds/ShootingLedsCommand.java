@@ -3,24 +3,26 @@ package frc.robot.commands.leds;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
 import java.util.Map;
 
-public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
+public class ShootingLedsCommand extends Command {
 
     boolean makeAShootAnimation;
     AddressableLEDBuffer ledBuffer;
-    Map<Double, Integer> shootingAnimationKeyframes;
+    Map<Double, Color> shootingAnimationKeyframes;
     double animationCompletionPercentage = 0;
 
     double lastExecutionTimestamp = 0;
     int frameIndex = 0;
 
-    private static final double FRAME_PERIOD_S = 0.05;      // 20 FPS Ziel
-    private static final double TRIGGER_EARLY_S = 0.01;     // früher triggern gegen 20ms-Loop
+    private static final double FRAME_PERIOD_S = 0.05; // 20 FPS Ziel
+    private static final double TRIGGER_EARLY_S = 0.01; // früher triggern gegen 20ms-Loop
+
     @Override
     public void initialize() {
         makeAShootAnimation = false;
@@ -29,16 +31,17 @@ public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
         frameIndex = 0;
         ledBuffer = RobotContainer.leds.ledBuffer;
         System.out.println("Shooting LEDs Activated");
-
     }
 
     @Override
     public void execute() {
-        if (RobotContainer.shooter.getTopRpm() < RobotContainer.calculationSubsystem.getRPMShooter().getFirst() * 0.96) {
+        if (RobotContainer.shooter.getTopRpm() < RobotContainer.calculationSubsystem.getRPMShooter().getFirst()
+                * 0.96) {
             makeAShootAnimation = true;
         }
 
-        if (!makeAShootAnimation) return;
+        if (!makeAShootAnimation)
+            return;
 
         double now = Timer.getFPGATimestamp();
         if (now - lastExecutionTimestamp >= (FRAME_PERIOD_S - TRIGGER_EARLY_S)) {
@@ -58,19 +61,18 @@ public class ShootingLedsCommand extends SetRainbowFullGradientCommand {
         }
 
         double key = frameIndex * 0.05;
-        Integer colorValue = shootingAnimationKeyframes.get(key);
-        if (colorValue == null) return; // Protection
-
-        int redValue = Color.unpackRGB(colorValue, Color.RGBChannel.kRed);
-        int greenValue = Color.unpackRGB(colorValue, Color.RGBChannel.kGreen);
-        int blueValue = Color.unpackRGB(colorValue, Color.RGBChannel.kBlue);
-        RobotContainer.leds.setAllColor(redValue, greenValue, blueValue);
+        Color colorValue = shootingAnimationKeyframes.get(key);
+        if (colorValue == null)
+            return; // Protection
+        
+        RobotContainer.leds.setAll(colorValue);
     }
 
     @Override
     public void end(boolean interrupted) {
         System.out.println("Shooting LEDs Deactivated");
     }
+
     @Override
     public boolean isFinished() {
         return RobotContainer.leds.getActiveMode() != LEDMode.SHOOTING;

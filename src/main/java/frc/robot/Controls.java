@@ -8,6 +8,7 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -217,15 +218,15 @@ public class Controls implements Sendable {
                 SmartDashboard.putData("RainbowLED",
                                 new InstantCommand(() -> RobotContainer.leds.setActiveMode(LEDMode.RAINBOWFULLGRADIENT)));
                 SmartDashboard.putData("Red LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setAllColor(255, 0, 0)));
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kRed)));
                 SmartDashboard.putData("Blue LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 0, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kBlue)));
                 SmartDashboard.putData("Green LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 255, 0)));
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kGreen)));
                 SmartDashboard.putData("Violet LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setAllColor(255, 0, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kMagenta)));
                 SmartDashboard.putData("Cyan LEDs",
-                                new InstantCommand(() -> RobotContainer.leds.setAllColor(0, 255, 255)));
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kCyan)));
                 
         }
 

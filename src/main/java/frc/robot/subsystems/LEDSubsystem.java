@@ -36,32 +36,16 @@ public class LEDSubsystem extends SubsystemBase {
         VISION_DISABLED,
         CLIMB_LATCHED,
         RAINBOWFULLGRADIENT,
+        INTAKING
     }
 
-    private static class RGB {
-        final int red;
-        final int green;
-        final int blue;
-
-        RGB(int red, int green, int blue) {
-            this.red = red;
-            this.green = green;
-            this.blue = blue;
-        }
-    }
-
-    private static final RGB OFF = new RGB(0, 0, 0);
-    private static final RGB BLUE = new RGB(0, 0, 255);
-    private static final RGB RED = new RGB(255, 0, 0);
-    private static final RGB ORANGE = new RGB(255, 90, 0);
-    private static final RGB GREEN = new RGB(0, 255, 0);
-    private static final RGB WHITE = new RGB(255, 255, 255);
 
     private final AddressableLED ledStrip;
     public final AddressableLEDBuffer ledBuffer;
     private LEDPattern ledsPattern;
+    public AddressableLEDBufferView ledBufferViewBack;
+    public AddressableLEDBufferView ledBufferViewFront;
 
-    private Optional<RGB> manualOverride = Optional.empty();
     private LEDMode activeMode = LEDMode.RAINBOWFULLGRADIENT;
 
     private SetRainbowFullGradientCommand setRainbowFullGradientCommand;
@@ -73,13 +57,18 @@ public class LEDSubsystem extends SubsystemBase {
 
         ledStrip = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
+        ledBufferViewFront = new AddressableLEDBufferView(ledBuffer, 0, ledBuffer.getLength()/2);
+        ledBufferViewFront.setLED(0, Color.kRed);
+        ledBufferViewBack = new AddressableLEDBufferView(ledBuffer, ledBuffer.getLength()/2, ledBuffer.getLength());
+        ledBufferViewBack.setLED(0, Color.kBlue);
+
         ledsPattern = LEDPattern.steps(Map.of(0.0, Color.kBeige, 0.5, Color.kBrown));
         ledStrip.setLength(ledBuffer.getLength());
-        setAll(OFF);
+        setAll(Color.kBlack);
         ledStrip.setData(ledBuffer);
         ledStrip.start();
         ledStrip.setColorOrder(AddressableLED.ColorOrder.kRGB);
-        setAll(RED);
+        setAll(Color.kRed);
     }
 
     @Override
@@ -87,7 +76,6 @@ public class LEDSubsystem extends SubsystemBase {
         Logger.recordOutput("LEDs/Mode", activeMode.name());
         synchronizeLEDsWithRobotState();
         ledStrip.setData(ledBuffer);
-
     }
 
     public void setActiveMode(LEDMode mode) {
@@ -127,55 +115,52 @@ public class LEDSubsystem extends SubsystemBase {
             return;
         }
 
+        if (RobotContainer.intake.activeRpmSetpoint > 0) {
+            activeMode = LEDMode.INTAKING;
+            if (!setRainbowFullGradientCommand.isScheduled()) {
+                setRainbowFullGradientCommand.schedule();
+            }
+            return;
+        }
+
         if (RobotContainer.vision != null && !RobotContainer.vision.isVisionFusionEnabled()) {
             activeMode = LEDMode.VISION_DISABLED;
-            setBlinking(ORANGE, OFF, 2.0);
             return;
         }
 
         if (RobotContainer.turret.isAtSetpoint()) {
             activeMode = LEDMode.SHOOT_READY;
-            setAll(GREEN);
+            setAll(Color.kGreen);
             return;
         } else {
             activeMode = LEDMode.SHOOTING_NOT_READY;
-            setAll(RED);
+            setAll(Color.kRed);
         }
 
     }
 
     private void setAllianceColor() { // By AI
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-        RGB primary = alliance == Alliance.Red ? RED : BLUE;
+        Color primary = alliance == Alliance.Red ? Color.kRed : Color.kBlue;
         setAll(primary);
     }
 
-    public void setAllColor(int red, int green, int blue) {
-        setAll(new RGB(red, green, blue));
-    }
-
-    private void setBlinking(RGB onColor, RGB offColor, double frequencyHz) { // By AI
-        double phase = Timer.getFPGATimestamp() * frequencyHz;
-        boolean on = ((int) Math.floor(phase)) % 2 == 0;
-        setAllScaled(on ? onColor : offColor);
-    }
-
-    private void setAll(RGB color) {
+    
+    public void setAll(Color color) {
         for (int i = 0; i < ledBuffer.getLength(); i++) {
-            ledBuffer.setRGB(i, color.red, color.green, color.blue);
+            ledBuffer.setLED(i, color);
         }
     }
 
-    private void setAllScaled(RGB color) {
-        for (int i = 0; i < ledBuffer.getLength(); i++) {
-            setScaledRgb(i, color, 0.25);
+    public void setViewBackColor(Color color) {
+        for (int i = 0; i < ledBufferViewBack.getLength(); i++) {
+            ledBufferViewBack.setLED(i, color);
         }
     }
 
-    private void setScaledRgb(int index, RGB color, double brightnessScale) {
-        int red = (int) Math.round(color.red * brightnessScale);
-        int green = (int) Math.round(color.green * brightnessScale);
-        int blue = (int) Math.round(color.blue * brightnessScale);
-        ledBuffer.setRGB(index, red, green, blue);
+    public void setViewFrontColor(Color color) {
+        for (int i = 0; i < ledBufferViewFront.getLength(); i++) {
+            ledBufferViewFront.setLED(i, color);
+        }
     }
 }

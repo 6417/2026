@@ -12,13 +12,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.util.Color;
 import frc.fridowpi.motors.utils.FeedForwardValues;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.utils.LinearInterpolationTable;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import java.awt.Color;
 import java.util.List;
 import java.awt.geom.Point2D;
 import java.util.Map;
@@ -100,14 +100,20 @@ public class Constants {
         // drivers in the queue or while testing indoors.
         public static final double brightnessScale = 1;
 
-        public static final Map<Double, Integer> shootingAnimationKeyframes = Map.of(
-                0.0, Color.HSBtoRGB(50, 100, 100),
-                0.3, Color.HSBtoRGB(50, 100, 50),
-                0.4, Color.HSBtoRGB(50, 100, 0),
-                0.5, Color.HSBtoRGB(50, 100, 100),
-                0.7, Color.HSBtoRGB(50, 100, 75),
-                0.8, Color.HSBtoRGB(50, 100, 50),
-                1.0, Color.HSBtoRGB(50, 100, 0));
+        public static final Map<Double, Color> shootingAnimationKeyframes = Map.of(
+                0.0, Color.fromHSV(50, 100, 100),
+                0.3, Color.fromHSV(50, 100, 50),
+                0.4, Color.fromHSV(50, 100, 0),
+                0.5, Color.fromHSV(50, 100, 100),
+                0.7, Color.fromHSV(50, 100, 75),
+                0.8, Color.fromHSV(50, 100, 50),
+                1.0, Color.fromHSV(50, 100, 0));
+        
+        public static final Map<Double, Color> intakingAnimationKeyframes = Map.of(
+                0.25, Color.fromHSV(60, 50, 100),
+                0.5, Color.fromHSV(60, 50, 25),
+                0.75, Color.fromHSV(60, 50, 100),
+                1.0, Color.fromHSV(60, 50, 25));
     }
 
     public static final class Limelight {

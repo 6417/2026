@@ -83,6 +83,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();
+        activeRpmSetpoint = 0;
     }
 
     public double getCurrentOutput() {
