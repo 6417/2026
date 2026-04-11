@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final TalonFX intakeMotor;
@@ -24,25 +25,24 @@ public class IntakeSubsystem extends SubsystemBase {
 
         intakeMotor.setNeutralMode(Constants.Intake.idleMode);
 
-        activeRpmSetpoint = 0; 
+        activeRpmSetpoint = 0;
 
         MotorOutputConfigs outputConfig = new MotorOutputConfigs();
         Slot0Configs pidSlotConfig = new Slot0Configs();
         CurrentLimitsConfigs currentLimitsConfigs = new CurrentLimitsConfigs();
-        
+
         PidValues pidValues = Constants.Intake.pid;
-        
+
         outputConfig.Inverted = Constants.Intake.intakeMotorInverted;
 
-        
         pidSlotConfig.kP = pidValues.kP;
         pidSlotConfig.kI = pidValues.kI;
         pidSlotConfig.kD = pidValues.kD;
-        
+
         pidSlotConfig.kS = Constants.Intake.ff.kS;
         pidSlotConfig.kV = Constants.Intake.ff.kV;
         pidSlotConfig.kA = Constants.Intake.ff.kA;
-        
+
         currentLimitsConfigs.SupplyCurrentLimitEnable = true;
         currentLimitsConfigs.SupplyCurrentLimit = Constants.Intake.stallAmps;
         currentLimitsConfigs.SupplyCurrentLowerLimit = Constants.Intake.freeAmps;
@@ -54,7 +54,7 @@ public class IntakeSubsystem extends SubsystemBase {
         // Could be added back for auto-intake
         // setDefaultCommand(new IntakeCommand(this));
     }
-    
+
     @Override
     public void periodic() {
         double currentAmps = intakeMotor.getSupplyCurrent().getValueAsDouble();
@@ -63,10 +63,16 @@ public class IntakeSubsystem extends SubsystemBase {
         Logger.recordOutput("Intake/RPM_Motor", rpms);
         Logger.recordOutput("Intake/RPMSetpoint", activeRpmSetpoint);
     }
-    
+
     public void ballsIn() {
-        VelocityVoltage request = new VelocityVoltage(Constants.Intake.intakeSpeedRPM);
-        activeRpmSetpoint = Constants.Intake.intakeSpeedRPM;
+        VelocityVoltage request;
+        if (RobotContainer.shooter.getTopRpm() > 100 || RobotContainer.shooter.getTopRpm() < -100) {
+            request = new VelocityVoltage(1200/60);
+            activeRpmSetpoint = 1200/60;
+        } else {
+            request = new VelocityVoltage(Constants.Intake.intakeSpeedRPM);
+            activeRpmSetpoint = Constants.Intake.intakeSpeedRPM;
+        }
         intakeMotor.setControl(request);
     }
 
@@ -87,6 +93,6 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public double getCurrentOutput() {
-        return intakeMotor.getSupplyCurrent().getValueAsDouble();    
+        return intakeMotor.getSupplyCurrent().getValueAsDouble();
     }
 }

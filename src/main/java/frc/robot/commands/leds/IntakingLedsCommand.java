@@ -43,13 +43,14 @@ public class IntakingLedsCommand extends Command {
             return;
         }
 
-        double keyFront = frameIndex*animationDuration * 0.05;
-        double keyBack = (frameIndex * 0.05 + 0.25) % 1.0; // versetzt für "wandernden" Effekt
+        double keyFront = Math.floor(frameIndex * 0.5) * 0.1;
+        double keyBack = (Math.floor(frameIndex*0.5) * 0.1 + 0.25) % 1.0; // versetzt für "wandernden" Effekt
 
         Color colorFront = intakingAnimationKeyframes.get(keyFront);
         Color colorBack = intakingAnimationKeyframes.get(keyBack);
 
         if (colorFront == null || colorBack == null) return; // Protection
+        System.out.println("Intake LEDs called");
 
         RobotContainer.leds.setViewFrontColor(colorFront);
         RobotContainer.leds.setViewBackColor(colorBack);

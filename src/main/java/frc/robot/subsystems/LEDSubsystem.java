@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.commands.leds.IntakingLedsCommand;
 import frc.robot.commands.leds.SetRainbowFullGradientCommand;
 import frc.robot.commands.leds.ShootingLedsCommand;
 import frc.robot.commands.shooter.ShootCommand;
@@ -49,11 +50,13 @@ public class LEDSubsystem extends SubsystemBase {
     private LEDMode activeMode = LEDMode.RAINBOWFULLGRADIENT;
 
     private SetRainbowFullGradientCommand setRainbowFullGradientCommand;
-    private ShootingLedsCommand shootingLedsCommand = new ShootingLedsCommand();
+    private ShootingLedsCommand shootingLedsCommand;
+    private IntakingLedsCommand intakingLedsCommand;
 
     public LEDSubsystem() {
         setRainbowFullGradientCommand = new SetRainbowFullGradientCommand();
         shootingLedsCommand = new ShootingLedsCommand();
+        intakingLedsCommand = new IntakingLedsCommand();
 
         ledStrip = new AddressableLED(Constants.LEDs.ledPort);
         ledBuffer = new AddressableLEDBuffer(Constants.LEDs.ledBufferLength);
@@ -115,8 +118,8 @@ public class LEDSubsystem extends SubsystemBase {
 
         if (RobotContainer.intake.activeRpmSetpoint > 0) {
             activeMode = LEDMode.INTAKING;
-            if (!setRainbowFullGradientCommand.isScheduled()) {
-                setRainbowFullGradientCommand.schedule();
+            if (!intakingLedsCommand.isScheduled()) {
+                intakingLedsCommand.schedule();
             }
             return;
         }
@@ -159,6 +162,7 @@ public class LEDSubsystem extends SubsystemBase {
     public void setViewFrontColor(Color color) {
         for (int i = 0; i < ledBufferViewFront.getLength(); i++) {
             ledBufferViewFront.setLED(i, color);
+            System.out.println("front Called");
         }
     }
 }

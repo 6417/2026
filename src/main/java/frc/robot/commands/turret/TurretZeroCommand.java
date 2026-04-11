@@ -26,6 +26,7 @@ public class TurretZeroCommand extends Command {
         timer.start();
         // Disable soft limits during zeroing, otherwise the motor might stop before hard-stop.
         RobotContainer.turret.setVoltage(Constants.TurretSubsystem.zeroingVoltage);
+        System.out.println("TurretZeroStarted");
     }
 
     @Override

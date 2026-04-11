@@ -1,6 +1,5 @@
 package frc.robot.commands.leds;
 
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -10,68 +9,97 @@ import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
 import java.util.Map;
 
-import org.littletonrobotics.junction.Logger;
-
 public class ShootingLedsCommand extends Command {
 
     boolean makeAShootAnimation;
-    AddressableLEDBuffer ledBuffer;
     Map<Double, Color> shootingAnimationKeyframes;
-    double animationCompletionPercentage = 0;
 
-    double lastExecutionTimestamp = 0;
-    int frameIndex = 0;
+    double lastShotTimestamp = -999;
 
-    private static final double FRAME_PERIOD_S = 0.05; // 20 FPS Ziel
-    private static final double TRIGGER_EARLY_S = 0.01; // früher triggern gegen 20ms-Loop
+    private boolean wasBelowShotThreshold = false;
+    private double brightness = 0.0; // 0..1
+    private double frameIndex = 0.0;
+
+    private static final double LOOP_TIME_S = 0.02; // 20ms angenommen
+    private static final double SHOT_THRESHOLD_FACTOR = 0.95;
+    private static final double MIN_SHOT_GAP_S = 0.12; // entprellt Schuss-Erkennung
+    private static final double BRIGHTNESS_DECAY_PER_S = 0.55; // 1.0 => 100% -> 0% in ~1s
+    private static final double BRIGHTNESS_DECAY_PER_LOOP = 1/BRIGHTNESS_DECAY_PER_S * LOOP_TIME_S;
 
     @Override
     public void initialize() {
         makeAShootAnimation = false;
         shootingAnimationKeyframes = Constants.LEDs.shootingAnimationKeyframes;
-        lastExecutionTimestamp = Timer.getFPGATimestamp();
-        frameIndex = 0;
-        ledBuffer = RobotContainer.leds.ledBuffer;
+        brightness = 0.0;
+        frameIndex = 0.0;
+        wasBelowShotThreshold = false;
         System.out.println("Shooting LEDs Activated");
     }
 
     @Override
     public void execute() {
-        if (RobotContainer.shooter.getTopRpm() < RobotContainer.shooter.getTopSetpointRpm() * 0.95) {
-            makeAShootAnimation = true;
-        }
-
-        if (!makeAShootAnimation)
-            return;
-
         double now = Timer.getFPGATimestamp();
-        if (now - lastExecutionTimestamp >= (FRAME_PERIOD_S - TRIGGER_EARLY_S)) {
-            lastExecutionTimestamp += FRAME_PERIOD_S; // nicht "now", sonst drift/jitter
-            if (now - lastExecutionTimestamp > FRAME_PERIOD_S) {
-                // falls mal stark verzögert: hart resync
-                lastExecutionTimestamp = now;
-            }
-            frameIndex++;
+
+        double setpoint = RobotContainer.shooter.getTopSetpointRpm();
+        boolean belowThreshold = setpoint > 0
+                && RobotContainer.shooter.getTopRpm() < setpoint * SHOT_THRESHOLD_FACTOR;
+
+        boolean shotEvent = belowThreshold
+                && !wasBelowShotThreshold
+                && (now - lastShotTimestamp) >= MIN_SHOT_GAP_S;
+
+        wasBelowShotThreshold = belowThreshold;
+
+        if (shotEvent) {
+            makeAShootAnimation = true;
+            brightness = 1.0; // sofort 100%
+            lastShotTimestamp = now;
+            frameIndex = 0.0;
         }
 
-        // Beispiel: 21 Frames => 0.00, 0.05, ... 1.00
-        if (frameIndex > 20) {
-            frameIndex = 0;
+        if (!makeAShootAnimation) return;
+
+        // feste Reduktion pro Loop (20ms angenommen)
+        brightness = clamp01(brightness - BRIGHTNESS_DECAY_PER_LOOP);
+        if (brightness <= 0.0) {
             makeAShootAnimation = false;
             return;
         }
 
-        double key = frameIndex * 0.05;
-        Color colorValue = shootingAnimationKeyframes.get(key);
-        if (colorValue == null)
-            return; // Protection
-        
-        RobotContainer.leds.setAll(colorValue);
+        // Kein Frame-Feature mehr: feste Basisfarbe aus Keyframe-Map
+        frameIndex += 0.02; // Inkrement pro Loop, damit Animation "fortschreitet" (kann auch mit Zeit statt Frames gemacht werden)
+        if (frameIndex > 1.0) {
+            frameIndex = 0.0; // Loop zurücksetzen, damit Animation wieder von vorne beginnt
+        }
+        Color baseColor = shootingAnimationKeyframes.get(0.0);
+        if (baseColor == null && !shootingAnimationKeyframes.isEmpty()) {
+            baseColor = shootingAnimationKeyframes.values().iterator().next();
+        }
+        if (baseColor == null) return;
+
+        Color fullBrightnessColor = normalizeToFullBrightness(baseColor);
+        Color out = new Color(
+                clamp01(fullBrightnessColor.red * brightness),
+                clamp01(fullBrightnessColor.green * brightness),
+                clamp01(fullBrightnessColor.blue * brightness)
+        );
+        RobotContainer.leds.setAll(out);
+    }
+
+    private static Color normalizeToFullBrightness(Color c) {
+        double max = Math.max(c.red, Math.max(c.green, c.blue));
+        if (max <= 1e-9) return Color.kBlack;
+        return new Color(c.red / max, c.green / max, c.blue / max);
+    }
+
+    private static double clamp01(double x) {
+        return Math.max(0.0, Math.min(1.0, x));
     }
 
     @Override
     public void end(boolean interrupted) {
         makeAShootAnimation = false;
+        brightness = 0.0;
         System.out.println("Shooting LEDs Deactivated");
     }
 

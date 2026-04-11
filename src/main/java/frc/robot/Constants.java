@@ -101,14 +101,18 @@ public class Constants {
         public static final double brightnessScale = 1;
 
         public static final Map<Double, Color> shootingAnimationKeyframes = Map.of(
-                0.0, Color.fromHSV(50, 100, 100),
-                0.3, Color.fromHSV(50, 100, 50),
-                0.4, Color.fromHSV(50, 100, 0),
-                0.5, Color.fromHSV(50, 100, 100),
-                0.7, Color.fromHSV(50, 100, 75),
-                0.8, Color.fromHSV(50, 100, 50),
-                1.0, Color.fromHSV(50, 100, 0));
-        
+            0.0, Color.fromHSV(50, 0, 100),
+            0.1, Color.fromHSV(50, 20, 100),
+            0.2, Color.fromHSV(50, 30, 100),
+            0.3, Color.fromHSV(50, 40, 100),
+            0.4, Color.fromHSV(50, 60, 100),
+            0.5, Color.fromHSV(50, 80, 100),
+            0.6, Color.fromHSV(50, 90, 100),
+            0.7, Color.fromHSV(50, 100, 100),
+            0.8, Color.fromHSV(50, 100, 100),
+            0.9, Color.fromHSV(50, 100, 100)
+            );
+
         public static final Map<Double, Color> intakingAnimationKeyframes = Map.of(
                 0.25, Color.fromHSV(60, 50, 100),
                 0.5, Color.fromHSV(60, 50, 25),
@@ -163,7 +167,7 @@ public class Constants {
         public static final double pitchMotorReverseLimit = tickRange[0] + 0.2;
 
         public static FeedForwardValues kFeedForward = new FeedForwardValues(0.15, 0, 0);
-        
+
         public static final int stallCurrentLimit = 30;
         public static final int freeCurrentLimit = 30;
     }
@@ -193,8 +197,8 @@ public class Constants {
         public static final double intakeSpeed = 0.3;
         public static final double outtakeSpeed = -0.3; // percent
 
-        public static final double intakeSpeedRPM = 1500/60;
-        public static final double outtakeSpeedRPM = -1500/60;
+        public static final double intakeSpeedRPM = 3000 / 60;
+        public static final double outtakeSpeedRPM = -3000 / 60;
 
         public static final PidValues pid = new PidValues(0.1, 0.03, 0.00);
         public static final FeedForwardValues ff = new FeedForwardValues(0.15, 0.09);
@@ -218,7 +222,7 @@ public class Constants {
         public static PidValues pid = new PidValues(0, 0, 0);
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225);
 
-        public static final double defaultRPM = 9999; //If this value is 9999 the run() method uses Dutycycle
+        public static final double defaultRPM = 9999; // If this value is 9999 the run() method uses Dutycycle
 
         public static final IdleMode idleMode = IdleMode.kCoast;
 
