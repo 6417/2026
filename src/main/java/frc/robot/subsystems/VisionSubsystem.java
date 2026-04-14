@@ -5,7 +5,6 @@ import frc.robot.Constants;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -18,34 +17,22 @@ import frc.robot.RobotContainer;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
 public class VisionSubsystem extends SubsystemBase {
-    private String limelightOnTurretName;
     private String limelightUnderTurretName;
 
     public VisionSubsystem() {
         // initialise
-        this.limelightUnderTurretName = Constants.Limelight.useVisionUnderTurret
+        this.limelightUnderTurretName = Constants.Limelight.useVision
                 ? Constants.Limelight.underTurretLimelight
-                : null;
-        this.limelightOnTurretName = Constants.Limelight.useVisionOnTurret ? Constants.Limelight.onTurretLimelight
                 : null;
     }
 
     @Override
     public void periodic() {
-        if (this.isUnderTurretLimelightConnected() && Constants.Limelight.useVisionUnderTurret) {
-            updateOdometryWithUnderTurretLimelight();
+        if (this.isLimelightConnected() && Constants.Limelight.useVision) {
+            updateOdometryWithLimelight();
         }
-        // On-turret limelight reserved for hub aiming — not fused into odometry yet.
-        if (this.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
-            resetLimelightOnTurretPose(RobotContainer.turret.getCurrentAngle());
-            updateOdometryWithOnTurretLimelight();
-        }
-        Logger.recordOutput("/Vision/OnTurretLimelightConnected", this.isOnTurretLimelightConnected());
-        Logger.recordOutput("/Vision/UnderTurretLimelightConnected", this.isUnderTurretLimelightConnected());
-        Logger.recordOutput("/Vision/UseUnderTurret", Constants.Limelight.useVisionUnderTurret);
-        Logger.recordOutput("/Vision/UseOnTurret", Constants.Limelight.useVisionOnTurret);
-        SmartDashboard.putBoolean("Vision/UseUnderTurret", Constants.Limelight.useVisionUnderTurret);
-        SmartDashboard.putBoolean("Vision/UseOnTurret", Constants.Limelight.useVisionOnTurret);
+        Logger.recordOutput("/Vision/LimelightConnected", this.isLimelightConnected());
+        Logger.recordOutput("/Vision/UseLimelight", Constants.Limelight.useVision);
 
     }
 
@@ -53,170 +40,86 @@ public class VisionSubsystem extends SubsystemBase {
      * Disable all vision fusion sources so odometry runs only from drivetrain/gyro.
      * Limelight network tables still stay alive; only the pose fusion path is disabled.
      */
-    public void disableVisionFusion() {
-        Constants.Limelight.useVisionUnderTurret = false;
-        Constants.Limelight.useVisionOnTurret = false;
+    public void disableVision() {
+        Constants.Limelight.useVision = false;
     }
 
     /**
      * Re-enable the configured limelights for odometry fusion.
      */
-    public void enableVisionFusion() {
-        Constants.Limelight.useVisionUnderTurret = true;
-        Constants.Limelight.useVisionOnTurret = true;
+    public void enableVision() {
+        Constants.Limelight.useVision = true;
     }
 
-    public boolean isVisionFusionEnabled() {
-        return Constants.Limelight.useVisionUnderTurret || Constants.Limelight.useVisionOnTurret;
+    public boolean isVisionEnabled() {
+        return Constants.Limelight.useVision;
     }
 
-    public PoseEstimate getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace() {
+    public PoseEstimate getBotPoseEstimate_from_Limelight_in_FieldSpace() {
         // Under Turret uses MT2
         return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUnderTurretName);
     }
 
-    public PoseEstimate getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace() {
-        // On Turret uses MT1
-        return LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightOnTurretName);
-    }
-
-    public boolean isOnTurretLimelightConnected() {
-        return NetworkTableInstance.getDefault().getTable(limelightOnTurretName).containsKey("getpipe");
-    }
-
-    public boolean isUnderTurretLimelightConnected() {
+    public boolean isLimelightConnected() {
         return NetworkTableInstance.getDefault().getTable(limelightUnderTurretName).containsKey("getpipe");
-    }
-
-    /** @param turretAngleDegrees Angle in degrees */
-    public void resetLimelightOnTurretPose(double turretAngleDegrees) {
-        Pose3d standardLimelightPose = Constants.Limelight.zeroDegreesTurretLimelightOnTurret;
-        Pose3d turretRotationMiddlePose = new Pose3d(Constants.TurretSubsystem.TURRET_OFFSET.getX(),
-                Constants.TurretSubsystem.TURRET_OFFSET.getY(), standardLimelightPose.getZ(), new Rotation3d());
-        Translation2d turretRotationMiddlePoseToLimelight = new Translation2d(
-                Constants.Limelight.turretRotationMiddlePoseToLimelight.getY(),
-                Constants.Limelight.turretRotationMiddlePoseToLimelight.getX())
-                .rotateBy(new Rotation2d(Math.toRadians(-turretAngleDegrees))); // ToTest: potential fix of flipping
-                                                                                // turret angle :)
-        double desiredX = turretRotationMiddlePose.getX() + (turretRotationMiddlePoseToLimelight.getX());
-        double desiredY = turretRotationMiddlePose.getY() + (turretRotationMiddlePoseToLimelight.getY());
-        double desiredZ = standardLimelightPose.getZ();
-        double desiredRoll = -90;
-        double desiredPitch = 28.1;
-        double desiredYaw = turretAngleDegrees; // ToTest: potential fix to fix direction LL is pointing at
-                                                // negate because of how the limelight is mounted, so positive turret
-                                                // rotation results in negative yaw rotation of the limelight
-        LimelightHelpers.setCameraPose_RobotSpace(Constants.Limelight.onTurretLimelight, desiredX, desiredY, desiredZ,
-                desiredRoll, desiredPitch, desiredYaw);
     }
 
     /**
      * Update limelight yaw with odometry angle to prevent alliance issues when
      * initializing
      */
-    private void updateLimelightYaw(String limelightName) {
+    public void updateLimelightYaw(String limelightName) {
         LimelightHelpers.SetRobotOrientation(limelightName, RobotContainer.drive.getHeading().getDegrees(), 0, 0, 0, 0,
                 0);
     }
 
-    public void updateOdometryWithOnTurretLimelight() {
-        boolean doRejectUpdate = false;
-        LimelightHelpers.PoseEstimate mt1OnTurret = getBotPoseEstimate_fromOnTurretLimelight_in_FieldSpace();
-
-        // Reject single tag with high ambiguity
-        if (mt1OnTurret.tagCount == 1 && mt1OnTurret.rawFiducials.length == 1) {
-            if (mt1OnTurret.rawFiducials[0].ambiguity > .7) {
-                doRejectUpdate = true;
-                Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "High ambiguity");
-            }
-            if (mt1OnTurret.rawFiducials[0].distToCamera > 4) {
-                doRejectUpdate = true;
-                Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "Tag too far away");
-            }
-        }
-
-        // Reject if no tags
-        if (mt1OnTurret.tagCount == 0) {
-            doRejectUpdate = true;
-            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "No tags visible");
-        }
-
-        // Reject if spinning too fast (same as UnderTurret)
-        double onTurretOmegaDeg = Math.abs(
-                RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
-        if (onTurretOmegaDeg > 45.0) {
-            doRejectUpdate = true;
-            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "Spinning too fast");
-        }
-
-        if (!doRejectUpdate) {
-            double clampedDist = Math.max(mt1OnTurret.avgTagDist, 0.5);
-
-            // // NO ODOMETRY UPDATES with **ON** turret limelight BUT log it
-            // RobotContainer.drive.getSwerveDrive()
-            // .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist
-            // * 2)); // On-turret limelight gets moved around more due to being on the
-            // turret, so we multiply stdDevs by 2 to account for that.
-            // RobotContainer.drive.getSwerveDrive().addVisionMeasurement(
-            // mt1OnTurret.pose,
-            // mt1OnTurret.timestampSeconds); // The add vision meassurement takes care of
-            // latency compensation internally, so we just need to pass the timestamp from
-            // the limelight.
-            Logger.recordOutput("Vision/OnTurretLimelightRejectReason", "None");
-        }
-
-        Logger.recordOutput("Vision/OnTurretPose", mt1OnTurret.pose);
-        Logger.recordOutput("Vision/OnTurretTagCount", mt1OnTurret.tagCount);
-        Logger.recordOutput("Vision/DoRejectUpdateOnTurret", doRejectUpdate);
-    }
-
-    private void updateOdometryWithUnderTurretLimelight() {
+    private void updateOdometryWithLimelight() {
         boolean doRejectUpdate = false;
         updateLimelightYaw(limelightUnderTurretName);
 
-        LimelightHelpers.PoseEstimate mt2UnderTurret = getBotPoseEstimate_fromUnderTurretLimelight_in_FieldSpace();
+        LimelightHelpers.PoseEstimate mt2 = getBotPoseEstimate_from_Limelight_in_FieldSpace();
 
         // Reject if spinning too fast — rolling shutter distorts tag geometry and
         // latency compensation becomes unreliable even with yaw rate provided.
-        double underTurretOmegaDeg = Math.abs(
+        double limelightOmegaDeg = Math.abs(
                 RobotContainer.gyro.getAngularVelocityZWorld().getValue().in(Units.DegreesPerSecond));
-        if (underTurretOmegaDeg > 45.0) {
+        if (limelightOmegaDeg > 45.0) {
             doRejectUpdate = true;
-            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Spinning too fast");
+            Logger.recordOutput("Vision/LimelightOdometryUpdate_Rejectreason", "Spinning too fast");
         }
 
         // Reject if no tags visible
-        if (mt2UnderTurret.tagCount == 0) {
+        if (mt2.tagCount == 0) {
             doRejectUpdate = true;
-            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "No tags visible");
+            Logger.recordOutput("Vision/LimelightOdometryUpdate_Rejectreason", "No tags visible");
         }
 
         // Reject if tag is too far away — pose jumps wildly at long range
-        if (mt2UnderTurret.avgTagDist > 7.5) {
+        if (mt2.avgTagDist > 7.5) {
             doRejectUpdate = true;
-            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Tag too far away");
+            Logger.recordOutput("Vision/LimelightOdometryUpdate_Rejectreason", "Tag too far away");
         }
 
         // Reject if linear speed is too high — latency causes stale pose estimates
         edu.wpi.first.math.kinematics.ChassisSpeeds speeds = RobotContainer.drive.getRobotVelocity();
         if (Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) > 1.5) {
             doRejectUpdate = true;
-            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "Linear speed too high");
+            Logger.recordOutput("Vision/LimelightOdometryUpdate_Rejectreason", "Linear speed too high");
         }
 
         if (!doRejectUpdate) {
             // Clamp minimum distance to prevent near-zero stdDevs at close range
-            double clampedDist = Math.max(mt2UnderTurret.avgTagDist, 0.5);
+            double clampedDist = Math.max(mt2.avgTagDist, 0.5);
             RobotContainer.drive.getSwerveDrive()
                     .setVisionMeasurementStdDevs(Constants.Limelight.standardDevs.times(clampedDist));
-            RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2UnderTurret.pose,
-                    mt2UnderTurret.timestampSeconds); // The add vision meassurement takes care of latency compensation
+            RobotContainer.drive.getSwerveDrive().addVisionMeasurement(mt2.pose,
+                    mt2.timestampSeconds); // The add vision meassurement takes care of latency compensation
                                                       // internally, so we just need to pass the timestamp from the
                                                       // limelight.
-            Logger.recordOutput("Vision/UnderTurretLimelightRejectReason", "None");
+            Logger.recordOutput("Vision/LimelightOdometryUpdate_Rejectreason", "None");
         }
         Logger.recordOutput("Vision/DoRejectUpdateUnderTurret", doRejectUpdate);
-        Logger.recordOutput("Vision/UnderTurretPose", mt2UnderTurret.pose);
-        Logger.recordOutput("Vision/UnderTurretTagCount", mt2UnderTurret.tagCount);
+        Logger.recordOutput("Vision/UnderTurretPose", mt2.pose);
+        Logger.recordOutput("Vision/UnderTurretTagCount", mt2.tagCount);
     }
 }

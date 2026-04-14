@@ -1,16 +1,11 @@
 package frc.robot.subsystems;
 
-import java.awt.Robot;
-
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
-import com.ctre.phoenix6.configs.SlotConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GainSchedBehaviorValue;
 import com.ctre.phoenix6.signals.GainSchedKpBehaviorValue;
@@ -24,24 +19,25 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.FridoFalcon500v6;
 import frc.fridowpi.motors.FridoServoMotor;
 import frc.robot.Constants;
-import frc.robot.RobotContainer;
 
 public class ClimberSubsystem extends SubsystemBase {
     private final FridoFalcon500v6 climberMotor;
     private final Servo servoHatchet;
+
     private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0.0);
-    private final MotorOutputConfigs motorConfigs = new MotorOutputConfigs();
     private final ClosedLoopGeneralConfigs closedLoopGeneralConfigs = new ClosedLoopGeneralConfigs();
     private final Slot0Configs motionMagicSlot1 = new Slot0Configs();
     private final Slot1Configs motionMagicSlot2 = new Slot1Configs();
-    private double highPosition = -25;
-    public double climbPosition = -15;
+
+    private double highPosition = 0;
+    public double climbPosition = 0; // These values will be set after homing.
 
     public boolean isHatchetEngaged = false;
 
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
         servoHatchet = new FridoServoMotor(0);
+
         climberMotor = new FridoFalcon500v6(Constants.Climber.motorId);
         climberMotor.setInverted(Constants.Climber.motorInverted);
         climberMotor.setIdleMode(Constants.Climber.idleMode);
@@ -52,6 +48,7 @@ public class ClimberSubsystem extends SubsystemBase {
         // Start with a known encoder reference.
         climberMotor.setEncoderPosition(Constants.Climber.resetEncoderPosition);
 
+        // Configure servo for the hatchet mechanism with appropriate bounds for engaged/disengaged positions.
         servoHatchet.setBoundsMicroseconds(2200, 1499, 1500, 1501, 800);
     }
 
@@ -59,8 +56,8 @@ public class ClimberSubsystem extends SubsystemBase {
     public void periodic() {
         Logger.recordOutput("/Climber/ServoStatusAngle", servoHatchet.getAngle(), Units.Degrees); //Engaged angle should be around 85, disengaged around 115
         Logger.recordOutput("/Climber/FreeToMove", !isHatchetEngaged);
-        Logger.recordOutput("/Climber/ClimberEncoderTicks", climberMotor.getEncoderTicks());
         Logger.recordOutput("/Climber/ClimberAmps", climberMotor.asTalonFX().getSupplyCurrent().getValueAsDouble(), Units.Amps);
+        Logger.recordOutput("/Climber/ClimberPosition", climberMotor.getEncoderTicks());
         Logger.recordOutput("/Climber/EncoderSetpoint", motionMagicRequest.Position);
     }
 
@@ -84,12 +81,24 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     public void setPositionTop() {
-        // Use slot 0 for extend (out) with outward motion constraints.
+        // Use slot 1 for extend (out) with outward motion constraints.
         motionMagicRequest.Position = highPosition;
         motionMagicRequest.Slot = 1;
         climberMotor.asTalonFX().setControl(motionMagicRequest);
     }
 
+    
+    public void startHoming() {
+        climberMotor.set(Constants.Climber.homingSpeedInPercent);
+    }
+    
+    public void endHoming() {
+        stop();
+        climberMotor.setEncoderPosition(0);
+        highPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.highPositionDifference;
+        climbPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.climbedPositionDifference;
+    }
+    
     public boolean isClimberAtPosition(double position) {
         return (climberMotor.getEncoderTicks() >= position);
     }
@@ -101,34 +110,21 @@ public class ClimberSubsystem extends SubsystemBase {
     public boolean isMotorBlockedDetectionByAmperage(double threshold) {
         return climberMotor.getAppliedAmps() >= threshold;
     }
-
-    public void startHoming() {
-        climberMotor.set(Constants.Climber.homingSpeed);
-    }
     
-    public void endHoming() {
-        stop();
-        climberMotor.setEncoderPosition(0);
-        highPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.highPositionDifference;
-        climbPosition = climberMotor.asTalonFX().getPosition().getValueAsDouble() - Constants.Climber.climbedPositionDifference;
-    }
-    
-
     public void enableServoHatchet() {
         servoHatchet.setAngle(85);
-        System.out.println(" ############# Enabled Servo Hatchet ###############");
         isHatchetEngaged = true;
         // servo engaged, climber cannot move anymore
     }
 
     public void disableServoHatchet() {
-        System.out.println(" ############# Disabled Servo Hatchet ###############");
         servoHatchet.setAngle(115);
         isHatchetEngaged = false;
         // the climber can now move freely
     }
 
     private void reconfigure() {
+        // Configure Motion Magic PID and feedforward values for both slots, as well as general closed-loop settings.
         motionMagicSlot1.kP = Constants.Climber.kPSlot1;
         motionMagicSlot1.kI = Constants.Climber.kISlot1;
         motionMagicSlot1.kD = Constants.Climber.kDSlot1;

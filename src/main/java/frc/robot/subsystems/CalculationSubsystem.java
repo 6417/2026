@@ -11,14 +11,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
-import java.awt.Robot;
 
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.utils.LoggedTunableNumber;
-import swervelib.simulation.ironmaple.simulation.opponentsim.SmartOpponentConfig.ChassisConfig;
 
 public class CalculationSubsystem extends SubsystemBase {
     private Rotation2d desiredTurretAngle;

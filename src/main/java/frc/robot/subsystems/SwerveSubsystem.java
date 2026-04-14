@@ -127,11 +127,8 @@ public class SwerveSubsystem extends SubsystemBase {
         resetOdometry(manualSetPose);
 
         double headingDegrees = manualSetPose.getRotation().getDegrees();
-        if (RobotContainer.vision.isUnderTurretLimelightConnected()) {
+        if (RobotContainer.vision.isLimelightConnected()) {
             LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, headingDegrees, 0, 0, 0, 0, 0);
-        }
-        if (RobotContainer.vision.isOnTurretLimelightConnected()) {
-            LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, headingDegrees, 0, 0, 0, 0, 0);
         }
 
         Logger.recordOutput("Swerve/ManualOdometrySetPose", manualSetPose);
@@ -424,11 +421,8 @@ public class SwerveSubsystem extends SubsystemBase {
      */
     public void zeroGyro() {
         drive.zeroGyro();
-        if (RobotContainer.vision.isUnderTurretLimelightConnected() && Constants.Limelight.useVisionUnderTurret) {
+        if (RobotContainer.vision.isLimelightConnected() && Constants.Limelight.useVision) {
             LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, 0, 0, 0, 0, 0, 0);
-        }
-        if (RobotContainer.vision.isOnTurretLimelightConnected() && Constants.Limelight.useVisionOnTurret) {
-            LimelightHelpers.SetRobotOrientation(Constants.Limelight.onTurretLimelight, 0, 0, 0, 0, 0, 0);
         }
     }
 

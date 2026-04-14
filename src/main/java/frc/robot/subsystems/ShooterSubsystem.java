@@ -30,44 +30,48 @@ public class ShooterSubsystem extends SubsystemBase {
         topMotor = new FridoSparkFlex(Constants.Shooter.topMotorId);
         bottomMotor = new FridoSparkFlex(Constants.Shooter.bottomMotorId);
 
-        motorConfigTop = new SparkFlexConfig();
-        motorConfigBottom = new SparkFlexConfig();
-
         topMotor.setIdleMode(Constants.Shooter.idleMode);
         bottomMotor.setIdleMode(Constants.Shooter.idleMode);
 
         motorConfigBottom.inverted(Constants.Shooter.bottomMotorInverted);
         motorConfigTop.inverted(Constants.Shooter.topMotorInverted);
 
-        motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
-            .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+        motorConfigTop = new SparkFlexConfig();
+        motorConfigBottom = new SparkFlexConfig();
 
-        motorConfigBottom.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0).i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
-            .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+        motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0)
+                .i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
+                .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
+
+        motorConfigBottom.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0)
+                .i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
+                .d(Constants.Shooter.pidBoth.kD, ClosedLoopSlot.kSlot0);
 
         motorConfigBottom.closedLoop.allowedClosedLoopError(Constants.Shooter.motorTolerance, ClosedLoopSlot.kSlot0);
         motorConfigTop.closedLoop.allowedClosedLoopError(Constants.Shooter.motorTolerance, ClosedLoopSlot.kSlot0);
-            
-        FeedForwardConfig ffConfig = new FeedForwardConfig();
-        ffConfig.kS(Constants.Shooter.ffTop.kS);
-        ffConfig.kV(Constants.Shooter.ffTop.kV);
-        motorConfigTop.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
+
+        FeedForwardConfig ffConfigTop = new FeedForwardConfig();
+        ffConfigTop.kS(Constants.Shooter.ffTop.kS);
+        ffConfigTop.kV(Constants.Shooter.ffTop.kV);
+        motorConfigTop.closedLoop.feedForward.apply(ffConfigTop); // for custom feedforward values
 
         FeedForwardConfig ffConfigBottom = new FeedForwardConfig();
         ffConfigBottom.kS(Constants.Shooter.ffBottom.kS);
         ffConfigBottom.kV(Constants.Shooter.ffBottom.kV);
         motorConfigBottom.closedLoop.feedForward.apply(ffConfigBottom); // for custom feedforward values
 
-        topMotor.asSparkFlex().configure(motorConfigTop, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-        bottomMotor.asSparkFlex().configure(motorConfigBottom, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        topMotor.asSparkFlex().configure(motorConfigTop, ResetMode.kNoResetSafeParameters,
+                PersistMode.kPersistParameters);
+        bottomMotor.asSparkFlex().configure(motorConfigBottom, ResetMode.kNoResetSafeParameters,
+                PersistMode.kPersistParameters);
 
     }
 
     public boolean isAtSetpoint() {
-        return Math.abs(topMotor.getEncoderVelocity() - topRpmSetpoint) <= 50 && 
-        Math.abs(bottomMotor.getEncoderVelocity() - bottomRpmSetpoint) <= 50 ;
+        return Math.abs(topMotor.getEncoderVelocity() - topRpmSetpoint) <= 50 &&
+                Math.abs(bottomMotor.getEncoderVelocity() - bottomRpmSetpoint) <= 50;
     }
-
+    
     public void stop() {
         topMotor.stopMotor();
         bottomMotor.stopMotor();
@@ -95,7 +99,7 @@ public class ShooterSubsystem extends SubsystemBase {
         return topMotor.getEncoderVelocity();
     }
 
-    public double getTopSetpointRpm(){
+    public double getTopSetpointRpm() {
         return topRpmSetpoint;
     }
 
@@ -103,7 +107,7 @@ public class ShooterSubsystem extends SubsystemBase {
         return bottomMotor.getEncoderVelocity();
     }
 
-    public double getBottomSetpointRpm(){
+    public double getBottomSetpointRpm() {
         return bottomRpmSetpoint;
     }
 
@@ -118,7 +122,7 @@ public class ShooterSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/TopRPM", topMotor.getEncoderVelocity());
         Logger.recordOutput("Shooter/BottomRPM", bottomMotor.getEncoderVelocity());
         Logger.recordOutput("Shooter/TuningMode", Constants.TUNING_MODE);
-        Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint()&&RobotContainer.turret.isAtSetpoint());
+        Logger.recordOutput("Shooter/RobotThinksHeCanShoot", isAtSetpoint() && RobotContainer.turret.isAtSetpoint());
     }
 
     private double clampRpm(double rpm) {
@@ -126,7 +130,8 @@ public class ShooterSubsystem extends SubsystemBase {
          * Clamp target RPM to a safe range.
          *
          * If maxRpm is set to 0, we treat it as "no limit" and return the input.
-         * This avoids accidentally limiting the shooter when maxRpm is not configured yet.
+         * This avoids accidentally limiting the shooter when maxRpm is not configured
+         * yet.
          */
         if (Constants.Shooter.maxRpm > 0.0) {
             rpm = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);

@@ -137,11 +137,11 @@ public class Controls implements Sendable {
                         // TODO: Test on the real field that this button snaps to the intended
                         // starting pose for both alliances and that vision re-enable behaves as
                         // expected.
-                        if (RobotContainer.vision.isVisionFusionEnabled()) {
-                                RobotContainer.vision.disableVisionFusion();
+                        if (RobotContainer.vision.isVisionEnabled()) {
+                                RobotContainer.vision.disableVision();
                                 RobotContainer.drive.resetOdometryToManualSetPose();
                         } else {
-                                RobotContainer.vision.enableVisionFusion();
+                                RobotContainer.vision.enableVision();
                         }
                 }));
                 rbButtonDrive.whileTrue(new DriveToTrench());

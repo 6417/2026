@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -19,12 +18,10 @@ import frc.robot.utils.LinearInterpolationTable;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.List;
 import java.awt.geom.Point2D;
 import java.util.Map;
 import java.util.Optional;
 
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -120,19 +117,12 @@ public class Constants {
     }
 
     public static final class Limelight {
-        public static boolean useVisionUnderTurret = true;
-        public static boolean useVisionOnTurret = true;
+        public static boolean useVision = true;
         public static final String underTurretLimelight = "limelight-undturr";
-        public static final String onTurretLimelight = "limelight-onturr";
-        public static final Pose3d zeroDegreesTurretLimelightOnTurret = new Pose3d(0.101928, 0.187121, 0.475335,
-                new Rotation3d());
-        public static final Pose3d turretRotationMiddlePoseToLimelight = new Pose3d(0.10193, 0.02512, 0,
-                new Rotation3d());
 
         public static Vector<N3> standardDevs = VecBuilder.fill(0.2, 0.2, 9999999);
         // Higher base uncertainty for on-turret: turret encoder error and mechanical
         // compliance add position uncertainty beyond pure MegaTag2 tag-distance noise.
-        public static Vector<N3> onTurretStdDevs = VecBuilder.fill(0.5, 0.5, 9999999);
         public static int throttleWhileDisabled = 200;
         public static int throttleWhileEnabled = 0;
     }
@@ -197,7 +187,7 @@ public class Constants {
         public static final double outtakeSpeed = -0.3; // percent
 
         public static final double intakeSpeedRPS = 50;
-        public static final double intakeSpeedDuringShootingRPS = 20;
+        public static final double intakeSpeedDuringShootingRPS = 50;
         public static final double outtakeSpeedRPS = -50;
 
         public static final PidValues pid = new PidValues(0.1, 0.03, 0.00);
@@ -322,13 +312,18 @@ public class Constants {
         public static final IdleMode idleMode = IdleMode.kBrake;
 
         public static final double resetEncoderPosition = 0.0;
-        public static final double homingSpeed = 0.08;
+        public static final double homingSpeedInPercent = 0.08;
         public static final double homingAmpsThreshold = 1.3;
         public static final double zeroingTimeoutSec = 0.5;
         public static final double zeroingCurrentThreshold = 0.045;
 
         public static final double climbSpeed = 0.4;
         public static final double prepareClimbSpeed = -0.05;
+
+        
+        public static final double climbedPositionDifference = 13; // 13 is the difference in encoder ticks between the reset position (0) and the position where the robot is fully climbed on the bar
+        public static double highPositionDifference = 27.283; // 27.283 is the difference in encoder ticks between the reset position (0) and the position where the robot is on the same height as the bar
+        public static final double positionTolerance = 0.2;
 
         public static final PidValues pidValuesOut = new PidValues(0.05, 0.0, 0.6, 0.0);
         public static final PidValues pidValuesIn = new PidValues(0.05, 0.0, 0.2, 0.0);
@@ -340,7 +335,7 @@ public class Constants {
         public static final double kVSlot1 = 0.0;
         public static final double kASlot1 = 0.0;
         public static final double kGSlot1 = -0.185;
-
+        
         public static final double kPSlot2 = 1.8;
         public static final double kISlot2 = 1.0;
         public static final double kDSlot2 = 0.0;
@@ -348,21 +343,17 @@ public class Constants {
         public static final double kVSlot2 = 0.0;
         public static final double kASlot2 = 0.0;
         public static final double kGSlot2 = -0.185;
-
+        
         public static final double gainSchedErrorThreshold = 0.8;
-
+        
         public static final Optional<Double> kG = Optional.of(0.0);
-
+        
         public static double allowedClosedLoopErrorOut = 0.5;
         public static double maxAccelerationOut = 1000; // halfed
         public static double maxVelocityOut = 10; // 3000 led to white sparkles
-
+        
         public static double allowedClosedLoopErrorIn = 0.5;
         public static double maxAccelerationIn = 60000;
         public static double maxVelocityIn = 6000;
-
-        public static final double climbedPositionDifference = 13;
-        public static double highPositionDifference = 27.283;
-        public static final double positionTolerance = 0.2;
     }
 }

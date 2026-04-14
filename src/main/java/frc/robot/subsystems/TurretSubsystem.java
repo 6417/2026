@@ -13,7 +13,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,7 +20,6 @@ import frc.fridowpi.motors.FridoSparkMax;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.commands.turret.SmartTurret;
 import org.littletonrobotics.junction.Logger;
 
 public class TurretSubsystem extends SubsystemBase {
