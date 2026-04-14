@@ -422,7 +422,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void zeroGyro() {
         drive.zeroGyro();
         if (RobotContainer.vision.isLimelightConnected() && Constants.Limelight.useVision) {
-            LimelightHelpers.SetRobotOrientation(Constants.Limelight.underTurretLimelight, 0, 0, 0, 0, 0, 0);
+            RobotContainer.vision.updateLimelightYaw(Constants.Limelight.underTurretLimelight);
         }
     }
 

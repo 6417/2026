@@ -30,14 +30,15 @@ public class ShooterSubsystem extends SubsystemBase {
         topMotor = new FridoSparkFlex(Constants.Shooter.topMotorId);
         bottomMotor = new FridoSparkFlex(Constants.Shooter.bottomMotorId);
 
+        motorConfigTop = new SparkFlexConfig();
+        motorConfigBottom = new SparkFlexConfig();
+
         topMotor.setIdleMode(Constants.Shooter.idleMode);
         bottomMotor.setIdleMode(Constants.Shooter.idleMode);
 
         motorConfigBottom.inverted(Constants.Shooter.bottomMotorInverted);
         motorConfigTop.inverted(Constants.Shooter.topMotorInverted);
 
-        motorConfigTop = new SparkFlexConfig();
-        motorConfigBottom = new SparkFlexConfig();
 
         motorConfigTop.closedLoop.p(Constants.Shooter.pidBoth.kP, ClosedLoopSlot.kSlot0)
                 .i(Constants.Shooter.pidBoth.kI, ClosedLoopSlot.kSlot0)
