@@ -16,14 +16,12 @@ public class SetRainbowFullGradientCommand extends Command {
 
         @Override
         public void initialize() {
-            System.out.println("ççççççççççççççççç Rainbow Animation Started ççççççççççççççççç");
         }
 
         @Override
         public void execute() {
             if (Timer.getFPGATimestamp()%1 <= 0.9) {
                 ++currentHue;
-                System.out.println("§§§§§§§§§§§§§§§§§§§§§§§§§ Hue Increased §§§§§§§§§§§§§§§§§§§§§§§§§");
                 if (currentHue >= 180) {
                     currentHue = 0;
                 }

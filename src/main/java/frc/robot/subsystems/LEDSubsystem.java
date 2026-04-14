@@ -116,7 +116,7 @@ public class LEDSubsystem extends SubsystemBase {
             return;
         }
 
-        if (RobotContainer.intake.activeRpmSetpoint > 0) {
+        if (RobotContainer.intake.activeRpsSetpoint > 0) {
             activeMode = LEDMode.INTAKING;
             if (!intakingLedsCommand.isScheduled()) {
                 intakingLedsCommand.schedule();

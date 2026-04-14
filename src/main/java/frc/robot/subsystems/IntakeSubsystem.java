@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.motors.utils.PidValues;
@@ -18,14 +19,14 @@ import frc.robot.RobotContainer;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final TalonFX intakeMotor;
-    double activeRpmSetpoint;
+    double activeRpsSetpoint;
 
     public IntakeSubsystem() {
         intakeMotor = new TalonFX(Constants.Intake.intakeMotorId);
 
         intakeMotor.setNeutralMode(Constants.Intake.idleMode);
 
-        activeRpmSetpoint = 0;
+        activeRpsSetpoint = 0;
 
         MotorOutputConfigs outputConfig = new MotorOutputConfigs();
         Slot0Configs pidSlotConfig = new Slot0Configs();
@@ -57,28 +58,26 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double currentAmps = intakeMotor.getSupplyCurrent().getValueAsDouble();
-        double rpms = intakeMotor.getRotorVelocity().getValueAsDouble();
-        Logger.recordOutput("Intake/Current", currentAmps);
-        Logger.recordOutput("Intake/RPM_Motor", rpms);
-        Logger.recordOutput("Intake/RPMSetpoint", activeRpmSetpoint);
+        Logger.recordOutput("Intake/Current", intakeMotor.getSupplyCurrent().getValueAsDouble(), Units.Amps);
+        Logger.recordOutput("Intake/RPS_Motor", intakeMotor.getRotorVelocity().getValueAsDouble(), Units.RotationsPerSecond);
+        Logger.recordOutput("Intake/RPSSetpoint", activeRpsSetpoint, Units.RotationsPerSecond);
     }
 
     public void ballsIn() {
         VelocityVoltage request;
-        if (RobotContainer.shooter.getTopRpm() > 100 || RobotContainer.shooter.getTopRpm() < -100) {
-            request = new VelocityVoltage(1200/60);
-            activeRpmSetpoint = 1200/60;
+        if (RobotContainer.shooter.getTopRpm() > 300 || RobotContainer.shooter.getTopRpm() < -300) {
+            request = new VelocityVoltage(Constants.Intake.intakeSpeedDuringShootingRPS);
+            activeRpsSetpoint = Constants.Intake.intakeSpeedDuringShootingRPS;
         } else {
-            request = new VelocityVoltage(Constants.Intake.intakeSpeedRPM);
-            activeRpmSetpoint = Constants.Intake.intakeSpeedRPM;
+            request = new VelocityVoltage(Constants.Intake.intakeSpeedRPS);
+            activeRpsSetpoint = Constants.Intake.intakeSpeedRPS;
         }
         intakeMotor.setControl(request);
     }
 
     public void ballsOut() {
-        VelocityVoltage request = new VelocityVoltage(Constants.Intake.outtakeSpeedRPM);
-        activeRpmSetpoint = Constants.Intake.outtakeSpeedRPM;
+        VelocityVoltage request = new VelocityVoltage(Constants.Intake.outtakeSpeedRPS);
+        activeRpsSetpoint = Constants.Intake.outtakeSpeedRPS;
         intakeMotor.setControl(request);
     }
 
@@ -89,7 +88,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void stop() {
         intakeMotor.stopMotor();
-        activeRpmSetpoint = 0;
+        activeRpsSetpoint = 0;
     }
 
     public double getCurrentOutput() {
