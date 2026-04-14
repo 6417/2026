@@ -24,24 +24,27 @@ public class IndexerSubsystem extends SubsystemBase {
     SparkMaxConfig motorConfig;
 
     public IndexerSubsystem() {
-        indexerMotor = new FridoSparkMax(Constants.Indexer.motorID);
         beamBreakSender = new DigitalOutput(Constants.Indexer.beamBreakSenderDio);
         beamBreakSender.set(true);
         beamBreak = new DigitalInput(Constants.Indexer.beamBreakDio);
+
+        indexerMotor = new FridoSparkMax(Constants.Indexer.motorID);
         motorConfig = new SparkMaxConfig();
 
-        indexerMotor.setIdleMode(Constants.Indexer.mode);
-        
         indexerMotor.setInverted(Constants.Indexer.motorInverted);
+        indexerMotor.setIdleMode(Constants.Indexer.mode);
 
-        motorConfig.closedLoop.p(Constants.Indexer.pid.kP, ClosedLoopSlot.kSlot0).i(Constants.Indexer.pid.kI, ClosedLoopSlot.kSlot0)
-            .d(Constants.Indexer.pid.kD, ClosedLoopSlot.kSlot0);
-            
+        motorConfig.closedLoop.p(Constants.Indexer.pid.kP, ClosedLoopSlot.kSlot0)
+                .i(Constants.Indexer.pid.kI, ClosedLoopSlot.kSlot0)
+                .d(Constants.Indexer.pid.kD, ClosedLoopSlot.kSlot0);
+
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.Indexer.ff.kS);
         ffConfig.kV(Constants.Indexer.ff.kV);
+
         motorConfig.closedLoop.feedForward.apply(ffConfig); // for custom feedforward values
-        indexerMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        indexerMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
+                PersistMode.kPersistParameters);
     }
 
     @Override
@@ -50,7 +53,8 @@ public class IndexerSubsystem extends SubsystemBase {
         Logger.recordOutput("Indexer/BeamBreakRaw", beamBreak.get());
         Logger.recordOutput("Indexer/IndexerCurrent", indexerMotor.asSparkMax().getOutputCurrent(), Units.Amps);
         Logger.recordOutput("Indexer/IndexerRPM", indexerMotor.asSparkMax().getEncoder().getVelocity(), Units.RPM);
-        Logger.recordOutput("Indexer/IndexerRPMSetpoint", indexerMotor.asSparkMax().getClosedLoopController().getSetpoint(), Units.RPM);
+        Logger.recordOutput("Indexer/IndexerRPMSetpoint",
+                indexerMotor.asSparkMax().getClosedLoopController().getSetpoint(), Units.RPM);
     }
 
     public void stop() {
@@ -64,16 +68,13 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void run(double topRpm) {
-        // velocity control takes RPM as input
+        // Velocity control takes RPM as input
         indexerMotor.asSparkMax().getClosedLoopController().setSetpoint(topRpm, ControlType.kVelocity);
     }
-    
+
     public boolean isBallDetected() {
         boolean raw = beamBreak.get();
-        // active-low: sensor returns false when beam is broken (common for beam breaks).
-        // active-high: sensor returns true when beam is broken.
-        // beamBreakInverted = true means the sensor is active-high, so we should not invert.
-        boolean beamBlocked = Constants.Indexer.beamBreakInverted ? raw : !raw;
+        boolean beamBlocked = Constants.Indexer.beamBreakInverted ? raw : !raw; // If the sensor is inverted, then a raw value of true means the beam is blocked. Otherwise, a raw value of false means the beam is blocked.
         return beamBlocked;
     }
 }
