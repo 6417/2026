@@ -17,8 +17,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.climber.ClearHatchetForMovement;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
+import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.utils.Utils;
 
@@ -206,6 +209,11 @@ public class Robot extends LoggedRobot { // LoggedRobot for AdvantageKit
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+  }
+
+
+  @Override
+  public void teleopExit() {
   }
 
   /** This function is called once when the robot is disabled. */

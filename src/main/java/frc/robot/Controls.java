@@ -7,6 +7,8 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -29,6 +31,7 @@ import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
+import frc.robot.subsystems.LEDSubsystem.LEDMode;
 import frc.robot.Constants;
 
 /**
@@ -132,12 +135,12 @@ public class Controls implements Sendable {
                 // BACK disables vision fusion and resets odometry to the known field placement.
                 windowsButtonDrive.onTrue(new InstantCommand(() -> {
                         // TODO: Test on the real field that this button snaps to the intended
-                        // starting pose for both alliances and that vision re-enable behaves as expected.
+                        // starting pose for both alliances and that vision re-enable behaves as
+                        // expected.
                         if (RobotContainer.vision.isVisionFusionEnabled()) {
                                 RobotContainer.vision.disableVisionFusion();
                                 RobotContainer.drive.resetOdometryToManualSetPose();
-                        }
-                        else {
+                        } else {
                                 RobotContainer.vision.enableVisionFusion();
                         }
                 }));
@@ -210,6 +213,21 @@ public class Controls implements Sendable {
                                 .onTrue(new RelaseChuchichaestliAndHomeRelativeEncoderCommand());
 
                 Shuffleboard.getTab("Drive").add("Controls", this);
+
+                // SmartDashboard
+                SmartDashboard.putData("RainbowLED",
+                                new InstantCommand(() -> RobotContainer.leds.setActiveMode(LEDMode.RAINBOWFULLGRADIENT)));
+                SmartDashboard.putData("Red LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kRed)));
+                SmartDashboard.putData("Blue LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kBlue)));
+                SmartDashboard.putData("Green LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kGreen)));
+                SmartDashboard.putData("Violet LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kMagenta)));
+                SmartDashboard.putData("Cyan LEDs",
+                                new InstantCommand(() -> RobotContainer.leds.setAll(Color.kCyan)));
+                
         }
 
         public double[] getJoystickAxesFromDriveJoystick() {
@@ -263,6 +281,7 @@ public class Controls implements Sendable {
                 builder.addDoubleProperty("SlewRate Limit", () -> slewRateLimit, null);
                 builder.addBooleanProperty("SquareInputs", () -> inputsSquared, val -> inputsSquared = val);
                 builder.addBooleanProperty("isAutomatedTurret", () -> isTurretAutomated(), null);
+
         }
 
 }
