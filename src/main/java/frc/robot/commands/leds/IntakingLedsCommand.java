@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
@@ -54,6 +55,7 @@ public class IntakingLedsCommand extends Command {
 
         RobotContainer.leds.setViewFrontColor(colorFront);
         RobotContainer.leds.setViewBackColor(colorBack);
+        RobotContainer.leds.setAll(colorFront);
     }
 
     @Override
