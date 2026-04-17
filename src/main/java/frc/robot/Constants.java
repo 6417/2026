@@ -163,7 +163,7 @@ public class Constants {
         public static final double maxSpeed = 4.9; 
         public static final double moduleXoffset = 0.262;
         public static final double moduleYoffset = 0.262;
-        public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
+        public static final double maxTurnSpeed = 10;// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
                                                      // (Math.PI *
                                                      // 2); // rps
         public static final boolean oldTurnSystem = true;
