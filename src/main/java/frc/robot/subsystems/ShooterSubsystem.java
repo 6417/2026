@@ -134,9 +134,8 @@ public class ShooterSubsystem extends SubsystemBase {
          * This avoids accidentally limiting the shooter when maxRpm is not configured
          * yet.
          */
-        if (Constants.Shooter.maxRpm > 0.0) {
-            rpm = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);
-        }
+        rpm = MathUtil.clamp(rpm, -Constants.Shooter.maxRpm, Constants.Shooter.maxRpm);
+        
         return rpm;
     }
 }

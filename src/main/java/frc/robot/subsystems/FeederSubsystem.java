@@ -48,7 +48,7 @@ public class FeederSubsystem extends SubsystemBase {
     }
 
     public void run(double rpmSetpoint) {
-        if (Constants.Feeder.usePID) {
+        if (!Constants.Feeder.usePID) {
             feederMotor.set(1);
         } else {
             feederMotor.asSparkMax().getClosedLoopController().setSetpoint(rpmSetpoint, ControlType.kVelocity);

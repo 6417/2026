@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.TurretSubsystem;
 
 /**
  * Zeroes turret rotation by gently driving to a hard stop and watching current.

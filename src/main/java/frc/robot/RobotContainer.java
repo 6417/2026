@@ -18,11 +18,9 @@ import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
-import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
 import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.commands.shooter.ShooterParallelCommandGroup;
 import frc.robot.commands.turret.SmartTurret;
-import frc.robot.commands.turret.TurretZeroCommand;
 import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -82,7 +80,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        //System.out.println(autoChooser.getSelected().toString());
         return drive.getAutonomousCommand(autoChooser.getSelected());
     }
 }

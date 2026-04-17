@@ -3,15 +3,12 @@ package frc.robot;
 import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -20,8 +17,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.drive.DriveToShootpos;
 import frc.robot.commands.drive.DriveToTrench;
 import frc.robot.commands.intake.IntakeCommand;
-import frc.robot.commands.shooter.PulseFeederCommand;
-// import frc.robot.commands.shooter.ServoCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.climber.FinalClimbCommand;
 import frc.robot.commands.climber.RelaseChuchichaestliAndHomeRelativeEncoderCommand;
@@ -29,10 +24,8 @@ import frc.robot.commands.climber.PrepareClimbCommand;
 import frc.robot.commands.turret.SmartTurret;
 import frc.robot.commands.turret.TurretControlled;
 import frc.robot.commands.turret.TurretZeroCommand;
-import frc.robot.commands.turret.ZeroGroup;
 import frc.robot.subsystems.CalculationSubsystem.ShootingMode;
 import frc.robot.subsystems.LEDSubsystem.LEDMode;
-import frc.robot.Constants;
 
 /**
  * Holds the data concerning input, which should be available
@@ -54,8 +47,8 @@ public class Controls implements Sendable {
         Trigger windowsButtonDrive = driveJoystick.back();
         Trigger burgerButtonDrive = driveJoystick.start();
         Trigger pov0Drive = driveJoystick.povUp();
-        Trigger speedButton = driveJoystick.leftStick();
-        Trigger intakeButton = driveJoystick.rightStick();
+        Trigger leftStickDrive = driveJoystick.leftStick();
+        Trigger rightStickDrive = driveJoystick.rightStick();
 
         Trigger ltButtonOperator = operatorJoystick.leftTrigger();
         Trigger rtButtonOperator = operatorJoystick.rightTrigger();
@@ -125,18 +118,17 @@ public class Controls implements Sendable {
         public Controls() {
                 RobotContainer.turret.setDefaultCommand(new SmartTurret());
 
-                intakeButton.whileTrue(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(true)))
+                // Set the back of the Roboter to drivedirection
+                rightStickDrive.whileTrue(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(true)))
                                 .onFalse(new InstantCommand(() -> RobotContainer.drive.setIntakeMode(false)));
 
                 burgerButtonDrive.onTrue(new InstantCommand(() -> {
                         RobotContainer.drive.zeroGyroWithAlliance();
                 }));
+
                 // Driver fallback if limelight pose updates become unreliable:
                 // BACK disables vision fusion and resets odometry to the known field placement.
                 windowsButtonDrive.onTrue(new InstantCommand(() -> {
-                        // TODO: Test on the real field that this button snaps to the intended
-                        // starting pose for both alliances and that vision re-enable behaves as
-                        // expected.
                         if (RobotContainer.vision.isVisionEnabled()) {
                                 RobotContainer.vision.disableVision();
                                 RobotContainer.drive.resetOdometryToManualSetPose();
@@ -144,6 +136,7 @@ public class Controls implements Sendable {
                                 RobotContainer.vision.enableVision();
                         }
                 }));
+
                 rbButtonDrive.whileTrue(new DriveToTrench());
                 rtButtonDrive.debounce(0.02).whileTrue(new IntakeCommand());
 
@@ -156,6 +149,7 @@ public class Controls implements Sendable {
                                 }));
 
                 xButtonDrive.onTrue(new InstantCommand(() -> RobotContainer.drive.lock()));
+
                 yButtonOperator.toggleOnTrue(new StartEndCommand(
                                 () -> {
                                         RobotContainer.turret
@@ -166,13 +160,11 @@ public class Controls implements Sendable {
                                         RobotContainer.turret.setDefaultCommand(new SmartTurret());
                                         automatedTurret = true;
                                 }));
+                
                 leftStickOperator.onTrue(new TurretZeroCommand());
 
-                ltButtonDrive
-                                .whileTrue(new ShootCommand()
-                                                .alongWith(new ParallelCommandGroup(new PulseFeederCommand() /*,
-                                                                new ServoCommand() */).repeatedly()))
-                                .onFalse(new InstantCommand(() -> RobotContainer.feeder.stop()));
+                ltButtonDrive.whileTrue(new ShootCommand());
+
                 rtButtonOperator.whileTrue(new DriveToShootpos());
 
                 lbButtonOperator.whileTrue(Commands.startEnd(
@@ -192,15 +184,12 @@ public class Controls implements Sendable {
                                         }
                                 }));
 
-                xButtonOperator.whileTrue(
-                                new InstantCommand(() -> RobotContainer.indexer.run(Constants.Indexer.defaultRPM)))
-                                .onFalse(new InstantCommand(() -> RobotContainer.indexer.stop()));
-
                 // Climber presets and manual jog controls.
                 aButtonOperator.onTrue(new SequentialCommandGroup(
                                 new FinalClimbCommand(),
                                 new WaitCommand(0.3),
                                 new InstantCommand(() -> RobotContainer.climber.stop())));
+
                 bButtonOperator.onTrue(new PrepareClimbCommand());
 
                 pov0Operator.whileTrue(Commands.startEnd(() -> RobotContainer.climber.setManualPercent(-0.05),

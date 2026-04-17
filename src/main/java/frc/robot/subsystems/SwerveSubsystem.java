@@ -203,7 +203,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void driveWithJoysticks() {
         double[] joystickAxes = RobotContainer.controls.getJoystickAxesFromDriveJoystick();
         if (!driveIsAutomated) {
-            int i = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1 : -1; // TODO check the orElse: maybe rather give error if cannot get the alliance?
+            int i = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1 : -1; 
             if (Constants.SwerveSubsystem.oldTurnSystem) {
                 if (intakeMode) {
                     driveCommand(
@@ -381,7 +381,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     private Alliance getAlliance() {
-        return edu.wpi.first.wpilibj.DriverStation.getAlliance().orElse(Alliance.Blue); // TODO check the orElse: maybe rather give error if cannot get the alliance?
+        return edu.wpi.first.wpilibj.DriverStation.getAlliance().orElse(Alliance.Blue); 
     }
 
     public Pose2d getPose() {

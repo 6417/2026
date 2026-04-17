@@ -3,7 +3,6 @@ package frc.robot.commands.shooter;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Controls;
 import frc.robot.RobotContainer;
 import frc.robot.Controls.DriveSpeed;
 import frc.robot.utils.Utils;

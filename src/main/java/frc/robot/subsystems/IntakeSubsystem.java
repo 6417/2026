@@ -49,8 +49,6 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeMotor.getConfigurator().apply(outputConfig);
         intakeMotor.getConfigurator().apply(currentLimitsConfigs);
         intakeMotor.getConfigurator().apply(pidSlotConfig);
-        // Could be added back for auto-intake
-        // setDefaultCommand(new IntakeCommand(this));
     }
 
     @Override

@@ -4,9 +4,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -127,7 +125,7 @@ public class Constants {
         public static int throttleWhileEnabled = 0;
     }
 
-    public static final class TurretSubsystem { // TODO: set constants
+    public static final class TurretSubsystem { 
         public static final int ID = 42;
 
         public static final Translation2d TURRET_OFFSET = new Translation2d(0.162, 0.0); // in meters
@@ -162,7 +160,7 @@ public class Constants {
     }
 
     public static final class SwerveSubsystem {
-        public static final double maxSpeed = 4.9; // TODO: for testing
+        public static final double maxSpeed = 4.9; 
         public static final double moduleXoffset = 0.262;
         public static final double moduleYoffset = 0.262;
         public static final double maxTurnSpeed = 10;// 12// Math.hypot(moduleXoffset, moduleYoffset) * maxSpeed /
@@ -187,6 +185,8 @@ public class Constants {
         public static final double outtakeSpeed = -0.3; // percent
 
         public static final double intakeSpeedRPS = 50;
+        
+        ;
         public static final double intakeSpeedDuringShootingRPS = 50;
         public static final double outtakeSpeedRPS = -50;
 
@@ -196,7 +196,7 @@ public class Constants {
         // In Ampère
         // current chop: 115
         // stall: 100
-        // free: 30
+        // free: 60
         public static final int stallAmps = 100;
         public static final int freeAmps = 60;
 
@@ -216,9 +216,6 @@ public class Constants {
         public static FeedForwardValues ff = new FeedForwardValues(0.27, 0.00225);
 
         public static final double defaultRPM = 5600; // The "empirical" max RPM of the Feedermotor is 5676 RPM.
-
-        // public static final double pulseForwardDuration = 0.9;
-        // public static final double pulseReverseDuration = 0.15;
     }
 
     public static final class Indexer {

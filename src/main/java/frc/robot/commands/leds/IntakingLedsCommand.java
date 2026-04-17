@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.LEDSubsystem.LEDMode;
 
@@ -23,7 +22,6 @@ public class IntakingLedsCommand extends Command {
     public void initialize() {
         frameIndex = 0;
         intakingAnimationKeyframes = Constants.LEDs.intakingAnimationKeyframes;
-        System.out.println("Intaking LEDs Activated");
     }
 
     @Override
@@ -51,7 +49,6 @@ public class IntakingLedsCommand extends Command {
         Color colorBack = intakingAnimationKeyframes.get(keyBack);
 
         if (colorFront == null || colorBack == null) return; // Protection
-        System.out.println("Intake LEDs called");
 
         RobotContainer.leds.setViewFrontColor(colorFront);
         RobotContainer.leds.setViewBackColor(colorBack);
