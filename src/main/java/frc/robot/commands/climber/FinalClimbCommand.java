@@ -18,7 +18,6 @@ public class FinalClimbCommand extends SequentialCommandGroup {
     
     // Inner Command für die eigentliche Climb-Bewegung
     private static class FinalClimbMovement extends Command {
-        boolean robotIsClimbed = false;
 
         public FinalClimbMovement() {
             addRequirements(RobotContainer.climber);
@@ -26,14 +25,14 @@ public class FinalClimbCommand extends SequentialCommandGroup {
 
         @Override
         public void initialize() {
-            robotIsClimbed = false;
+            RobotContainer.climber.robotIsClimbed = false;
             RobotContainer.climber.setManualPercent(Constants.Climber.climbSpeed);
         }
 
         @Override
         public void execute() {
             if (RobotContainer.climber.isClimberAtPosition(RobotContainer.climber.climbPosition)) {
-                robotIsClimbed = true;
+                RobotContainer.climber.robotIsClimbed = true;
             }
         }
 
@@ -45,7 +44,7 @@ public class FinalClimbCommand extends SequentialCommandGroup {
 
         @Override
         public boolean isFinished() {
-            return robotIsClimbed;
+            return RobotContainer.climber.robotIsClimbed;
         }
     }
 }

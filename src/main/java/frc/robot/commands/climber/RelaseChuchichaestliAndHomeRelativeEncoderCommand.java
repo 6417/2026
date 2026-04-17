@@ -15,7 +15,10 @@ public class RelaseChuchichaestliAndHomeRelativeEncoderCommand extends Sequentia
             new ClearHatchetForMovement(),
             new HomingMovement(),
             new WaitCommand(0.5),
-            new InstantCommand(()->RobotContainer.climber.stop())
+            new InstantCommand(()-> {
+                RobotContainer.climber.stop();
+                RobotContainer.climber.robotIsClimbed = false;
+            })
         );
     }
     

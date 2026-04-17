@@ -19,7 +19,14 @@ public class ShootCommand extends Command {
 
     @Override
     public void execute() {
-        Pair<Double, Double> rpm = RobotContainer.calculationSubsystem.getRPMShooter();
+        Pair<Double, Double> rpm;
+        Pair<Double, Double> calculated = RobotContainer.calculationSubsystem.getRPMShooter();
+
+        if (RobotContainer.climber.robotIsClimbed)
+            rpm = new Pair<Double, Double>(calculated.getFirst() + Constants.Climber.climberBonus, calculated.getSecond() + Constants.Climber.climberBonus);
+        else 
+            rpm = calculated;
+
         RobotContainer.shooter.run(rpm.getSecond(), rpm.getFirst());
         if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint()) {
             RobotContainer.indexer.run(Constants.Indexer.defaultRPM);

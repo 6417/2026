@@ -33,6 +33,7 @@ public class ClimberSubsystem extends SubsystemBase {
     public double climbPosition = 0; // These values will be set after homing.
 
     public boolean isHatchetEngaged = false;
+    public boolean robotIsClimbed = false;
 
     public ClimberSubsystem() {
         // Initialize motor and apply configuration from Constants.
@@ -59,6 +60,7 @@ public class ClimberSubsystem extends SubsystemBase {
         Logger.recordOutput("/Climber/ClimberAmps", climberMotor.asTalonFX().getSupplyCurrent().getValueAsDouble(), Units.Amps);
         Logger.recordOutput("/Climber/ClimberPosition", climberMotor.getEncoderTicks());
         Logger.recordOutput("/Climber/EncoderSetpoint", motionMagicRequest.Position);
+        Logger.recordOutput("/Climber/isClimbed", robotIsClimbed);
     }
 
     public void setManualPercent(double percent) {

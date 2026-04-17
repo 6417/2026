@@ -10,7 +10,10 @@ public class PrepareClimbCommand extends SequentialCommandGroup {
         addRequirements(RobotContainer.climber);
         addCommands(
                 new ClearHatchetForMovement(),
-                new InstantCommand(() -> RobotContainer.climber.setPositionTop()));
+                new InstantCommand(() -> {
+                    RobotContainer.climber.setPositionTop();
+                    RobotContainer.climber.robotIsClimbed = false;
+                }));
     }
 
 }

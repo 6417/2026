@@ -22,7 +22,11 @@ public class SmartTurret extends Command {
         if (RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_STATIONARY_TURRETFIX || RobotContainer.calculationSubsystem.getShootingMode() == ShootingMode.MODE_FIXED) {
             return;
         }
-        RobotContainer.turret.setDesiredRotation(desiredAngle);
+
+        if (RobotContainer.climber.robotIsClimbed)
+            RobotContainer.turret.setDesiredRotation(desiredAngle.plus(Rotation2d.fromDegrees(5)));
+        else
+            RobotContainer.turret.setDesiredRotation(desiredAngle);
     }
 
     @Override

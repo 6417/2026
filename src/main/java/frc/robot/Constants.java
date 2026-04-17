@@ -317,6 +317,8 @@ public class Constants {
         public static final double climbSpeed = 0.4;
         public static final double prepareClimbSpeed = -0.05;
 
+        public static final double climberBonus = 100.0;
+
         
         public static final double climbedPositionDifference = 13; // 13 is the difference in encoder ticks between the reset position (0) and the position where the robot is fully climbed on the bar
         public static double highPositionDifference = 27.283; // 27.283 is the difference in encoder ticks between the reset position (0) and the position where the robot is on the same height as the bar
