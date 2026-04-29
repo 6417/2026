@@ -27,14 +27,11 @@ public class ShootCommand extends Command {
         else 
             rpm = calculated;
 
+        RobotContainer.feeder.run(Constants.Feeder.defaultRPM);
+        RobotContainer.indexer.run(Constants.Indexer.defaultRPM);
+
         RobotContainer.shooter.run(rpm.getSecond(), rpm.getFirst());
-        if (RobotContainer.shooter.isAtSetpoint() && RobotContainer.turret.isAtSetpoint()) {
-            RobotContainer.indexer.run(Constants.Indexer.defaultRPM);
-            RobotContainer.feeder.run(Constants.Feeder.defaultRPM);
-        } else {
-            RobotContainer.indexer.stop();
-            RobotContainer.feeder.stop();
-        }
+       
 
         if (Utils.isRobotNotInAllianceZone()) {
             RobotContainer.controls.setActiveSpeedFactor(DriveSpeed.DEFAULT_SPEED);
