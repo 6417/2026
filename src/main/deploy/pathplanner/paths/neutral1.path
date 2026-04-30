@@ -16,46 +16,64 @@
     },
     {
       "anchor": {
-        "x": 6.072919254658385,
-        "y": 7.385545617173523
+        "x": 7.707,
+        "y": 6.75
       },
       "prevControl": {
-        "x": 5.775146406388642,
-        "y": 7.53181898846495
+        "x": 7.707,
+        "y": 7.297185798872852
       },
       "nextControl": {
-        "x": 6.302640753888853,
-        "y": 7.2727007478517836
+        "x": 7.707,
+        "y": 6.202814201127148
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.08695652173913,
-        "y": 6.566069210292812
+        "x": 7.706645962732919,
+        "y": 4.950721153846155
       },
       "prevControl": {
-        "x": 6.9201247083308095,
-        "y": 6.752260364848799
+        "x": 7.706645962732919,
+        "y": 5.200721153846155
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "wpneutral"
+      "linkedName": "wpENd"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7517899761336518,
+      "waypointRelativePos": 0.4,
       "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 0.8954635108481268,
+      "rotationDegrees": 90.0
     }
   ],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0,
+      "maxWaypointRelativePos": 0.7943925233644819,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 2.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 4.5,
+    "maxAcceleration": 5.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -63,7 +81,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 135.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": "Neutralzone",

@@ -89,6 +89,7 @@ public class Controls implements Sendable {
 
         public static double deadBandDrive = 0.08;
         public static double deadBandTurn = 0.08;
+        public static double shootFactor = 1;
         public boolean inputsSquared = false;
 
         public boolean slewRateLimited = true;
@@ -232,6 +233,8 @@ public class Controls implements Sendable {
                         }
                         joystickAxes[i] *= getAccelerationSensitivity();
                 }
+
+                joystickAxes[2] *= shootFactor;
                 return joystickAxes;
         }
 

@@ -25,6 +25,8 @@ public class CalculationSubsystem extends SubsystemBase {
     private double distanceHubTurret;
     private boolean inNeutralzone;
 
+    private double bonusRPM = 200;
+
     // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
     private final LoggedTunableNumber tuneTopRpm = new LoggedTunableNumber("Shooter/TuneTopRPM",
             Constants.Shooter.defaultRPM);
@@ -182,9 +184,7 @@ public class CalculationSubsystem extends SubsystemBase {
 
         // Update distance for RPM lookup (use virtual target distance when aiming at
         // hub)
-        if (!inNeutralzone) {
-            distanceHubTurret = turretToVirtual.getNorm();
-        }
+        distanceHubTurret = turretToVirtual.getNorm();
 
         desiredShooterRPM = shootFromDistance();
 
@@ -199,7 +199,6 @@ public class CalculationSubsystem extends SubsystemBase {
         Pose2d robotPose = RobotContainer.drive.getPose();
 
         Translation2d poseToTrack = null;
-        boolean toHub = false;
 
         if (Constants.Field.EDGERight == null || Constants.Field.EDGELeft == null
                 || Constants.Field.HUB_CENTER == null) {
@@ -213,7 +212,6 @@ public class CalculationSubsystem extends SubsystemBase {
                 (all == Alliance.Red && robotPose.getX() > Constants.Field.neutralZoneStartX)) {
             // in team zone, track hub
             poseToTrack = Constants.Field.HUB_CENTER.getTranslation();
-            toHub = true;
             inNeutralzone = false;
         } else {
             // in neutral zone, track edges for shooting balls in the back to team zone
@@ -234,10 +232,7 @@ public class CalculationSubsystem extends SubsystemBase {
         // translation from turret to desired position
         Translation2d turretToDesiredpos = poseToTrack.minus(turretPose);
 
-        if (toHub) {
-            // calculate distance to hub
-            distanceHubTurret = turretToDesiredpos.getNorm();
-        }
+        distanceHubTurret = turretToDesiredpos.getNorm();
 
         return turretToDesiredpos;
     }
@@ -253,8 +248,8 @@ public class CalculationSubsystem extends SubsystemBase {
         Pair<Double, Double> result;
         if (Constants.TUNING_MODE) {
             // Read live from dashboard — adjust without redeploying.
-            topRpm = tuneTopRpm.get();
-            bottomRpm = tuneBottomRpm.get();
+            topRpm = tuneTopRpm.get() + bonusRPM;
+            bottomRpm = tuneBottomRpm.get() + bonusRPM;
         } else if(inNeutralzone) {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret); // works now
             bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
@@ -296,6 +291,7 @@ public class CalculationSubsystem extends SubsystemBase {
         }, null);
         // builder.addDoubleProperty("Desired Turret Angle", () ->
         // getDesiredTurretAngle().getDegrees(), null);
+        builder.addDoubleProperty("bonusRPM", () -> bonusRPM, (double v)  -> bonusRPM = v);
         builder.addDoubleProperty("Distance Hub Turret", () -> distanceHubTurret, null);
         super.initSendable(builder);
     }

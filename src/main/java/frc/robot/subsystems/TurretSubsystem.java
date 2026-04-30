@@ -64,7 +64,7 @@ public class TurretSubsystem extends SubsystemBase {
         turretMotor.asSparkMax().configure(motorConfig, ResetMode.kNoResetSafeParameters,
                 PersistMode.kPersistParameters);
 
-        angleLimiter = new SlewRateLimiter(18);
+        angleLimiter = new SlewRateLimiter(360);
 
         resetRotationEncoder();
 
