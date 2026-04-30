@@ -17,13 +17,26 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake"
+                  "name": "ZeroGroup"
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "ZeroGroup"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 2.0
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Intake"
+                      }
+                    }
+                  ]
                 }
               }
             ]
@@ -55,7 +68,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 8.0
+                  "waitTime": 6.0
                 }
               },
               {

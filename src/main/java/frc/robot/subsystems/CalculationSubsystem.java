@@ -25,7 +25,7 @@ public class CalculationSubsystem extends SubsystemBase {
     private double distanceHubTurret;
     private boolean inNeutralzone;
 
-    private double bonusRPM = 200;
+    private double bonusRPM = 150;
 
     // Tunable RPMs — adjustable live from the dashboard when TUNING_MODE is on.
     private final LoggedTunableNumber tuneTopRpm = new LoggedTunableNumber("Shooter/TuneTopRPM",
@@ -248,8 +248,8 @@ public class CalculationSubsystem extends SubsystemBase {
         Pair<Double, Double> result;
         if (Constants.TUNING_MODE) {
             // Read live from dashboard — adjust without redeploying.
-            topRpm = tuneTopRpm.get() + bonusRPM;
-            bottomRpm = tuneBottomRpm.get() + bonusRPM;
+            topRpm = tuneTopRpm.get();
+            bottomRpm = tuneBottomRpm.get();
         } else if(inNeutralzone) {
             topRpm = Constants.Shooter.topRpmTable.getOutput(distanceHubTurret); // works now
             bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
@@ -259,7 +259,7 @@ public class CalculationSubsystem extends SubsystemBase {
             bottomRpm = Constants.Shooter.bottomRpmTable.getOutput(distanceHubTurret);
         }
 
-        result = Pair.of(bottomRpm, topRpm);
+        result = Pair.of(bottomRpm + bonusRPM, topRpm + bonusRPM);
         return result;
     }
 

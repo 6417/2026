@@ -28,6 +28,8 @@ public class FeederSubsystem extends SubsystemBase {
                 .i(Constants.Feeder.pid.kI, ClosedLoopSlot.kSlot0)
                 .d(Constants.Feeder.pid.kD, ClosedLoopSlot.kSlot0);
 
+        motorConfig.smartCurrentLimit(50);
+
         FeedForwardConfig ffConfig = new FeedForwardConfig();
         ffConfig.kS(Constants.Feeder.ff.kS);
         ffConfig.kV(Constants.Feeder.ff.kV);
